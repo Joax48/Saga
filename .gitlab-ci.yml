@@ -1,0 +1,68 @@
+stages:
+  - install
+  - quality
+  - test
+  - build
+
+variables:
+  NODE_VERSION: "20"
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - apps/api/node_modules/
+    - apps/web/node_modules/
+
+install:
+  stage: install
+  image: node:${NODE_VERSION}-alpine
+  script:
+    - npm ci
+  artifacts:
+    paths:
+      - node_modules/
+      - apps/api/node_modules/
+      - apps/web/node_modules/
+
+lint:
+  stage: quality
+  image: node:${NODE_VERSION}-alpine
+  needs: [install]
+  script:
+    - npm run lint
+
+typecheck:
+  stage: quality
+  image: node:${NODE_VERSION}-alpine
+  needs: [install]
+  script:
+    - npm run typecheck
+
+test:
+  stage: test
+  image: node:${NODE_VERSION}-alpine
+  needs: [install]
+  script:
+    - npm run test
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+
+build:api:
+  stage: build
+  image: node:${NODE_VERSION}-alpine
+  needs: [lint, typecheck, test]
+  script:
+    - npm run build:api
+  artifacts:
+    paths:
+      - apps/api/dist/
+
+build:web:
+  stage: build
+  image: node:${NODE_VERSION}-alpine
+  needs: [lint, typecheck, test]
+  script:
+    - npm run build:web
+  artifacts:
+    paths:
+      - apps/web/.next/

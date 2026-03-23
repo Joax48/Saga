@@ -1,93 +1,160 @@
-# SAGA_UCR
+# Scientific Production Portal
 
+Public portal for researchers, projects, and scientific productions.
 
+## Tech Stack
 
-## Getting started
+| Layer      | Technology                  | Port |
+|------------|-----------------------------|------|
+| Frontend   | Next.js 14 (App Router)     | 3000 |
+| Backend    | NestJS 10 (BFF pattern)     | 3001 |
+| Database   | PostgreSQL 16               | 5432 |
+| Language   | TypeScript 5                |      |
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Project Structure
 
 ```
-cd existing_repo
-git remote add origin https://git.ucr.ac.cr/project/saga_ucr.git
-git branch -M main
-git push -uf origin main
+├── apps/
+│   ├── api/              # NestJS backend
+│   │   └── src/
+│   │       ├── main.ts              # Entry point
+│   │       ├── app.module.ts        # Root module
+│   │       ├── bff/                 # BFF controllers (one per view)
+│   │       ├── application/         # Application query coordinators
+│   │       ├── common/              # Database, guards, filters, middleware
+│   │       └── modules/             # Domain modules
+│   │           ├── researchers/     # Entity, repository, service, module
+│   │           ├── units/
+│   │           ├── projects/
+│   │           ├── scientific-productions/
+│   │           └── auth/
+│   └── web/              # Next.js frontend
+│       └── src/app/
+│           ├── layout.tsx
+│           └── page.tsx
+├── docker-compose.yml
+├── .gitlab-ci.yml
+├── .env.development
+├── Makefile
+└── package.json          # npm workspaces root
 ```
 
-## Integrate with your tools
+### Architecture (BFF Pattern)
 
-* [Set up project integrations](https://git.ucr.ac.cr/project/saga_ucr/-/settings/integrations)
+```
+Browser → Next.js (web) → NestJS BFF controllers → Application queries → Services → Repositories → PostgreSQL
+```
 
-## Collaborate with your team
+- **BFF controllers** — one controller per frontend view (home, search, researchers, units)
+- **Application queries** — orchestrate multiple services to build view-specific responses
+- **Services** — business logic per domain entity
+- **Repositories** — raw SQL with parameterized queries (`$1`, `$2`) via `pg`
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+## Prerequisites
 
-## Test and Deploy
+- [Node.js](https://nodejs.org/) >= 18
+- [Docker](https://www.docker.com/) and Docker Compose (for containerized setup)
 
-Use the built-in continuous integration in GitLab.
+## Getting Started
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+### 1. Install dependencies
 
-***
+```bash
+npm install
+```
 
-# Editing this README
+### 2. Environment variables
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+```bash
+cp .env.development .env
+```
 
-## Suggestions for a good README
+Edit `.env` with your values. Both `.env` and `.env.development` are git-ignored.
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### 3. Run locally (without Docker)
 
-## Name
-Choose a self-explaining name for your project.
+Start the API and frontend in separate terminals:
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+```bash
+# Terminal 1 — API on port 3001
+npm run dev:api
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+# Terminal 2 — Web on port 3000
+npm run dev:web
+```
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+### 4. Run with Docker Compose
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+```bash
+# Build and start all services (db, api, web)
+docker compose up --build
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+# Or in detached mode
+docker compose up --build -d
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+# Stop
+docker compose down
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+# Stop and remove volumes (deletes database data)
+docker compose down -v
+```
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+## Available Commands
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+All commands are run from the project root.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+### Development
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+| Command          | Description                        |
+|------------------|------------------------------------|
+| `npm run dev:api`  | Start API server (ts-node, port 3001) |
+| `npm run dev:web`  | Start web dev server (port 3000)   |
+
+### Build
+
+| Command            | Description              |
+|--------------------|--------------------------|
+| `npm run build`      | Build API and web        |
+| `npm run build:api`  | Build API only           |
+| `npm run build:web`  | Build web only           |
+
+### Quality
+
+| Command              | Description                      |
+|----------------------|----------------------------------|
+| `npm run lint`         | Lint API and web                 |
+| `npm run typecheck`    | TypeScript type checking         |
+| `npm run test`         | Run API tests                    |
+| `npm run format`       | Format all files with Prettier   |
+| `npm run format:check` | Check formatting without writing |
+| `npm run ci`           | Run lint + typecheck + test      |
+
+### Makefile
+
+A `Makefile` is provided for convenience:
+
+```bash
+make install      # Install dependencies
+make dev-api      # Start API
+make dev-web      # Start web
+make lint         # Lint all
+make typecheck    # Type check all
+make test         # Run tests
+make format       # Format code
+make ci           # Full CI pipeline
+make docker-up    # Docker compose up --build
+make docker-down  # Docker compose down
+make clean        # Remove node_modules, dist, .next
+```
+
+## CI/CD
+
+GitLab CI is configured in `.gitlab-ci.yml` with the following pipeline:
+
+```
+install → lint + typecheck (parallel) → test → build:api + build:web (parallel)
+```
 
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Private — all rights reserved.
