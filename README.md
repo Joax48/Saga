@@ -19,14 +19,21 @@ Public portal for researchers, projects, and scientific productions.
 │   │   └── src/
 │   │       ├── main.ts              # Entry point
 │   │       ├── app.module.ts        # Root module
-│   │       ├── bff/                 # BFF controllers (one per view)
-│   │       ├── application/         # Application query coordinators
+│   │       ├── bff/                 # BFF controllers and request models
+│   │       │   ├── public/          # Public-facing controllers
+│   │       │   └── common/          # Shared components
+│   │       ├── application/         # Use cases, view models, and shared app concerns
+│   │       │   ├── use-cases/       # View-specific orchestration
+│   │       │   ├── view-models/     # Response shapes returned to the client
+│   │       │   └── common/          # Shared components
 │   │       ├── common/              # Database, guards, filters, middleware
 │   │       └── modules/             # Domain modules
-│   │           ├── researchers/     # Entity, repository, service, module
+│   │           ├── researchers/     # Entity, reader contract, data/, module
 │   │           ├── units/
 │   │           ├── projects/
 │   │           ├── scientific-productions/
+│   │           ├── search/
+│   │           ├── cache/
 │   │           └── auth/
 │   └── web/              # Next.js frontend
 │       └── src/app/
@@ -42,12 +49,13 @@ Public portal for researchers, projects, and scientific productions.
 ### Architecture (BFF Pattern)
 
 ```
-Browser → Next.js (web) → NestJS BFF controllers → Application queries → Services → Repositories → PostgreSQL
+Browser → Next.js (web) → NestJS BFF controllers → Application use cases → Reader services/contracts → Repositories → PostgreSQL
 ```
 
-- **BFF controllers** — one controller per frontend view (home, search, researchers, units)
-- **Application queries** — orchestrate multiple services to build view-specific responses
-- **Services** — business logic per domain entity
+- **BFF controllers** — organized by interface boundary, with public endpoints under `bff/public`
+- **Application use cases** — orchestrate readers to build view-specific responses
+- **View models** — define the response shapes returned by each public view
+- **Reader services/contracts** — read logic behind explicit contracts
 - **Repositories** — raw SQL with parameterized queries (`$1`, `$2`) via `pg`
 
 ## Prerequisites
@@ -97,6 +105,17 @@ docker compose down
 
 # Stop and remove volumes (deletes database data)
 docker compose down -v
+```
+
+## Testing Structure
+
+The API test suite is organized under:
+
+```text
+apps/api/src/tests/
+├── unit/
+├── integration/
+└── e2e/
 ```
 
 ## Available Commands

@@ -1,0 +1,1 @@
+// Pagination Request — represents pagination parameters.
