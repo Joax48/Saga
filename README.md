@@ -4,12 +4,12 @@ Public portal for researchers, projects, and scientific productions.
 
 ## Tech Stack
 
-| Layer      | Technology                  | Port |
-|------------|-----------------------------|------|
-| Frontend   | Next.js 14 (App Router)     | 3000 |
-| Backend    | NestJS 10 (BFF pattern)     | 3001 |
-| Database   | PostgreSQL 16               | 5432 |
-| Language   | TypeScript 5                |      |
+| Layer    | Technology              | Port |
+| -------- | ----------------------- | ---- |
+| Frontend | Next.js 14 (App Router) | 3000 |
+| Backend  | NestJS 10 (BFF pattern) | 3001 |
+| Database | PostgreSQL 16           | 5432 |
+| Language | TypeScript 5            |      |
 
 ## Project Structure
 
@@ -124,23 +124,23 @@ All commands are run from the project root.
 
 ### Development
 
-| Command          | Description                        |
-|------------------|------------------------------------|
-| `npm run dev:api`  | Start API server (ts-node, port 3001) |
-| `npm run dev:web`  | Start web dev server (port 3000)   |
+| Command           | Description                           |
+| ----------------- | ------------------------------------- |
+| `npm run dev:api` | Start API server (ts-node, port 3001) |
+| `npm run dev:web` | Start web dev server (port 3000)      |
 
 ### Build
 
-| Command            | Description              |
-|--------------------|--------------------------|
-| `npm run build`      | Build API and web        |
-| `npm run build:api`  | Build API only           |
-| `npm run build:web`  | Build web only           |
+| Command             | Description       |
+| ------------------- | ----------------- |
+| `npm run build`     | Build API and web |
+| `npm run build:api` | Build API only    |
+| `npm run build:web` | Build web only    |
 
 ### Quality
 
-| Command              | Description                      |
-|----------------------|----------------------------------|
+| Command                | Description                      |
+| ---------------------- | -------------------------------- |
 | `npm run lint`         | Lint API and web                 |
 | `npm run typecheck`    | TypeScript type checking         |
 | `npm run test`         | Run API tests                    |

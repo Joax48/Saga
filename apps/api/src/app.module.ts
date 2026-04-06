@@ -8,6 +8,6 @@ import { CacheModule } from './modules/cache/cache.module';
 // and application queries are implemented, import and register them here.
 
 @Module({
-  imports: [SearchModule, CacheModule]
+  imports: [SearchModule, CacheModule],
 })
-export class AppModule { }
+export class AppModule {}
