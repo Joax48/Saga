@@ -1,3 +1,160 @@
 @import "tailwindcss";
-
 @plugin "daisyui";
+
+/* ─── Colour Primitives ──────────────────────────────────────────────── */
+
+@theme {
+  --font-sans: Arial, Helvetica, sans-serif;
+
+  /* Azul (Blue) */
+  --color-azul-50: #E5F4FF;
+  --color-azul-100: #CCE9FF;
+  --color-azul-200: #99D3FF;
+  --color-azul-300: #66BDFF;
+  --color-azul-400: #33A7FF;
+  --color-azul-500: #005DA4;
+  --color-azul-600: #0074CC;
+  --color-azul-700: #005799;
+  --color-azul-800: #003A66;
+  --color-azul-900: #001D33;
+  --color-azul-950: #000E1A;
+
+  /* Celeste (SkyBlue) */
+  --color-celeste-50: #E5F9FF;
+  --color-celeste-100: #ccf4ff;
+  --color-celeste-200: #99e9ff;
+  --color-celeste-300: #66deff;
+  --color-celeste-400: #33d3ff;
+  --color-celeste-500: #00bef3;
+  --color-celeste-600: #00a0cc;
+  --color-celeste-700: #007899;
+  --color-celeste-800: #005066;
+  --color-celeste-900: #002833;
+  --color-celeste-950: #00141A;
+
+  /* Amarillo (Yellow) */
+  --color-amarillo-300: #FFE066;
+  --color-amarillo-500: #FFE16A;
+  --color-amarillo-700: #997A00;
+
+  /* Verde (Green) */
+  --color-verde-300: #97D293;
+  --color-verde-500: #6DC067;
+  --color-verde-700: #316C2D;
+
+  /* Escala de Grises */
+  --color-gray-0: #ffffff;
+  --color-gray-25: #fafafa;
+  --color-gray-50: #F7F7F7;
+  --color-gray-100: #F2F2F2;
+  --color-gray-200: #E6E6E6;
+  --color-gray-300: #D9D9D9;
+  --color-gray-400: #BDBDBD;
+  --color-gray-500: #999999;
+  --color-gray-600: #666666;
+  --color-gray-700: #494949;
+  --color-gray-800: #323232;
+  --color-gray-850: #232323;
+  --color-gray-900: #1A1A1A;
+  --color-gray-950: #0F0F0F;
+
+  /* Border Radius */
+  --radius-100: 0px;
+  --radius-200: 4px;
+  --radius-300: 8px;
+  --radius-400: 12px;
+  --radius-500: 20px;
+  --radius-600: 30px;
+  --radius-700: 9999px;
+
+  /* Border Width */
+  --border-width-100: 0.5px;
+  --border-width-200: 1px;
+  --border-width-300: 2px;
+  --border-width-400: 3px;
+
+  /* Typography Scale */
+  --text-h1: 2.5rem;
+  --text-h1--line-height: 3rem;
+  --text-h2: 2rem;
+  --text-h2--line-height: 2.5rem;
+  --text-h3: 1.75rem;
+  --text-h3--line-height: 2.25rem;
+  --text-h4: 1.5rem;
+  --text-h4--line-height: 2rem;
+  --text-h5: 1.25rem;
+  --text-h5--line-height: 1.75rem;
+  --text-h6: 1.125rem;
+  --text-h6--line-height: 1.5rem;
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.75rem;
+  --text-body-md: 1rem;
+  --text-body-md--line-height: 1.5rem;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.25rem;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+}
+
+/* ─── Semantic Colour Tokens ─────────────────────────────────────────── */
+/*
+ * These override DaisyUI's theme variables so that the component
+ * library stays in sync with the design system.
+ */
+
+:root {
+  /* DaisyUI theme overrides */
+  --color-primary: var(--color-azul-600);
+  --color-primary-content: var(--color-gray-0);
+  --color-secondary: var(--color-celeste-500);
+  --color-secondary-content: var(--color-gray-0);
+  --color-accent: var(--color-amarillo-500);
+  --color-neutral: var(--color-gray-900);
+  --color-neutral-content: var(--color-gray-0);
+  --color-base-100: var(--color-gray-0);
+  --color-base-200: var(--color-gray-50);
+  --color-base-300: var(--color-gray-100);
+  --color-base-content: var(--color-gray-900);
+  --color-success: var(--color-verde-500);
+  --color-success-content: var(--color-gray-0);
+  --color-error: #ef4444;
+  --color-error-content: var(--color-gray-0);
+  --color-info: var(--color-azul-500);
+  --color-info-content: var(--color-gray-0);
+
+  /* Semantic Background Tokens */
+  --color-bg-neutral-primary: var(--color-gray-0);
+  --color-bg-neutral-secondary: var(--color-gray-50);
+  --color-bg-neutral-tertiary: var(--color-gray-100);
+  --color-bg-neutral-disabled: var(--color-gray-200);
+  --color-bg-neutral-inverse-primary: var(--color-gray-900);
+  --color-bg-neutral-inverse-secondary: var(--color-gray-800);
+  --color-bg-brand-primary: var(--color-azul-600);
+  --color-bg-brand-secondary: var(--color-gray-0);
+  --color-bg-success-subtle: var(--color-verde-300);
+  --color-bg-success-bold: var(--color-verde-700);
+  --color-bg-error-subtle: #fca5a5;
+  --color-bg-error-bold: #dc2626;
+  --color-bg-info-subtle: #005DA4; /* Semantic/Info/Subtle — used for tags */
+  --color-bg-info-bold: var(--color-azul-600);
+
+  /* Semantic Text Tokens */
+  --color-text-neutral-primary: var(--color-gray-900);
+  --color-text-neutral-secondary: var(--color-gray-600);
+  --color-text-neutral-tertiary: var(--color-gray-400);
+  --color-text-neutral-disabled: var(--color-gray-300);
+  --color-text-neutral-inverse-primary: var(--color-gray-0);
+  --color-text-brand-primary: #005799; /* Text/Link/Default */
+  --color-text-brand-secondary: var(--color-gray-0);
+  --color-text-success-primary: var(--color-verde-500);
+  --color-text-error-primary: #ef4444;
+  --color-text-info-primary: var(--color-azul-500);
+
+  /* Semantic Icon Tokens */
+  --color-icon-neutral-primary: var(--color-gray-900);
+  --color-icon-neutral-secondary: var(--color-gray-600);
+  --color-icon-neutral-tertiary: var(--color-gray-400);
+  --color-icon-neutral-disabled: var(--color-gray-300);
+  --color-icon-neutral-inverse-primary: var(--color-gray-0);
+  --color-icon-brand-primary: var(--color-azul-600);
+}
