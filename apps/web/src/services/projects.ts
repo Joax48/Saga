@@ -61,23 +61,40 @@ function mapProjectSummaryToProject(item: ProjectSummaryApiDto): Project {
 /**
  * Fetches a paginated list of projects from the backend.
  *
- * Search and filter parameters are currently accepted for API compatibility,
- * but they are not yet used by the active backend endpoint.
+ * When a search query is provided, this uses the backend search endpoint.
  */
 export function getProjects(
   page = 1,
   limit = 10,
-  _searchQuery = '',
+  searchQuery = '',
   _queryFilters: ProjectQueryFilters = {},
 ): Promise<PaginatedProjects> {
-  return request<PaginatedListResponseDto<ProjectSummaryApiDto>>(
-    `/projects?page=${page}&limit=${limit}`,
-  ).then((response) => ({
-    data: response.items.map(mapProjectSummaryToProject),
-    page: response.page,
-    limit: response.limit,
-    total: response.total,
-  }));
+  const endpoint =
+    searchQuery.trim().length > 0
+      ? `/projects/search?q=${encodeURIComponent(searchQuery.trim())}&page=${page}&limit=${limit}`
+      : `/projects?page=${page}&limit=${limit}`;
+
+  return request<PaginatedListResponseDto<ProjectSummaryApiDto>>(endpoint).then(
+    (response) => ({
+      data: response.items.map(mapProjectSummaryToProject),
+      page: response.page,
+      limit: response.limit,
+      total: response.total,
+    }),
+  );
+}
+
+/**
+ * Explicit search helper for projects.
+ *
+ * This is useful if a page wants to call the search endpoint directly.
+ */
+export function searchProjects(
+  q: string,
+  page = 1,
+  limit = 10,
+): Promise<PaginatedProjects> {
+  return getProjects(page, limit, q, {});
 }
 
 /**

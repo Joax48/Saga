@@ -34,6 +34,11 @@ const COUNT_PROJECTS_QUERY = `
   FROM Project
 `;
 
+const SEARCH_PROJECTS_WHERE = `
+  WHERE LOWER(Project.code) LIKE LOWER(?)
+     OR LOWER(Project.name) LIKE LOWER(?)
+`;
+
 @Injectable()
 export class ProjectsRepository {
   constructor(private readonly databaseService: DatabaseService) {}
@@ -43,6 +48,23 @@ export class ProjectsRepository {
     const [items, total] = await Promise.all([
       this.findItemsPage(limit, offset),
       this.countProjects(),
+    ]);
+
+    return {
+      items,
+      total,
+    };
+  }
+
+  async searchByNameOrCode(
+    query: string,
+    page: number,
+    limit: number,
+  ): Promise<PaginatedResult<Project>> {
+    const offset = this.calculateOffset(page, limit);
+    const [items, total] = await Promise.all([
+      this.findSearchItemsPage(query, limit, offset),
+      this.countSearchProjects(query),
     ]);
 
     return {
@@ -64,6 +86,37 @@ export class ProjectsRepository {
   private async countProjects(): Promise<number> {
     const totalRows =
       await this.databaseService.query<ProjectCountRow>(COUNT_PROJECTS_QUERY);
+
+    return totalRows[0]?.totalCount ?? 0;
+  }
+
+  private async findSearchItemsPage(
+    query: string,
+    limit: number,
+    offset: number,
+  ): Promise<Project[]> {
+    const searchTerm = `%${query}%`;
+
+    return this.databaseService.query<Project>(
+      `
+        ${BASE_PROJECTS_SELECT}
+        ${SEARCH_PROJECTS_WHERE}
+        ORDER BY Project.name ASC
+        LIMIT ${limit} OFFSET ${offset}
+      `,
+      [searchTerm, searchTerm],
+    );
+  }
+
+  private async countSearchProjects(query: string): Promise<number> {
+    const searchTerm = `%${query}%`;
+    const totalRows = await this.databaseService.query<ProjectCountRow>(
+      `
+        ${COUNT_PROJECTS_QUERY}
+        ${SEARCH_PROJECTS_WHERE}
+      `,
+      [searchTerm, searchTerm],
+    );
 
     return totalRows[0]?.totalCount ?? 0;
   }

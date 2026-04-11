@@ -130,10 +130,7 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-20 pt-4">
-                <DetailRow
-                  label="Tipo de Investigación"
-                  value={project.researchType}
-                />
+                <DetailRow label="Tipo de Investigación" value={project.researchType} />
                 <DetailRow label="Tipo de Proyecto" value={project.projectType} />
                 <DetailRow label="Tipo de Financiamiento" value={project.fundingType} />
                 <DetailRow label="Estado" value={project.status} />
