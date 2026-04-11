@@ -1,6 +1,6 @@
 ## Description
 
-A brief explanation of what this PR does and why it is necessary.  
+A brief explanation of what this PR does and why it is necessary.
 
 ---
 
@@ -11,7 +11,7 @@ A brief explanation of what this PR does and why it is necessary.
 - [ ] Refactor (code improvement with no behavior change)
 - [ ] Chore (configuration, dependencies, CI)
 - [ ] Documentation update
-- [ ] Test  (tests only)
+- [ ] Test (tests only)
 
 ---
 

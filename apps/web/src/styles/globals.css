@@ -158,3 +158,28 @@
   --color-icon-neutral-inverse-primary: var(--color-gray-0);
   --color-icon-brand-primary: var(--color-azul-600);
 }
+
+.text-h1 {
+  font-size: var(--text-h1);
+  line-height: var(--text-h1--line-height);
+}
+
+.text-h6 {
+  font-size: var(--text-h6);
+  line-height: var(--text-h6--line-height);
+}
+
+.text-body-lg {
+  font-size: var(--text-body-lg);
+  line-height: var(--text-body-lg--line-height);
+}
+
+.text-body-md {
+  font-size: var(--text-body-md);
+  line-height: var(--text-body-md--line-height);
+}
+
+.text-body-sm {
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+}

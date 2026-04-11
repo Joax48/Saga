@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { House } from "lucide-react";
+import Link from 'next/link';
+import { House } from 'lucide-react';
 
 /**
  * Represents a single breadcrumb item.
@@ -42,7 +42,6 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
   return (
     <nav aria-label="Breadcrumb">
       <ol className="flex flex-wrap items-center gap-3 text-[18px]">
-        
         {/* Home link */}
         <li>
           <Link
@@ -63,11 +62,8 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
 
           return (
             <li key={index} className="flex items-center gap-3">
-              
               {/* Separator */}
-              <span className="text-[var(--color-text-neutral-primary)]">
-                /
-              </span>
+              <span className="text-[var(--color-text-neutral-primary)]">/</span>
 
               {/* Render as link if not last item and href exists */}
               {!isLast && item.href ? (

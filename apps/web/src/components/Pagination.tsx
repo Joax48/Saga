@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Props for the Pagination component.
@@ -97,8 +97,8 @@ export default function Pagination({
             w-8 h-8 rounded-full flex items-center justify-center font-medium transition-colors
             ${
               currentPage === page
-                ? "bg-[var(--color-bg-brand-primary)] text-[var(--color-text-neutral-inverse-primary)]"
-                : "hover:text-[var(--color-text-brand-primary)]"
+                ? 'bg-[var(--color-bg-brand-primary)] text-[var(--color-text-neutral-inverse-primary)]'
+                : 'hover:text-[var(--color-text-brand-primary)]'
             }
           `}
         >

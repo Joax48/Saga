@@ -4,8 +4,8 @@ import { useState, useMemo, useCallback } from 'react';
 import SearchBar from '@/components/SearchBar';
 import Pagination from '@/components/Pagination';
 import Breadcrumb from '@/components/Breadcrumb';
-import { FilterSidebar } from './FilterSidebar';
-import type { FilterGroupConfig } from './FilterSidebar';
+import { FilterSidebar } from '../../../components/FilterSidebar';
+import type { FilterGroupConfig } from '../../../components/FilterSidebar';
 import { ProductionCard } from './ProductionCard';
 import type { ScientificProduction, ProductionFilters } from '@/types';
 

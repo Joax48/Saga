@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { ReactNode } from "react";
+import Link from 'next/link';
+import { ReactNode } from 'react';
 
 /**
  * Interface representing the props for the Button component.
@@ -20,13 +20,13 @@ type ButtonProps = {
   iconLeft?: ReactNode;
 
   /** Visual style variant of the button */
-  variant?: "primary" | "outline" | "ghost";
+  variant?: 'primary' | 'outline' | 'ghost';
 
   /** Size of the button */
-  size?: "sm" | "md" | "lg";
+  size?: 'sm' | 'md' | 'lg';
 
   /** HTML button type attribute */
-  type?: "button" | "submit" | "reset";
+  type?: 'button' | 'submit' | 'reset';
 
   /** Additional CSS classes for custom styling */
   className?: string;
@@ -62,16 +62,16 @@ export default function Button({
   href,
   onClick,
   iconLeft,
-  variant = "primary",
-  size = "md",
-  type = "button",
-  className = "",
+  variant = 'primary',
+  size = 'md',
+  type = 'button',
+  className = '',
 }: ButtonProps) {
   /**
    * Base styles applied to all button variants.
    */
   const baseStyles =
-    "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors duration-200";
+    'inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors duration-200';
 
   /**
    * Style definitions for each variant.
@@ -99,9 +99,9 @@ export default function Button({
    * Style definitions for each size.
    */
   const sizes = {
-    sm: "px-4 py-2 text-sm",
-    md: "px-6 py-3 text-base",
-    lg: "px-8 py-4 text-lg",
+    sm: 'px-4 py-2 text-sm',
+    md: 'px-6 py-3 text-base',
+    lg: 'px-8 py-4 text-lg',
   };
 
   /**

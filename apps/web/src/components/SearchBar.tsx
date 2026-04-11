@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 
 /**
  * Props for the SearchBar component.
@@ -24,10 +24,10 @@ interface SearchBarProps {
  * <SearchBar onSearch={(query) => console.log(query)} />
  */
 export default function SearchBar({
-  placeholder = "Buscar por nombre, unidad, palabras claves",
+  placeholder = 'Buscar por nombre, unidad, palabras claves',
   onSearch,
 }: SearchBarProps) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
 
   /**
    * Handles form submission.

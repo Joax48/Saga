@@ -56,22 +56,30 @@ interface FilterGroupShellProps {
 }
 
 function FilterGroupShell({ title, children }: FilterGroupShellProps) {
+  const [isOpen, setIsOpen] = useState(true);
+
   return (
     <section className="py-4">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-base font-bold" style={{ color: 'var(--color-gray-700)' }}>
           {title}
         </h3>
-        <span
-          className="text-sm font-light select-none"
-          style={{ color: 'var(--color-gray-400)' }}
-          aria-hidden="true"
+
+        <button
+          type="button"
+          onClick={() => setIsOpen((prev) => !prev)}
+          aria-label={isOpen ? `Ocultar ${title}` : `Mostrar ${title}`}
+          className="leading-none"
+          style={{
+            color: 'var(--color-icon-neutral-secondary)',
+            fontSize: 'var(--text-h4)',
+          }}
         >
-          —
-        </span>
+          {isOpen ? '−' : '+'}
+        </button>
       </div>
       <div className="border-b border-[var(--color-gray-200)] mb-3" />
-      {children}
+      {isOpen ? children : null}
     </section>
   );
 }

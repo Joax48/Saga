@@ -27,7 +27,9 @@ export default function CategoriesNavigation({
   activeItemClassName = '',
   backgroundColor,
 }: CategoriesNavigationProps) {
-  const [activeCategory, setActiveCategory] = useState(defaultActive || categories[0]?.id);
+  const [activeCategory, setActiveCategory] = useState(
+    defaultActive || categories[0]?.id,
+  );
 
   const handleCategoryClick = (categoryId: string) => {
     setActiveCategory(categoryId);
@@ -169,4 +171,4 @@ export default function CategoriesNavigation({
 //       </div>
 //     </main>
 //   )
-// }    
+// }

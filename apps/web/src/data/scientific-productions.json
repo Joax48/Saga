@@ -2,7 +2,15 @@
   {
     "id": "sci-out-001",
     "title": "Hydrothermal Synthesis of W-Doped VO2(M) for Smart Windows in Tropical Climates",
-    "authors": ["Torralbo, G.", "Castillo, O. E.", "Balestra, F.", "Pugliese, A.", "Chini Zitelli, G.", "Cicchi, B.", "Touloupaklls, E."],
+    "authors": [
+      "Torralbo, G.",
+      "Castillo, O. E.",
+      "Balestra, F.",
+      "Pugliese, A.",
+      "Chini Zitelli, G.",
+      "Cicchi, B.",
+      "Touloupaklls, E."
+    ],
     "type": {
       "category": "Contribución a una revista",
       "subcategory": "Artículo",
@@ -16,7 +24,13 @@
     "volume": 24,
     "issue": 63,
     "citation_count": 6,
-    "keywords": ["Cyanobacteria", "Photosynthesis", "Carotenoids", "Marine salts", "High light"]
+    "keywords": [
+      "Cyanobacteria",
+      "Photosynthesis",
+      "Carotenoids",
+      "Marine salts",
+      "High light"
+    ]
   },
   {
     "id": "sci-out-002",
@@ -36,7 +50,12 @@
     "issue": 2,
     "pages": "170-196",
     "citation_count": 31,
-    "keywords": ["Multidimensional poverty", "Official statistics", "Small-area estimation", "SPREE"]
+    "keywords": [
+      "Multidimensional poverty",
+      "Official statistics",
+      "Small-area estimation",
+      "SPREE"
+    ]
   },
   {
     "id": "sci-out-003",
@@ -55,12 +74,29 @@
     "volume": 40,
     "issue": 24,
     "citation_count": 2,
-    "keywords": ["Display agility hypothesis", "Hummingbird ecology", "Mating competition hypothesis", "Physiological limits to SSD", "Sexual size dimorphism"]
+    "keywords": [
+      "Display agility hypothesis",
+      "Hummingbird ecology",
+      "Mating competition hypothesis",
+      "Physiological limits to SSD",
+      "Sexual size dimorphism"
+    ]
   },
   {
     "id": "sci-out-004",
     "title": "Memory Clinic Experience Under a Social Security Health System in Costa Rica",
-    "authors": ["Miranda-Valverde, E.", "Valerio-Aguilar, D.", "Hernández-Gabarain, H.-J.", "Chaves-Araya, C.", "Peralta-Azofeifa, M.", "Corrales-Campos, L.", "Angulo-Cruz, R.", "Carballo-Alfaro, A.", "Arias-Segura, S.", "Morales-Martínez, F."],
+    "authors": [
+      "Miranda-Valverde, E.",
+      "Valerio-Aguilar, D.",
+      "Hernández-Gabarain, H.-J.",
+      "Chaves-Araya, C.",
+      "Peralta-Azofeifa, M.",
+      "Corrales-Campos, L.",
+      "Angulo-Cruz, R.",
+      "Carballo-Alfaro, A.",
+      "Arias-Segura, S.",
+      "Morales-Martínez, F."
+    ],
     "type": {
       "category": "Contribución a una revista",
       "subcategory": "Artículo",
@@ -75,7 +111,13 @@
     "issue": 4,
     "pages": "371-375",
     "citation_count": 18,
-    "keywords": ["Alzheimer", "Memory clinic", "Dementia", "Mild cognitive impairment", "Epidemiology"]
+    "keywords": [
+      "Alzheimer",
+      "Memory clinic",
+      "Dementia",
+      "Mild cognitive impairment",
+      "Epidemiology"
+    ]
   },
   {
     "id": "sci-out-005",
@@ -95,7 +137,12 @@
     "issue": 4,
     "pages": "435-458",
     "citation_count": 9,
-    "keywords": ["Extreme poverty", "Intercensal updating", "Small area estimation", "Log-linear models"]
+    "keywords": [
+      "Extreme poverty",
+      "Intercensal updating",
+      "Small area estimation",
+      "Log-linear models"
+    ]
   },
   {
     "id": "sci-out-006",
@@ -114,12 +161,29 @@
     "volume": 9,
     "issue": 1,
     "citation_count": 4,
-    "keywords": ["Distopía", "Microrrelato", "Alegoría", "Mitología", "Sociedad", "Dystopia", "Micro-story", "Allegory", "Mythology", "Society"]
+    "keywords": [
+      "Distopía",
+      "Microrrelato",
+      "Alegoría",
+      "Mitología",
+      "Sociedad",
+      "Dystopia",
+      "Micro-story",
+      "Allegory",
+      "Mythology",
+      "Society"
+    ]
   },
   {
     "id": "sci-out-007",
     "title": "Extension of the Model Reference Robust Tuning Methodology for Fractional-Order PI 2-DoF Controllers",
-    "authors": ["Camacho, D.", "Madrigal, S.", "Arrieta, O.", "Rojas, J. D.", "Vilanova, R."],
+    "authors": [
+      "Camacho, D.",
+      "Madrigal, S.",
+      "Arrieta, O.",
+      "Rojas, J. D.",
+      "Vilanova, R."
+    ],
     "type": {
       "category": "Contribución a una revista",
       "subcategory": "Artículo",
@@ -133,7 +197,13 @@
     "volume": 1,
     "issue": 20,
     "citation_count": 1,
-    "keywords": ["PI control", "Fractional control", "Robust control", "Modal reference", "Performance analysis"]
+    "keywords": [
+      "PI control",
+      "Fractional control",
+      "Robust control",
+      "Modal reference",
+      "Performance analysis"
+    ]
   },
   {
     "id": "sci-out-008",
@@ -152,7 +222,13 @@
     "volume": 72,
     "issue": 1,
     "citation_count": 12,
-    "keywords": ["Macroinvertebrados", "Bioindicadores", "Calidad de agua", "Cuenca hidrográfica", "Costa Rica"]
+    "keywords": [
+      "Macroinvertebrados",
+      "Bioindicadores",
+      "Calidad de agua",
+      "Cuenca hidrográfica",
+      "Costa Rica"
+    ]
   },
   {
     "id": "sci-out-009",
@@ -168,7 +244,13 @@
     "abstract": "Se desarrolló un sistema de visión por computadora basado en redes neuronales convolucionales para la detección temprana de roya del café (Hemileia vastatrix) y antracnosis. El modelo alcanzó una exactitud del 94.3 % sobre un conjunto de validación de 2 400 imágenes de hojas capturadas en condiciones de campo en la región cafetalera de Costa Rica.",
     "doi": "10.1007/978-3-031-48877-2_12",
     "citation_count": 7,
-    "keywords": ["Machine learning", "Coffee diseases", "CNN", "Precision agriculture", "Hemileia vastatrix"]
+    "keywords": [
+      "Machine learning",
+      "Coffee diseases",
+      "CNN",
+      "Precision agriculture",
+      "Hemileia vastatrix"
+    ]
   },
   {
     "id": "sci-out-010",
@@ -184,7 +266,13 @@
     "abstract": "Este libro examina los marcos de gobernanza hídrica en cinco cuencas transfronterizas centroamericanas, identificando los principales conflictos por el uso del agua, los mecanismos de negociación existentes y las reformas institucionales necesarias para garantizar la seguridad hídrica regional bajo escenarios de cambio climático.",
     "doi": "10.7476/9789977158549",
     "citation_count": 15,
-    "keywords": ["Gobernanza del agua", "Cuencas transfronterizas", "Centroamérica", "Cambio climático", "Seguridad hídrica"]
+    "keywords": [
+      "Gobernanza del agua",
+      "Cuencas transfronterizas",
+      "Centroamérica",
+      "Cambio climático",
+      "Seguridad hídrica"
+    ]
   },
   {
     "id": "sci-out-011",
@@ -200,7 +288,13 @@
     "abstract": "Esta obra integra los avances recientes en neurobiología del estrés crónico con sus implicaciones para la práctica clínica. Se revisan los ejes neuroendocrinos implicados, los efectos sobre la plasticidad sináptica y la neurogénesis hipocampal, y se discuten estrategias farmacológicas y psicoterapéuticas basadas en evidencia.",
     "doi": "10.7476/9789977158532",
     "citation_count": 22,
-    "keywords": ["Estrés crónico", "Neurobiología", "HPA", "Neuroplasticidad", "Salud mental"]
+    "keywords": [
+      "Estrés crónico",
+      "Neurobiología",
+      "HPA",
+      "Neuroplasticidad",
+      "Salud mental"
+    ]
   },
   {
     "id": "sci-out-012",
@@ -216,7 +310,13 @@
     "abstract": "Se evaluó el efecto del cambio de uso del suelo (agrícola, ganadero y urbano) sobre la riqueza y abundancia de aves en 12 fragmentos de bosque seco tropical en Guanacaste, Costa Rica. La riqueza de especies fue significativamente mayor en fragmentos con mayor área y menor índice de forma, destacando la importancia del tamaño y la geometría del fragmento para la conservación de la avifauna.",
     "doi": "10.XXX/ornit.2025.0187",
     "citation_count": 0,
-    "keywords": ["Avifauna", "Fragmentación", "Bosque seco tropical", "Guanacaste", "Cambio de uso del suelo"]
+    "keywords": [
+      "Avifauna",
+      "Fragmentación",
+      "Bosque seco tropical",
+      "Guanacaste",
+      "Cambio de uso del suelo"
+    ]
   },
   {
     "id": "sci-out-013",
@@ -232,7 +332,14 @@
     "abstract": "Se realizó un análisis termoeconómico de un sistema híbrido solar fotovoltaico-gas natural para cogeneración en hospitales de la Caja Costarricense de Seguro Social. Los resultados muestran que la configuración óptima reduce un 38 % el costo energético y las emisiones de CO₂ en comparación con el suministro convencional de la red eléctrica nacional.",
     "doi": "10.XXX/energy.2024.1234",
     "citation_count": 3,
-    "keywords": ["Cogeneración", "Energía solar", "Termoeconomía", "Hospitales", "Costa Rica", "Eficiencia energética"]
+    "keywords": [
+      "Cogeneración",
+      "Energía solar",
+      "Termoeconomía",
+      "Hospitales",
+      "Costa Rica",
+      "Eficiencia energética"
+    ]
   },
   {
     "id": "sci-out-014",
@@ -248,12 +355,25 @@
     "abstract": "Se presenta una guía metodológica adaptada a las condiciones ecológicas de las zonas de vida de Costa Rica para la evaluación de impacto ambiental de proyectos de infraestructura vial. La guía incorpora indicadores específicos para ecosistemas tropicales y un protocolo de monitoreo post-construcción basado en bioindicadores terrestres y acuáticos.",
     "doi": "10.15517/ucr.2022.45612",
     "citation_count": 8,
-    "keywords": ["Evaluación impacto ambiental", "Infraestructura vial", "Zonas de vida", "Costa Rica", "Bioindicadores"]
+    "keywords": [
+      "Evaluación impacto ambiental",
+      "Infraestructura vial",
+      "Zonas de vida",
+      "Costa Rica",
+      "Bioindicadores"
+    ]
   },
   {
     "id": "sci-out-015",
     "title": "Small Area Estimation for Composite Indicators: The Case of Multidimensional Poverty Incidence",
-    "authors": ["Arias-Salazar, A.", "Gutiérrez, A.", "Mancero, X.", "Guerrero-Gómez, S.", "Rojas-Perilla, N.", "Zhang, H."],
+    "authors": [
+      "Arias-Salazar, A.",
+      "Gutiérrez, A.",
+      "Mancero, X.",
+      "Guerrero-Gómez, S.",
+      "Rojas-Perilla, N.",
+      "Zhang, H."
+    ],
     "type": {
       "category": "Contribución a una revista",
       "subcategory": "Artículo",
@@ -268,6 +388,11 @@
     "issue": 1,
     "pages": "35-58",
     "citation_count": 11,
-    "keywords": ["Composite indicators", "Small area estimator", "Generalized linear mixed model", "Multidimensional poverty"]
+    "keywords": [
+      "Composite indicators",
+      "Small area estimator",
+      "Generalized linear mixed model",
+      "Multidimensional poverty"
+    ]
   }
 ]
