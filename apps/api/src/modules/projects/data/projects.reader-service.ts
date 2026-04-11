@@ -18,6 +18,7 @@ export class ProjectsReaderService implements ProjectsReader {
         (project): ProjectListItemDto => ({
           code: project.code,
           name: project.name,
+          projectType: project.projectType,
           researchType: project.researchType,
           startDate: project.startDate,
           endDate: project.endDate,

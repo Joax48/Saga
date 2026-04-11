@@ -82,7 +82,7 @@ export default function ProjectsPage() {
                   }
                   startDate={project.startDate}
                   endDate={project.endDate}
-                  researchType={project.investigationType}
+                  researchType={project.researchType}
                   actionType={project.projectType}
                   keywords={project.keywords}
                 />

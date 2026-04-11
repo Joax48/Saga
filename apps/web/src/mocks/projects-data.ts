@@ -10,7 +10,7 @@ export interface Project {
   manager: string;
   institute: string;
   discipline: string;
-  investigationType: string;
+  researchType: string;
   projectType: string;
   fundingType: string;
   status: string;
@@ -31,7 +31,7 @@ export interface FilterOption {
 }
 
 export interface ProjectFilters {
-  investigationType: FilterOption[];
+  researchType: FilterOption[];
   projectType: FilterOption[];
   startYear: FilterOption[];
   status: FilterOption[];
@@ -47,7 +47,7 @@ export interface PaginatedProjects {
 }
 
 export interface ProjectQueryFilters {
-  investigationType?: string[];
+  researchType?: string[];
   projectType?: string[];
   startYear?: string[];
   status?: string[];
@@ -70,7 +70,7 @@ export const MOCK_PROJECTS: Project[] = [
     manager: 'Koen Voorend',
     institute: 'Instituto de Investigaciones Sociales',
     discipline: 'Ciencias Sociales',
-    investigationType: 'Básica',
+    researchType: 'Básica',
     projectType: 'Proyecto',
     fundingType: 'Financiamiento UCREA',
     status: 'Vencido',
@@ -92,7 +92,7 @@ export const MOCK_PROJECTS: Project[] = [
     manager: 'Shu Wei Chou Chen',
     institute: 'Escuela de Estadística',
     discipline: 'Salud Pública',
-    investigationType: 'Básica',
+    researchType: 'Básica',
     projectType: 'Proyecto',
     fundingType: 'Fondos Internos',
     status: 'Activo',
@@ -112,7 +112,7 @@ export const MOCK_PROJECTS: Project[] = [
     manager: 'Alejandra Arias Salazar',
     institute: 'Escuela de Matemática',
     discipline: 'Estadística',
-    investigationType: 'Aplicada',
+    researchType: 'Aplicada',
     projectType: 'Proyecto',
     fundingType: 'CONARE',
     status: 'Finalizado',
@@ -131,7 +131,7 @@ export const MOCK_PROJECTS: Project[] = [
     manager: 'Shirley Elena Rojas Salazar',
     institute: 'Escuela de Matemática',
     discipline: 'Probabilidad y Estadística',
-    investigationType: 'Básica',
+    researchType: 'Básica',
     projectType: 'Proyecto',
     fundingType: 'Fondos Internos',
     status: 'Finalizado',
@@ -153,7 +153,7 @@ export const MOCK_PROJECTS: Project[] = [
     manager: 'Daniela Vargas Mora',
     institute: 'Centro de Investigación en Desarrollo Sostenible',
     discipline: 'Ingeniería Ambiental',
-    investigationType: 'Aplicada',
+    researchType: 'Aplicada',
     projectType: 'Proyecto',
     fundingType: 'CONARE',
     status: 'Activo',
@@ -175,7 +175,7 @@ export const MOCK_PROJECTS: Project[] = [
     manager: 'Carlos Andrés Quesada',
     institute: 'Escuela de Ingeniería Civil',
     discipline: 'Transporte y Movilidad',
-    investigationType: 'Aplicada',
+    researchType: 'Aplicada',
     projectType: 'Proyecto',
     fundingType: 'Fondos Externos',
     status: 'Activo',
@@ -197,7 +197,7 @@ export const MOCK_PROJECTS: Project[] = [
     manager: 'Melissa Porras Rojas',
     institute: 'Instituto de Investigaciones en Salud',
     discipline: 'Ciencias Ambientales',
-    investigationType: 'Básica',
+    researchType: 'Básica',
     projectType: 'Proyecto',
     fundingType: 'Financiamiento UCREA',
     status: 'Activo',
@@ -219,7 +219,7 @@ export const MOCK_PROJECTS: Project[] = [
     manager: 'Esteban Calderón Umaña',
     institute: 'Escuela de Estadística',
     discipline: 'Educación Matemática',
-    investigationType: 'Aplicada',
+    researchType: 'Aplicada',
     projectType: 'Acción',
     fundingType: 'Fondos Internos',
     status: 'Finalizado',
@@ -241,7 +241,7 @@ export const MOCK_PROJECTS: Project[] = [
     manager: 'Nadia Villalobos Chacón',
     institute: 'Instituto de Investigaciones Económicas',
     discipline: 'Economía',
-    investigationType: 'Básica',
+    researchType: 'Básica',
     projectType: 'Proyecto',
     fundingType: 'CONARE',
     status: 'Activo',
@@ -263,7 +263,7 @@ export const MOCK_PROJECTS: Project[] = [
     manager: 'Karla Montero León',
     institute: 'Facultad de Medicina',
     discipline: 'Salud Pública',
-    investigationType: 'Aplicada',
+    researchType: 'Aplicada',
     projectType: 'Proyecto',
     fundingType: 'Fondos Externos',
     status: 'Activo',
@@ -285,7 +285,7 @@ export const MOCK_PROJECTS: Project[] = [
     manager: 'Paula Jiménez Araya',
     institute: 'Escuela de Ciencias Políticas',
     discipline: 'Ciencias Políticas',
-    investigationType: 'Básica',
+    researchType: 'Básica',
     projectType: 'Acción',
     fundingType: 'Fondos Internos',
     status: 'No iniciado',
@@ -312,7 +312,7 @@ export const MOCK_PROJECTS: Project[] = [
     manager: 'Jorge Alberto Ureña',
     institute: 'Centro de Investigación en Biodiversidad',
     discipline: 'Ecología',
-    investigationType: 'Aplicada',
+    researchType: 'Aplicada',
     projectType: 'Proyecto',
     fundingType: 'Financiamiento UCREA',
     status: 'Finalizado',
@@ -331,7 +331,7 @@ export const MOCK_PROJECTS: Project[] = [
 // =========================
 
 export const MOCK_PROJECT_FILTERS: ProjectFilters = {
-  investigationType: [
+  researchType: [
     { label: 'Básica', count: 22, value: 'basica' },
     { label: 'Aplicada', count: 18, value: 'aplicada' },
     { label: 'Exploratoria', count: 6, value: 'exploratoria' },
@@ -420,7 +420,7 @@ export function getMockProjectsPaginated(
           project.manager,
           project.institute,
           project.discipline,
-          project.investigationType,
+          project.researchType,
           project.projectType,
           project.fundingType,
           project.status,
@@ -436,8 +436,8 @@ export function getMockProjectsPaginated(
 
   const filteredProjects = textFilteredProjects.filter((project) => {
     if (
-      hasSelection(queryFilters.investigationType) &&
-      !queryFilters.investigationType.includes(normalize(project.investigationType))
+      hasSelection(queryFilters.researchType) &&
+      !queryFilters.researchType.includes(normalize(project.researchType))
     ) {
       return false;
     }

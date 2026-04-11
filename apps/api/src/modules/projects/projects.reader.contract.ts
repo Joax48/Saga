@@ -3,6 +3,7 @@ export const PROJECTS_READER = Symbol('PROJECTS_READER');
 export interface ProjectListItemDto {
   code: string;
   name: string;
+  projectType: string;
   researchType: string;
   startDate: string;
   endDate: string;
