@@ -1,14 +1,22 @@
 'use client';
 
+import Image from 'next/image';
+import Link from 'next/link';
+
 /* ─── Types ──────────────────────────────────────────────────────────── */
 
 export type CardLayout = 'horizontal' | 'vertical';
+export type CardImageShape = 'square' | 'circle';
 
 export interface CardProps {
   /** Main heading shown in brand colour */
   title: string;
-  /** Primary body text (clipped to 3 lines) */
-  description: string;
+  /**
+   * Primary body content. Accepts a plain string or any React node for
+   * richer layouts (e.g. mixed-colour inline content, links inside the body).
+   * When omitted the body area is not rendered.
+   */
+  description?: React.ReactNode;
   /** Optional italic secondary text (e.g. citation, author note) */
   excerpt?: string;
   /** Keyword/topic badges rendered below the body */
@@ -18,12 +26,34 @@ export interface CardProps {
   /** Accessible alt text for the image (defaults to the title) */
   imageAlt?: string;
   /**
+   * When provided the title renders as a Next.js `<Link>` to this URL.
+   * The card itself is NOT made fully clickable — only the title navigates.
+   */
+  href?: string;
+  /**
+   * When `true` the image / placeholder area is not rendered at all,
+   * regardless of `imageSrc`. Useful for text-only list items.
+   */
+  hideImage?: boolean;
+  /**
+   * Controls the shape of the image area.
+   * `square` → rectangular crop (default)
+   * `circle` → circular crop, fixed 56 × 56 px
+   */
+  imageShape?: CardImageShape;
+  /**
    * `horizontal` → image on the left, content on the right (default)
    * `vertical`   → image on top, content below
    */
   layout?: CardLayout;
   /** Additional Tailwind / DaisyUI classes for the card root */
   className?: string;
+  /**
+   * When `true` the card chrome (background, shadow, border-radius) is
+   * removed. Useful for list items that need the Card structure but not
+   * the visual box treatment.
+   */
+  chromeless?: boolean;
   /** Makes the whole card interactive — adds hover/focus styles */
   onClick?: React.MouseEventHandler<HTMLElement>;
 }
@@ -77,6 +107,12 @@ function ImagePlaceholder() {
  * @example Vertical
  * <Card layout="vertical" title="..." description="..." tags={['UCR']} />
  *
+ * @example Circular image (e.g. researcher portrait)
+ * <Card imageShape="circle" imageSrc="/photos/jane.jpg" title="..." description="..." />
+ *
+ * @example Chromeless list item (no card box chrome)
+ * <Card chromeless hideImage title="..." description={<AuthorsLine />} className="py-5" />
+ *
  * @example Interactive
  * <Card title="..." description="..." onClick={() => router.push('/detail/1')} />
  */
@@ -87,12 +123,31 @@ export function Card({
   tags = [],
   imageSrc,
   imageAlt,
+  href,
+  hideImage = false,
+  imageShape = 'square',
   layout = 'horizontal',
   className = '',
+  chromeless = false,
   onClick,
 }: CardProps) {
   const isInteractive = Boolean(onClick);
   const isHorizontal = layout === 'horizontal';
+  const isCircle = imageShape === 'circle';
+  const showImage = !hideImage;
+
+  /* ── Figure styles by shape ── */
+  const figureClass = isCircle
+    ? 'relative shrink-0 overflow-hidden rounded-full'
+    : isHorizontal
+      ? 'relative w-28 shrink-0 overflow-hidden'
+      : 'relative overflow-hidden';
+
+  const figureStyle: React.CSSProperties = isCircle
+    ? { width: '3.5rem', height: '3.5rem' }
+    : isHorizontal
+      ? { borderRadius: 'var(--radius-300) 0 0 var(--radius-300)' }
+      : { borderRadius: 'var(--radius-300) var(--radius-300) 0 0', aspectRatio: '16/9' };
 
   return (
     <article
@@ -110,58 +165,74 @@ export function Card({
           : undefined
       }
       className={[
-        'card bg-base-100 shadow-sm',
-        isHorizontal && 'card-side',
-        isInteractive && 'cursor-pointer transition-shadow hover:shadow-md focus-visible:outline-2',
+        !chromeless && 'card bg-base-100 shadow-sm',
+        !chromeless && isHorizontal && showImage && 'card-side',
+        isInteractive &&
+          'cursor-pointer transition-shadow hover:shadow-md focus-visible:outline-2',
         className,
       ]
         .filter(Boolean)
         .join(' ')}
     >
       {/* ── Image ── */}
-      <figure
-        className={isHorizontal ? 'w-28 shrink-0 overflow-hidden' : 'overflow-hidden'}
-        style={
-          isHorizontal
-            ? { borderRadius: 'var(--radius-300) 0 0 var(--radius-300)' }
-            : { borderRadius: 'var(--radius-300) var(--radius-300) 0 0', aspectRatio: '16/9' }
-        }
-      >
-        {imageSrc ? (
-          <img src={imageSrc} alt={imageAlt ?? title} className="h-full w-full object-cover" />
-        ) : (
-          <ImagePlaceholder />
-        )}
-      </figure>
+      {showImage && (
+        <figure className={figureClass} style={figureStyle}>
+          {imageSrc ? (
+            <Image src={imageSrc} alt={imageAlt ?? title} fill className="object-cover" />
+          ) : (
+            <ImagePlaceholder />
+          )}
+        </figure>
+      )}
 
       {/* ── Content ── */}
-      <div className="card-body gap-2 p-4">
+      <div className={chromeless ? 'flex flex-col gap-1' : 'card-body gap-2 p-4'}>
         <h4
-          className="card-title text-base font-bold leading-snug"
+          className={[!chromeless && 'card-title', 'text-base font-bold leading-snug']
+            .filter(Boolean)
+            .join(' ')}
           style={{ color: 'var(--color-text-brand-primary)' }}
         >
-          {title}
+          {href ? (
+            <Link href={href} className="hover:underline">
+              {title}
+            </Link>
+          ) : (
+            title
+          )}
         </h4>
 
-        <p
-          className="line-clamp-3 text-sm leading-relaxed"
-          style={{ color: 'var(--color-text-neutral-primary)' }}
-        >
-          {description}
-        </p>
+        {description !== undefined && (
+          <div
+            className="text-sm leading-relaxed"
+            style={{ color: 'var(--color-text-neutral-primary)' }}
+          >
+            {description}
+          </div>
+        )}
 
         {excerpt && (
-          <p className="text-sm italic" style={{ color: 'var(--color-text-neutral-secondary)' }}>
+          <p
+            className="text-sm italic"
+            style={{ color: 'var(--color-text-neutral-secondary)' }}
+          >
             {excerpt}
           </p>
         )}
 
         {tags.length > 0 && (
-          <div className="card-actions mt-1 flex-wrap gap-1" aria-label="Tags">
+          <div
+            className={
+              chromeless
+                ? 'mt-1.5 flex flex-wrap gap-2'
+                : 'card-actions mt-1 flex-wrap gap-2'
+            }
+            aria-label="Tags"
+          >
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="badge badge-sm rounded-full text-xs font-medium text-white"
+                className="rounded-full px-4 py-1.5 text-xs font-medium text-white"
                 style={{ backgroundColor: 'var(--color-bg-info-subtle)' }}
               >
                 {tag}

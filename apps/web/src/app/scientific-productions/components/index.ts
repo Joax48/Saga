@@ -1,7 +1,3 @@
-/**
- * Specific components for scientific productions module.
- */
-
-export default function ScientificProductionsComponents() {
-  return null;
-}
+export { ProductionCard } from './ProductionCard';
+export { FilterSidebar } from './FilterSidebar';
+export { ScientificProductionsView } from './ScientificProductionsView';
