@@ -1,3 +1,14 @@
 import type { DatabaseTableDefinition } from './database-table';
+import { fundingTypeTable } from './funding-type.table';
+import { projectStatusTable } from './project-status.table';
+import { projectTable } from './project.table';
+import { projectTypeTable } from './project-type.table';
+import { researchTypeTable } from './research-type.table';
 
-export const databaseTables: DatabaseTableDefinition[] = [];
+export const databaseTables: DatabaseTableDefinition[] = [
+  projectTypeTable,
+  fundingTypeTable,
+  researchTypeTable,
+  projectStatusTable,
+  projectTable,
+];
