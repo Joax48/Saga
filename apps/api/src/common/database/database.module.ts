@@ -1,3 +1,9 @@
-// Global database module — creates a PostgreSQL connection pool via ConfigService
-// and provides DatabaseService for raw parameterized queries.
-// Exports: DATABASE_POOL token, DatabaseService.
+import { Global, Module } from '@nestjs/common';
+import { DatabaseService } from './database.service';
+
+@Global()
+@Module({
+  providers: [DatabaseService],
+  exports: [DatabaseService],
+})
+export class DatabaseModule {}

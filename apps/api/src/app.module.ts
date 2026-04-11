@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { SearchModule } from './modules/search/search.module';
 import { CacheModule } from './modules/cache/cache.module';
+import { DatabaseModule } from './common/database/database.module';
 
 // Root application module.
 // When domain modules (ResearchersModule, UnitsModule, ProjectsModule,
@@ -8,6 +9,6 @@ import { CacheModule } from './modules/cache/cache.module';
 // and application queries are implemented, import and register them here.
 
 @Module({
-  imports: [SearchModule, CacheModule],
+  imports: [SearchModule, CacheModule, DatabaseModule],
 })
 export class AppModule {}
