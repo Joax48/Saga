@@ -1,15 +1,25 @@
-import productionsData from '@/data/scientific-productions.json';
+'use client';
+import { useEffect, useState } from 'react';
+import { getScientificProductions } from '@/services/scientific-productions';
 import { ScientificProductionsView } from './components';
 import type { ScientificProduction } from '@/types';
 
 /**
  * Scientific productions list page.
  *
- * Server component: reads static JSON at build time and passes the typed
- * array to the client-side view which owns all filter/search/pagination state.
+ * Server component: fetches data from the API and passes it to the client-side
+ * view which owns all filter/search/pagination state.
  */
 export default function ScientificProductionsPage() {
-  return (
-    <ScientificProductionsView productions={productionsData as ScientificProduction[]} />
-  );
+  const [productions, setProductions] = useState<ScientificProduction[]>([]);
+
+  useEffect(() => {
+    getScientificProductions(1, 100)
+      .then((response) => setProductions(response.items))
+      .catch((error) => {
+        console.error('Failed to fetch scientific productions:', error);
+      });
+  }, []);
+
+  return <ScientificProductionsView productions={productions} />;
 }

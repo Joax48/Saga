@@ -3,9 +3,12 @@ import { SearchModule } from './modules/search/search.module';
 import { CacheModule } from './modules/cache/cache.module';
 import { DatabaseModule } from './common/database/database.module';
 import { ProjectsModule } from './modules/projects/projects.module';
+import { ScientificProductionsModule } from './modules/scientific-productions/scientific-productions.module';
 import { PublicProjectsController } from './bff/public/projects/public-projects.controller';
+import { PublicScientificProductionsController } from './bff/public/scientific-productions/public-scientific-productions.controller';
 import { GetProjectsPaginatedListUseCase } from './application/use-cases/get-public-projects-paginated-list.use-case';
 import { SearchPublicProjectsUseCase } from './application/use-cases/search-public-projects.use-case';
+import { GetScientificProductionPaginatedListUseCase } from './application/use-cases/get-public-scientific-productions-paginated-list.use-case';
 
 // Root application module.
 // When domain modules (ResearchersModule, UnitsModule, ProjectsModule,
@@ -13,8 +16,17 @@ import { SearchPublicProjectsUseCase } from './application/use-cases/search-publ
 // and application queries are implemented, import and register them here.
 
 @Module({
-  imports: [SearchModule, CacheModule, DatabaseModule, ProjectsModule],
-  controllers: [PublicProjectsController],
-  providers: [GetProjectsPaginatedListUseCase, SearchPublicProjectsUseCase],
+  imports: [
+    SearchModule,
+    CacheModule,
+    DatabaseModule,
+    ProjectsModule,
+    ScientificProductionsModule,
+  ],
+  controllers: [PublicProjectsController, PublicScientificProductionsController],
+  providers: [
+    GetProjectsPaginatedListUseCase, SearchPublicProjectsUseCase,
+    GetScientificProductionPaginatedListUseCase,
+  ],
 })
 export class AppModule {}
