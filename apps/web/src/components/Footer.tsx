@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 export default function Footer() {
   return (
-    <div className="w-full bg-[#666666] pl-10 pr-7 pt-5 pb-5 grid grid-cols-4 gap-4 text-xs">
+    <div className="w-full bg-[#666666] pl-10 pr-7 pt-5 pb-5 grid sm:grid-cols-4 gap-4 text-xs">
       <div className="p-4">
         <div className="pl-10 pr-7 pt-2 pb-3">
           <a href="https://www.ucr.ac.cr/" target="_blank" rel="noopener noreferrer">

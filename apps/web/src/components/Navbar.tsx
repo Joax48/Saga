@@ -5,8 +5,8 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full">
       {/*First Bar - Logos*/}
-      <div className="h-22 bg-[#005DA4] px-6 py-2">
-        <div className="mx-auto flex h-full w-full max-w-6xl items-center">
+      <div className="flex justify-start h-22 bg-[#005DA4] px-8 py-2">
+        <div className="flex h-full w-full max-w-6xl items-center">
           <div className="pr-7">
             <a href="https://www.ucr.ac.cr/" target="_blank" rel="noopener noreferrer">
               <Image src="/logo_UCR.png" alt="logo" width={200} height={50} />
@@ -17,7 +17,7 @@ export default function Navbar() {
               <Image src="/logo_OBDI.png" alt="logo" width={100} height={50} />
             </a>
           </div>
-          <h1 className="font-bold text-white/80 w-40">
+          <h1 className="font-bold text-white/80 w-42 max-sm:hidden">
             Observatorio de Datos Institucionales
           </h1>
         </div>
@@ -28,7 +28,7 @@ export default function Navbar() {
           <div className="grow flex sm:items-center sm:justify-center max-sm:justify-end max-sm:pr-11">
             <div className="hidden sm:flex items-center justify-center gap-2 md:gap-8 whitespace-nowrap">
               <Link
-                href="/home"
+                href="/"
                 className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition"
               >
                 Inicio
@@ -88,7 +88,7 @@ export default function Navbar() {
               >
                 <li>
                   <Link
-                    href="/home"
+                    href="/"
                     className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition active:bg-[#D9D9D9] focus:bg-[#D9D9D9]"
                   >
                     Inicio
