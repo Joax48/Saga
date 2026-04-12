@@ -61,40 +61,56 @@ export default function ProjectsPage() {
 
           {/* Results list */}
           <div className="space-y-12">
-            {projects.map((project) => {
-              // Link the manager to the matching researcher profile when possible.
-              const managerProfile = project.associatedProfiles.find(
-                (profile) => profile.name === project.manager,
-              );
+            {projects.length > 0 ? (
+              projects.map((project) => {
+                const managerProfile = project.associatedProfiles.find(
+                  (profile) => profile.name === project.manager,
+                );
 
-              return (
-                <ProjectListItem
-                  key={project.id}
-                  code={project.code}
-                  title={project.title}
-                  href={`/projects/${project.id}`}
-                  manager={project.manager}
-                  managerHref={
-                    managerProfile
-                      ? `/researchers/${managerProfile.id}`
-                      : `/researchers?q=${encodeURIComponent(project.manager)}`
-                  }
-                  startDate={project.startDate}
-                  endDate={project.endDate}
-                  researchType={project.researchType}
-                  actionType={project.projectType}
-                  keywords={project.keywords}
+                return (
+                  <ProjectListItem
+                    key={project.id}
+                    code={project.code}
+                    title={project.title}
+                    href={`/projects/${project.id}`}
+                    manager={project.manager}
+                    managerHref={
+                      managerProfile
+                        ? `/researchers/${managerProfile.id}`
+                        : `/researchers?q=${encodeURIComponent(project.manager)}`
+                    }
+                    startDate={project.startDate}
+                    endDate={project.endDate}
+                    researchType={project.researchType}
+                    actionType={project.projectType}
+                    keywords={project.keywords}
+                  />
+                );
+              })
+            ) : (
+              <div
+                className="flex flex-col items-center justify-center py-16 text-center"
+                role="status"
+                aria-live="polite"
+              >
+                <p className="text-base font-medium text-gray-500">
+                  No se encontraron resultados.
+                </p>
+                <p className="mt-1 text-sm text-gray-400">
+                  Intenta ajustar los filtros o el término de búsqueda.
+                </p>
+              </div>
+            )}
+
+            {projects.length > 0 ? (
+              <div className="pt-8">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
                 />
-              );
-            })}
-
-            <div className="pt-8">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
