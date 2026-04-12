@@ -4,22 +4,35 @@ stages:
   - test
   - build
 
+workflow:
+  rules:
+    - when: always
+      allow_failure: true
+
 variables:
   NODE_VERSION: "20"
+  NPM_CONFIG_CACHE: "$CI_PROJECT_DIR/.npm"
+
+default:
+  image: node:${NODE_VERSION}-alpine
+  interruptible: true
 
 cache:
-  key: ${CI_COMMIT_REF_SLUG}
+  key: "${CI_COMMIT_REF_SLUG}"
+  policy: pull-push
   paths:
+    - .npm/
     - node_modules/
     - apps/api/node_modules/
     - apps/web/node_modules/
 
 install:
   stage: install
-  image: node:${NODE_VERSION}-alpine
+  when: manual
   script:
     - npm ci
   artifacts:
+    expire_in: 1 day
     paths:
       - node_modules/
       - apps/api/node_modules/
@@ -27,42 +40,46 @@ install:
 
 lint:
   stage: quality
-  image: node:${NODE_VERSION}-alpine
   needs: [install]
   script:
     - npm run lint
 
 typecheck:
   stage: quality
-  image: node:${NODE_VERSION}-alpine
   needs: [install]
   script:
     - npm run typecheck
 
-test:
+test:api:
   stage: test
-  image: node:${NODE_VERSION}-alpine
   needs: [install]
   script:
-    - npm run test
+    - npm run test:api
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+
+test:web:
+  stage: test
+  needs: [install]
+  script:
+    - npm run test:web
   coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
 
 build:api:
   stage: build
-  image: node:${NODE_VERSION}-alpine
-  needs: [lint, typecheck, test]
+  needs: [lint, typecheck, test:api, test:web]
   script:
     - npm run build:api
   artifacts:
+    expire_in: 1 day
     paths:
       - apps/api/dist/
 
 build:web:
   stage: build
-  image: node:${NODE_VERSION}-alpine
-  needs: [lint, typecheck, test]
+  needs: [lint, typecheck, test:api, test:web]
   script:
     - npm run build:web
   artifacts:
+    expire_in: 1 day
     paths:
       - apps/web/.next/
