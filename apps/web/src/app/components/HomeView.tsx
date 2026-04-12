@@ -1,17 +1,10 @@
 'use client';
-
-import { ProductionCard } from '../scientific-productions/components/ProductionCard';
-import type { ScientificProduction } from '@/types';
 import TopNavigation from './TopNavigation';
 import PageHeroSearch from '@/components/PageHeroSearch';
 
-interface Props {
-  productions: ScientificProduction[];
-}
+interface Props {}
 
-export function HomeView({ productions }: Props) {
-  const firstFour = productions.slice(0, 4);
-
+export function HomeView() {
   return (
     <div>
       <PageHeroSearch
@@ -50,24 +43,16 @@ export function HomeView({ productions }: Props) {
 
         <h1 className="text-3xl font-bold mb-6"> Producción científica destacada </h1>
         <div className="flex-1 min-w-0">
-          {firstFour.length > 0 ? (
-            <div className="space-y-6">
-              {firstFour.map((production) => (
-                <ProductionCard key={production.id} production={production} />
-              ))}
-            </div>
-          ) : (
-            <div
-              className="flex flex-col items-center justify-center py-16 text-center"
-              role="status"
-              aria-live="polite"
-            >
-              <p className="text-base font-medium text-gray-500">
-                No se encontraron resultados.
-              </p>
-              <p className="mt-1 text-sm text-gray-400">Intenta nuevamente más tarde.</p>
-            </div>
-          )}
+          <div
+            className="flex flex-col items-center justify-center py-16 text-center"
+            role="status"
+            aria-live="polite"
+          >
+            <p className="text-base font-medium text-gray-500">
+              No se encontraron resultados.
+            </p>
+            <p className="mt-1 text-sm text-gray-400">Intenta nuevamente más tarde.</p>
+          </div>
         </div>
       </div>
     </div>
