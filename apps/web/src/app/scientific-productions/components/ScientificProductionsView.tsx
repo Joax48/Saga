@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import SearchBar from '@/components/SearchBar';
+import PageHeroSearch from '@/components/PageHeroSearch';
 import Pagination from '@/components/Pagination';
-import Breadcrumb from '@/components/Breadcrumb';
 import { FilterSidebar } from '../../../components/FilterSidebar';
 import type { FilterGroupConfig } from '../../../components/FilterSidebar';
 import { ProductionCard } from './ProductionCard';
@@ -200,32 +199,14 @@ export function ScientificProductionsView({
       className="min-h-screen"
       style={{ backgroundColor: 'var(--color-bg-neutral-primary)' }}
     >
-      {/* ── Page header ── */}
-      <div
-        className="px-6 pb-24"
-        style={{ backgroundColor: 'var(--color-bg-neutral-secondary)' }}
-      >
-        <div className="max-w-6xl mx-auto">
-          <div className="pt-14 pb-4">
-            <Breadcrumb items={BREADCRUMB_ITEMS} />
-          </div>
+      <PageHeroSearch
+        items={BREADCRUMB_ITEMS}
+        title="Producción científica"
+        searchPlaceholder="Buscar por título"
+        onSearch={handleSearch}
+      />
 
-          <h1
-            className="mb-6 text-center font-bold"
-            style={{
-              fontSize: 'var(--text-h2)',
-              lineHeight: 'var(--text-h2--line-height)',
-              color: 'var(--color-text-neutral-primary)',
-            }}
-          >
-            Producción científica
-          </h1>
-
-          <SearchBar placeholder="Buscar por título" onSearch={handleSearch} />
-        </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-6 pt-6">
+      <div className="max-w-5xl mx-auto py-9">
         {/* Result count (not used for now, but could be re-enabled if desired) 
         <p
           className="mb-4 text-sm"
@@ -237,7 +218,7 @@ export function ScientificProductionsView({
         </p> */}
 
         {/* Content grid */}
-        <div className="flex gap-8 pb-12">
+        <div className="flex gap-8 pb-12 space-y-12">
           {/*(not used for now, but could be re-enabled if desired) 
           <FilterSidebar
             groups={filterGroups}
@@ -249,7 +230,7 @@ export function ScientificProductionsView({
           <section className="flex-1 min-w-0">
             {paginated.length > 0 ? (
               <>
-                <div>
+                <div className="">
                   {paginated.map((production) => (
                     <ProductionCard key={production.id} production={production} />
                   ))}
