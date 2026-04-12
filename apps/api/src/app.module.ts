@@ -3,10 +3,14 @@ import { SearchModule } from './modules/search/search.module';
 import { CacheModule } from './modules/cache/cache.module';
 import { DatabaseModule } from './common/database/database.module';
 import { ProjectsModule } from './modules/projects/projects.module';
+import { ResearchersModule } from './modules/researchers/researchers.module';
 import { ScientificProductionsModule } from './modules/scientific-productions/scientific-productions.module';
 import { PublicProjectsController } from './bff/public/projects/public-projects.controller';
 import { PublicScientificProductionsController } from './bff/public/scientific-productions/public-scientific-productions.controller';
 import { GetProjectsPaginatedListUseCase } from './application/use-cases/get-public-projects-paginated-list.use-case';
+
+import { PublicResearchersController } from './bff/public/researchers/public-researchers.controller';
+import { GetResearchersPaginatedListUseCase } from './application/use-cases/get-public-researchers-paginated-list.use-case';
 import { SearchPublicProjectsUseCase } from './application/use-cases/search-public-projects.use-case';
 import { GetScientificProductionPaginatedListUseCase } from './application/use-cases/get-public-scientific-productions-paginated-list.use-case';
 
@@ -22,11 +26,14 @@ import { GetScientificProductionPaginatedListUseCase } from './application/use-c
     DatabaseModule,
     ProjectsModule,
     ScientificProductionsModule,
+    ResearchersModule
   ],
-  controllers: [PublicProjectsController, PublicScientificProductionsController],
+  controllers: [PublicProjectsController, PublicScientificProductionsController, PublicResearchersController],
   providers: [
-    GetProjectsPaginatedListUseCase, SearchPublicProjectsUseCase,
+    GetProjectsPaginatedListUseCase, 
+    SearchPublicProjectsUseCase,
     GetScientificProductionPaginatedListUseCase,
+    GetResearchersPaginatedListUseCase,
   ],
 })
 export class AppModule {}

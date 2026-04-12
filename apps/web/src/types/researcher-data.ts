@@ -1,5 +1,3 @@
-// Researcher entity interface — define the shape of a researcher record from the database.
-
 export interface Researcher {
   id: string;
   idUcrProfile: string;
@@ -13,4 +11,16 @@ export interface Researcher {
   researchGate: string | null;
   scopus: string | null;
   photoUrl: string | null;
+}
+
+export interface PaginatedResearchers {
+  data: Researcher[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface ResearcherQueryFilters {
+  baseUnit?: string[];
+  ceaCategory?: string[];
 }

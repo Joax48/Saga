@@ -1,5 +1,6 @@
 import type { DatabaseTableDefinition } from './database-table';
 import { fundingTypeTable } from './funding-type.table';
+import { researcherTable } from './research.table';
 import { projectStatusTable } from './project-status.table';
 import { projectTable } from './project.table';
 import { projectTypeTable } from './project-type.table';
@@ -11,6 +12,7 @@ export const databaseTables: DatabaseTableDefinition[] = [
   fundingTypeTable,
   researchTypeTable,
   projectStatusTable,
+  researcherTable,
   projectTable,
   scientificProductionTable,
 ];
