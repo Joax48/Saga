@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, Min, Max } from 'class-validator';
+import { IsInt, IsOptional, IsString, Min, Max } from 'class-validator';
 
 export class PaginatedListRequestDto {
   @Type(() => Number)
@@ -12,4 +12,8 @@ export class PaginatedListRequestDto {
   @Min(1)
   @Max(100)
   limit: number = 10;
+
+  @IsOptional()
+  @IsString()
+  q?: string;
 }

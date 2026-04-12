@@ -57,12 +57,12 @@ export default function Footer() {
           </li>
           <li>
             <Link href="https://rectoria.ucr.ac.cr/" className="hover:underline">
-              Rectoria
+              Rectoría
             </Link>
           </li>
           <li>
             <Link href="/" className="hover:underline">
-              Observatorio de datos Institucionales
+              Observatorio de Datos Institucionales
             </Link>
           </li>
         </ul>

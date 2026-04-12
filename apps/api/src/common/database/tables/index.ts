@@ -5,6 +5,7 @@ import { projectStatusTable } from './project-status.table';
 import { projectTable } from './project.table';
 import { projectTypeTable } from './project-type.table';
 import { researchTypeTable } from './research-type.table';
+import { unitTable } from './unit.table';
 import { scientificProductionTable } from './scientific-production.table';
 
 export const databaseTables: DatabaseTableDefinition[] = [
@@ -14,5 +15,6 @@ export const databaseTables: DatabaseTableDefinition[] = [
   projectStatusTable,
   researcherTable,
   projectTable,
+  unitTable,
   scientificProductionTable,
 ];
