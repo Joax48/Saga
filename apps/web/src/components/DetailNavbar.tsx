@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 
 export interface Category {
   id: string;
@@ -31,6 +31,14 @@ export default function CategoriesNavigation({
     defaultActive || categories[0]?.id,
   );
 
+  useEffect(() => {
+    const initialCategory = defaultActive || categories[0]?.id;
+    setActiveCategory(initialCategory);
+    if (initialCategory) {
+      onCategoryChange(initialCategory);
+    }
+  }, []);
+
   const handleCategoryClick = (categoryId: string) => {
     setActiveCategory(categoryId);
     onCategoryChange(categoryId);
@@ -40,72 +48,93 @@ export default function CategoriesNavigation({
     ? containerClassName.replace(/bg-\[.*?\]/g, `bg-[${backgroundColor}]`)
     : containerClassName;
 
-  return (
-    <nav className={finalContainerClass}>
-      {/* Desktop View */}
-      <div className="grow flex sm:items-center sm:justify-center max-sm:justify-end w-full h-full">
-        <div className="hidden sm:flex items-center justify-center gap-0 w-full h-full">
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => handleCategoryClick(category.id)}
-              className={`flex gap-2 flex-1 ${itemClassName} ${
-                activeCategory === category.id ? activeItemClassName : ''
-              }`}
-            >
-              {category.icon && (
-                <span className="flex items-center justify-center w-5 h-5 flex-shrink-0">
-                  {category.icon}
-                </span>
-              )}
-              <span className="text-sm font-medium">{category.name}</span>
-            </button>
-          ))}
-        </div>
+  const activeCategoryName = categories.find((cat) => cat.id === activeCategory)?.name;
 
-        {/* Mobile View - Dropdown Menu */}
-        <div className="sm:hidden dropdown dropdown-end bg-[#F2F2F2] w-full">
-          <label tabIndex={0} className="btn btn-ghost btn-sm">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </label>
-          <ul
-            tabIndex={0}
-            className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 z-50"
-          >
+  return (
+    <div className="w-full">
+      <nav className={finalContainerClass}>
+        {/* Desktop View */}
+        <div className="grow flex sm:items-center sm:justify-center max-sm:justify-end w-full h-full">
+          <div className="hidden sm:flex items-center justify-center gap-0 w-full h-full">
             {categories.map((category) => (
-              <li key={category.id}>
-                <button
-                  onClick={() => handleCategoryClick(category.id)}
-                  className={`flex items-center gap-2 rounded-md transition ${
-                    activeCategory === category.id ? 'bg-[#005DA4] text-white' : ''
-                  }`}
-                >
-                  {category.icon && (
-                    <span className="flex items-center justify-center w-5 h-5 flex-shrink-0">
-                      {category.icon}
-                    </span>
-                  )}
-                  <span>{category.name}</span>
-                </button>
-              </li>
+              <button
+                key={category.id}
+                onClick={() => handleCategoryClick(category.id)}
+                className={`flex gap-2 flex-1 ${itemClassName} ${
+                  activeCategory === category.id ? activeItemClassName : ''
+                }`}
+              >
+                {category.icon && (
+                  <span className="flex items-center justify-center w-5 h-5 flex-shrink-0">
+                    {category.icon}
+                  </span>
+                )}
+                <span className="font-medium" style={{ fontSize: 'var(--text-body-md)' }}>
+                  {category.name}
+                </span>
+              </button>
             ))}
-          </ul>
+          </div>
+
+          {/* Mobile View - Dropdown Menu */}
+          <div className="sm:hidden dropdown dropdown-end bg-[#F2F2F2] w-full">
+            <label tabIndex={0} className="btn btn-ghost btn-sm">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </label>
+            <ul
+              tabIndex={0}
+              className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 z-50"
+            >
+              {categories.map((category) => (
+                <li key={category.id}>
+                  <button
+                    onClick={() => handleCategoryClick(category.id)}
+                    className={`flex items-center gap-2 rounded-md transition ${
+                      activeCategory === category.id ? 'bg-[#005DA4] text-white' : ''
+                    }`}
+                  >
+                    {category.icon && (
+                      <span className="flex items-center justify-center w-5 h-5 flex-shrink-0">
+                        {category.icon}
+                      </span>
+                    )}
+                    <span style={{ fontSize: 'var(--text-body-md)' }}>
+                      {category.name}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
+      </nav>
+
+      {/* Section Title */}
+      <div
+        className="w-full px-6 py-4"
+        style={{ backgroundColor: 'var(--color-gray-50)' }}
+      >
+        <h2
+          className="font-medium pl-28"
+          style={{ fontSize: 'var(--text-h5)', color: 'var(--color-neutral)' }}
+        >
+          {activeCategoryName}
+        </h2>
       </div>
-    </nav>
+    </div>
   );
 }
 
@@ -137,7 +166,7 @@ export default function CategoriesNavigation({
 //         {/* Detail Navigation */}
 //         <DetailNavbar
 //           categories={categories}
-//           defaultActive="overview"
+//           defaultActive="activeTab"
 //           onCategoryChange={(id) => setActiveTab(id)}
 //           backgroundColor="#F2F2F2"
 //         />
