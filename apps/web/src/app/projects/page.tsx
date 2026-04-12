@@ -7,8 +7,7 @@ import Pagination from '@/components/Pagination';
 import ProjectListItem from '@/app/projects/components/ProjectListItem';
 
 import { getProjects } from '@/services/projects';
-
-import type { Project } from '@/mocks/projects-data';
+import type { Project } from '@/services/projects';
 
 /**
  * Projects listing page.
@@ -32,7 +31,7 @@ export default function ProjectsPage() {
     const fetchData = async () => {
       try {
         // Keep the page aligned with the current query and page selection.
-        const projectsResponse = await getProjects(currentPage, 10, searchQuery, {});
+        const projectsResponse = await getProjects(currentPage, 10, searchQuery);
 
         setProjects(projectsResponse.data);
         setTotalPages(
