@@ -6,8 +6,8 @@ import type {
   ResearcherListItemDto,
   ResearchersPaginatedListDto,
   ResearchersReader,
-} from '../researchers.reader.contract.ts';
-import { ResearchersRepository } from './researchers.repository.ts';
+} from '../researchers.reader.contract';
+import { ResearchersRepository } from './researchers.repository';
 
 @Injectable()
 export class ResearchersReaderService implements ResearchersReader {
