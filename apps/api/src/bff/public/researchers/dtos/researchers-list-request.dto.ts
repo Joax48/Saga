@@ -1,5 +1,5 @@
 import { IsOptional, IsString, MaxLength } from 'class-validator';
-import { PaginatedListRequestDto } from '../../common/dtos/paginated-list-request.dto.ts';
+import { PaginatedListRequestDto } from '../../common/dtos/paginated-list-request.dto';
 
 export class ResearchersListRequestDto extends PaginatedListRequestDto {
   @IsOptional()
