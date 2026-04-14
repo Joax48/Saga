@@ -1,18 +1,30 @@
-- name: Sync repos
-  run: |
-    git clone --branch develop https://JORGE.QUIROSANDERSON:${{ secrets.GITUCR_TOKEN }}@git.ucr.ac.cr/project/saga_ucr.git repo
-    cd repo
+name: Sync develop (GitUCR) to main (GitHub)
 
-    git remote add github https://${{ secrets.GH_TOKEN }}@github.com/Joax48/Saga.git
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
 
-    # Traer main de GitHub
-    git fetch github main
+jobs:
+  sync:
+    runs-on: ubuntu-latest
 
-    # Crear rama main basada en develop
-    git checkout -B main
+    steps:
+      - name: Sync repos
+        run: |
+          git clone --branch develop https://JORGE.QUIROSANDERSON:${{ secrets.GITUCR_TOKEN }}@git.ucr.ac.cr/project/saga_ucr.git repo
+          cd repo
 
-    # Hacer merge con lo que ya existe en GitHub
-    git merge github/main --allow-unrelated-histories -X theirs
+          git remote add github https://${{ secrets.GH_TOKEN }}@github.com/Joax48/Saga.git
 
-    # Push normal
-    git push github main
+          # Traer main de GitHub
+          git fetch github main
+
+          # Crear rama main basada en develop
+          git checkout -B main
+
+          # Hacer merge con lo que ya existe en GitHub
+          git merge github/main --allow-unrelated-histories -X theirs
+
+          # Push normal
+          git push github main
