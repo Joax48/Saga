@@ -14,5 +14,5 @@
     # Hacer merge con lo que ya existe en GitHub
     git merge github/main --allow-unrelated-histories -X theirs
 
-    # Push normal (ya no falla)
+    # Push normal
     git push github main
