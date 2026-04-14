@@ -1,24 +1,18 @@
-name: Sync develop (GitUCR) to main (GitHub)
+- name: Sync repos
+  run: |
+    git clone --branch develop https://JORGE.QUIROSANDERSON:${{ secrets.GITUCR_TOKEN }}@git.ucr.ac.cr/project/saga_ucr.git repo
+    cd repo
 
-on:
-  schedule:
-    - cron: "*/30 * * * *"
-  workflow_dispatch:
+    git remote add github https://${{ secrets.GH_TOKEN }}@github.com/Joax48/Saga.git
 
-jobs:
-  sync:
-    runs-on: ubuntu-latest
+    # Traer main de GitHub
+    git fetch github main
 
-    steps:
-      - name: Clone GitUCR repo (develop)
-        run: |
-          git clone --branch develop https://JORGE.QUIROSANDERSON:${{ secrets.GITUCR_TOKEN }}@git.ucr.ac.cr/project/saga_ucr.git repo
-          cd repo
+    # Crear rama main basada en develop
+    git checkout -B main
 
-          git remote add github https://${{ secrets.GH_TOKEN }}@github.com/Joax48/Saga.git
-          
-          git fetch github main || true
-          git checkout -B main
-          git merge origin/develop --allow-unrelated-histories -X theirs
-          
-          git push github main
+    # Hacer merge con lo que ya existe en GitHub
+    git merge github/main --allow-unrelated-histories -X theirs
+
+    # Push normal (ya no falla)
+    git push github main
