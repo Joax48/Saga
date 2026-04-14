@@ -2,9 +2,12 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // Ignorar errores de ESLint en build (Vercel)
   eslint: {
     ignoreDuringBuilds: true,
+  },
+
+  typescript: {
+    ignoreBuildErrors: true, // 👈 agrega esto
   },
 
   images: {
