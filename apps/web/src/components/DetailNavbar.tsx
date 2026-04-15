@@ -6,6 +6,7 @@ export interface Category {
   id: string;
   name: string;
   icon?: ReactNode;
+  sectionTitle?: string;
 }
 
 interface CategoriesNavigationProps {
@@ -16,6 +17,9 @@ interface CategoriesNavigationProps {
   itemClassName?: string;
   activeItemClassName?: string;
   backgroundColor?: string;
+  sectionContainerClassName?: string;
+  sectionTitleClassName?: string;
+  hideSectionTitle?: boolean;
 }
 
 export default function CategoriesNavigation({
@@ -26,6 +30,9 @@ export default function CategoriesNavigation({
   itemClassName = 'flex-1 h-full px-4 rounded-md transition cursor-pointer hover:bg-[#D9D9D9] text-center flex items-center justify-center',
   activeItemClassName = '',
   backgroundColor,
+  sectionContainerClassName = 'w-full px-6 lg:px-10 py-4',
+  sectionTitleClassName = 'max-w-6xl mx-auto font-medium text-[var(--color-text-neutral-primary)] text-h4',
+  hideSectionTitle = false,
 }: CategoriesNavigationProps) {
   const [activeCategory, setActiveCategory] = useState(
     defaultActive || categories[0]?.id,
@@ -48,7 +55,9 @@ export default function CategoriesNavigation({
     ? containerClassName.replace(/bg-\[.*?\]/g, `bg-[${backgroundColor}]`)
     : containerClassName;
 
-  const activeCategoryName = categories.find((cat) => cat.id === activeCategory)?.name;
+  const activeCategoryName =
+    categories.find((cat) => cat.id === activeCategory)?.sectionTitle ??
+    categories.find((cat) => cat.id === activeCategory)?.name;
 
   return (
     <div className="w-full">
@@ -122,18 +131,14 @@ export default function CategoriesNavigation({
         </div>
       </nav>
 
-      {/* Section Title */}
-      <div
-        className="w-full px-6 py-4"
-        style={{ backgroundColor: 'var(--color-gray-50)' }}
-      >
-        <h2
-          className="font-medium pl-28"
-          style={{ fontSize: 'var(--text-h5)', color: 'var(--color-neutral)' }}
+      {!hideSectionTitle ? (
+        <div
+          className={sectionContainerClassName}
+          style={{ backgroundColor: 'var(--color-gray-50)' }}
         >
-          {activeCategoryName}
-        </h2>
-      </div>
+          <h2 className={sectionTitleClassName}>{activeCategoryName}</h2>
+        </div>
+      ) : null}
     </div>
   );
 }

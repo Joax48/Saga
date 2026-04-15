@@ -56,7 +56,7 @@ export default function PageHeroSearch({
       className="px-6 lg:px-10 pt-4 pb-20"
       style={{ backgroundColor: 'var(--color-bg-neutral-secondary)' }}
     >
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="pt-2 pb-4">
           <Breadcrumb items={items} />
         </div>

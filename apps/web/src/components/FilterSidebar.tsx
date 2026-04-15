@@ -321,7 +321,7 @@ export function FilterSidebar({
   onClearAll,
 }: FilterSidebarProps) {
   return (
-    <aside className="w-56 shrink-0" aria-label="Filtros">
+    <aside className="w-full shrink-0 lg:w-56" aria-label="Filtros">
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
         <h2 className="text-base font-bold" style={{ color: 'var(--color-gray-600)' }}>

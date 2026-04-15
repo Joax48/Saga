@@ -8,7 +8,7 @@ import { ReactNode } from 'react';
  */
 type ButtonProps = {
   /** Content to be displayed inside the button */
-  children: ReactNode;
+  children?: ReactNode;
 
   /** Optional URL. If provided, the component renders a Next.js Link */
   href?: string;
@@ -20,7 +20,7 @@ type ButtonProps = {
   iconLeft?: ReactNode;
 
   /** Visual style variant of the button */
-  variant?: 'primary' | 'outline' | 'ghost';
+  variant?: 'primary' | 'outline' | 'ghost' | 'brandOutline';
 
   /** Size of the button */
   size?: 'sm' | 'md' | 'lg';
@@ -30,6 +30,15 @@ type ButtonProps = {
 
   /** Additional CSS classes for custom styling */
   className?: string;
+
+  /** Accessible label for icon-only buttons */
+  'aria-label'?: string;
+
+  /** Associates the button with a controlled element id */
+  'aria-controls'?: string;
+
+  /** Indicates expanded/collapsed state for toggle buttons */
+  'aria-expanded'?: boolean;
 };
 
 /**
@@ -66,6 +75,9 @@ export default function Button({
   size = 'md',
   type = 'button',
   className = '',
+  'aria-label': ariaLabel,
+  'aria-controls': ariaControls,
+  'aria-expanded': ariaExpanded,
 }: ButtonProps) {
   /**
    * Base styles applied to all button variants.
@@ -87,6 +99,12 @@ export default function Button({
       bg-transparent 
       text-[var(--color-text-neutral-primary)] 
       hover:bg-[var(--color-bg-neutral-tertiary)]
+    `,
+    brandOutline: `
+      border border-[var(--color-text-brand-primary)]
+      bg-white
+      text-[var(--color-text-brand-primary)]
+      hover:bg-[var(--color-bg-neutral-secondary)]
     `,
     ghost: `
       bg-transparent 
@@ -116,7 +134,7 @@ export default function Button({
     return (
       <Link href={href} className={classes}>
         {iconLeft}
-        <span>{children}</span>
+        {children != null && <span>{children}</span>}
       </Link>
     );
   }
@@ -125,9 +143,16 @@ export default function Button({
    * Otherwise, render as a standard HTML button.
    */
   return (
-    <button type={type} onClick={onClick} className={classes}>
+    <button
+      type={type}
+      onClick={onClick}
+      className={classes}
+      aria-label={ariaLabel}
+      aria-controls={ariaControls}
+      aria-expanded={ariaExpanded}
+    >
       {iconLeft}
-      <span>{children}</span>
+      {children != null && <span>{children}</span>}
     </button>
   );
 }

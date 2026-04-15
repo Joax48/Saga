@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Button from './Button';
 
 /**
  * Props for the SearchBar component.
@@ -27,6 +29,7 @@ export default function SearchBar({
   placeholder = 'Buscar por nombre, unidad, palabras claves',
   onSearch,
 }: SearchBarProps) {
+  const router = useRouter();
   const [query, setQuery] = useState('');
 
   /**
@@ -35,6 +38,17 @@ export default function SearchBar({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (onSearch) onSearch(query);
+  };
+
+  const handleAdvancedSearch = () => {
+    const trimmed = query.trim();
+
+    if (trimmed.length > 0) {
+      router.push(`/advanced-search?q=${encodeURIComponent(trimmed)}`);
+      return;
+    }
+
+    router.push('/advanced-search');
   };
 
   return (
@@ -86,15 +100,19 @@ export default function SearchBar({
         </button>
       </form>
 
-      <button
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={handleAdvancedSearch}
         className="
-          text-sm pr-1 transition-colors
+          rounded-none bg-transparent px-1 py-1
           text-[var(--color-text-brand-primary)]
-          hover:text-[var(--color-azul-700)]
+          hover:bg-transparent hover:text-[var(--color-azul-700)] hover:underline
         "
       >
         Búsqueda avanzada
-      </button>
+      </Button>
     </div>
   );
 }
