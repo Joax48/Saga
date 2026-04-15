@@ -38,10 +38,10 @@ export interface PaginatedUnitsResponse {
 export function getUnits(
   page = 1,
   limit = 9,
-  searchQuery = ''
+  searchQuery = '',
 ): Promise<PaginatedUnitsResponse> {
   return request<PaginatedListResponseDto<Unit>>(
-    `/units?page=${page}&limit=${limit}${searchQuery ? `&q=${encodeURIComponent(searchQuery)}` : ''}`
+    `/units?page=${page}&limit=${limit}${searchQuery ? `&q=${encodeURIComponent(searchQuery)}` : ''}`,
   ).then((response) => ({
     data: response.items,
     page: response.page,
@@ -51,10 +51,17 @@ export function getUnits(
 }
 
 /**
- * Note: Unit detail endpoint (GET /units/{id}) is not yet implemented in the backend.
- * This function will be available once the API is extended.
+ * Unit detail returned by GET /units/:id.
  */
-export function getUnitById(id: number): Promise<Unit> {
-  // TODO: Implement when backend provides GET /units/{id} endpoint
-  return Promise.reject(new Error('Unit detail endpoint not yet implemented in the backend'));
+export interface UnitDetail {
+  id: number;
+  name: string;
+  description: string;
+  email: string;
+  pageUrl: string;
+  phoneNumber: string;
+}
+
+export function getUnitById(id: number): Promise<UnitDetail> {
+  return request<UnitDetail>(`/units/${id}`);
 }

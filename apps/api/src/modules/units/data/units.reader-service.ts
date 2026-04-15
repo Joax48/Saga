@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type {
+  UnitDetailDto,
   UnitListItemDto,
   UnitsPaginatedListDto,
   UnitsReader,
@@ -28,6 +29,21 @@ export class UnitsReaderService implements UnitsReader {
       page,
       limit,
       total: unitsPage.total,
+    };
+  }
+
+  async getById(id: number): Promise<UnitDetailDto | null> {
+    const unit = await this.unitsRepository.findById(id);
+
+    if (!unit) return null;
+
+    return {
+      id: unit.id,
+      name: unit.name,
+      description: unit.description,
+      email: unit.email,
+      pageUrl: unit.pageUrl,
+      phoneNumber: unit.phoneNumber,
     };
   }
 }

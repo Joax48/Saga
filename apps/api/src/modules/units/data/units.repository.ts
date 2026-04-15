@@ -15,7 +15,18 @@ const BASE_UNITS_SELECT = `
   SELECT
     Unit.id  AS id,
     Unit.name     AS name,
-    Unit.imageUrl AS imageUrl
+    Unit.image_url AS imageUrl
+  FROM Unit
+`;
+
+const UNIT_DETAIL_SELECT = `
+  SELECT
+    Unit.id      AS id,
+    Unit.name         AS name,
+    Unit.description  AS description,
+    Unit.email        AS email,
+    Unit.page_url     AS pageUrl,
+    Unit.phone_number AS phoneNumber
   FROM Unit
 `;
 
@@ -68,6 +79,13 @@ export class UnitsRepository {
     );
 
     return totalRows[0]?.totalCount ?? 0;
+  }
+
+  async findById(id: number): Promise<Unit | null> {
+    const rows = await this.databaseService.query<Unit>(
+      `${UNIT_DETAIL_SELECT} WHERE Unit.id = ${id} LIMIT 1`,
+    );
+    return rows[0] ?? null;
   }
 
   private calculateOffset(page: number, limit: number): number {

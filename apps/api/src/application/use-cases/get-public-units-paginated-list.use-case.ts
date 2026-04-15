@@ -20,7 +20,11 @@ export class GetUnitsPaginatedListUseCase {
   async execute(
     input: PaginatedListRequestDto,
   ): Promise<PaginatedListResponseDto<UnitSummaryResponseDto>> {
-    const units = await this.unitsReader.getPaginatedList(input.page, input.limit, input.q);
+    const units = await this.unitsReader.getPaginatedList(
+      input.page,
+      input.limit,
+      input.q,
+    );
 
     return this.mapToResponseDto(units);
   }

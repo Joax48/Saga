@@ -6,6 +6,15 @@ export interface UnitListItemDto {
   imageUrl: string;
 }
 
+export interface UnitDetailDto {
+  id: number;
+  name: string;
+  description: string;
+  email: string;
+  pageUrl: string;
+  phoneNumber: string;
+}
+
 export interface UnitsPaginatedListDto {
   items: UnitListItemDto[];
   page: number;
@@ -19,4 +28,5 @@ export interface UnitsReader {
     limit: number,
     search?: string,
   ): Promise<UnitsPaginatedListDto>;
+  getById(id: number): Promise<UnitDetailDto | null>;
 }

@@ -6,6 +6,7 @@ import { ProjectsModule } from './modules/projects/projects.module';
 import { UnitsModule } from './modules/units/units.module';
 import { PublicUnitsController } from './bff/public/units/public-units.controller';
 import { GetUnitsPaginatedListUseCase } from './application/use-cases/get-public-units-paginated-list.use-case';
+import { GetPublicUnitDetailUseCase } from './application/use-cases/get-public-unit-detail.use-case';
 import { ResearchersModule } from './modules/researchers/researchers.module';
 import { ScientificProductionsModule } from './modules/scientific-productions/scientific-productions.module';
 import { PublicProjectsController } from './bff/public/projects/public-projects.controller';
@@ -32,13 +33,19 @@ import { GetScientificProductionPaginatedListUseCase } from './application/use-c
     UnitsModule,
     ResearchersModule,
   ],
-  controllers: [PublicProjectsController, PublicScientificProductionsController, PublicResearchersController, PublicUnitsController],
+  controllers: [
+    PublicProjectsController,
+    PublicScientificProductionsController,
+    PublicResearchersController,
+    PublicUnitsController,
+  ],
   providers: [
-    GetProjectsPaginatedListUseCase, 
+    GetProjectsPaginatedListUseCase,
     SearchPublicProjectsUseCase,
     GetScientificProductionPaginatedListUseCase,
     GetResearchersPaginatedListUseCase,
     GetUnitsPaginatedListUseCase,
+    GetPublicUnitDetailUseCase,
   ],
 })
 export class AppModule {}

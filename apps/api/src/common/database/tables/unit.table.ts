@@ -170,7 +170,7 @@ export const unitTable: DatabaseTableDefinition = {
       description STRING,
       email STRING,
       page_url STRING,
-      imageUrl STRING,
+      image_url STRING,
       phone_number STRING
     )
   `,
