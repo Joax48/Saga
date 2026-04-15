@@ -17,6 +17,9 @@ jobs:
 
           git remote add github https://${{ secrets.GH_TOKEN }}@github.com/Joax48/Saga.git
 
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
           # Traer main de GitHub
           git fetch github main
 
