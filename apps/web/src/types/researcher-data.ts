@@ -11,6 +11,16 @@ export interface Researcher {
   researchGate: string | null;
   scopus: string | null;
   photoUrl: string | null;
+  position?: string;
+  altNames?: string[];
+  profileLinks?: { label: string; href: string; icon: any }[];
+  education?: { bold: string; rest: string }[];
+  keywords?: string[];
+  collaborations?: string[];
+  publications?: string[];
+  projects?: string[];
+  otherProductions?: string[];
+  biography?: string;
 }
 
 export interface PaginatedResearchers {
@@ -18,6 +28,17 @@ export interface PaginatedResearchers {
   total: number;
   page: number;
   limit: number;
+}
+
+export interface FacetOption {
+  value: string;
+  label: string;
+  count: number;
+}
+
+export interface ResearcherFilters {
+  baseUnit: FacetOption[];
+  ceaCategory: FacetOption[];
 }
 
 export interface ResearcherQueryFilters {

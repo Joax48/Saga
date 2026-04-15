@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Pagination from '../../../components/Pagination.tsx';
 import Card from '../../../components/Card.tsx';
-import { getResearchers } from '../../../services/researchers';
+import { getResearchers, type ResearcherQueryFilters } from '../../../services/researchers';
 
 import type { Researcher } from '@/types/researcher-data.js';
 
@@ -11,20 +11,21 @@ const PAGE_SIZE = 9;
 
 interface ResearchersListProps {
   searchQuery: string;
+  filters: ResearcherQueryFilters;
 }
 
-export default function ResearchersList({ searchQuery }: ResearchersListProps) {
+export default function ResearchersList({ searchQuery, filters }: ResearchersListProps) {
   const [researchers, setResearchers] = useState<Researcher[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, filters]);
 
   useEffect(() => {
     const fetchResearchers = async () => {
       try {
-        const response = await getResearchers(currentPage, PAGE_SIZE, searchQuery);
+        const response = await getResearchers(currentPage, PAGE_SIZE, searchQuery, filters);
         setResearchers(response.data);
         setTotalPages(Math.max(1, Math.ceil(response.total / response.limit)));
       } catch (error) {
@@ -34,11 +35,16 @@ export default function ResearchersList({ searchQuery }: ResearchersListProps) {
     };
 
     fetchResearchers();
-  }, [currentPage, searchQuery]);
+  }, [currentPage, searchQuery, filters]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     globalThis.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const getAvatarUrl = (name: string, surname: string): string => {
+    const fullName = `${name} ${surname}`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0D8ABC&color=fff&size=200`;
   };
 
   return (
@@ -50,9 +56,9 @@ export default function ResearchersList({ searchQuery }: ResearchersListProps) {
             title={`${researcher.name} ${researcher.firstSurname}`}
             description={researcher.baseUnit}
             excerpt={researcher.ceaCategory || 'Investigador'}
-            imageSrc={researcher.photoUrl || undefined}
+            imageSrc={researcher.photoUrl || getAvatarUrl(researcher.name, researcher.firstSurname)}
             imageShape="circle"
-            // href={`/researchers/${researcher.id}`}
+            href={`/researchers/${researcher.id}`}
             chromeless
             className="flex items-start gap-4"
           />

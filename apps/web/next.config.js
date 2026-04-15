@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   //todo(delete this line)
   images: {
-    domains: ['randomuser.me'],
+    domains: ['randomuser.me', 'ui-avatars.com'],
   },
 };
 

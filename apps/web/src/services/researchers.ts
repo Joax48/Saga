@@ -1,98 +1,47 @@
-import { request } from './api';
-
 import {
-  Researcher,
+  getMockResearchersPaginated,
+  getMockResearcherFilters,
+  MOCK_RESEARCHERS,
+} from '@/mocks/researchers-data';
+
+import type {
   PaginatedResearchers,
-} from '@/types/researcher-data';
+  ResearcherFilters,
+  ResearcherQueryFilters,
+} from '@/mocks/researchers-data';
+import type { Researcher } from '@/types/researcher-data';
+
+export type { PaginatedResearchers, ResearcherFilters, ResearcherQueryFilters };
+export type { Researcher } from '@/types/researcher-data';
 
 /**
- * Researcher summary shape returned by the public researchers API list endpoint.
- */
-interface ResearcherSummaryApiDto {
-  id: string;
-  idUcrProfile: string;
-  baseUnit: string;
-  name: string;
-  firstSurname: string;
-  secondSurname: string;
-  ceaCategory: string | null;
-  orcidId: string | null;
-  linkedin: string | null;
-  researchGate: string | null;
-  scopus: string | null;
-  photoUrl: string | null;
-}
-
-/**
- * Generic paginated response contract used by the BFF list endpoints.
- */
-interface PaginatedListResponseDto<T> {
-  items: T[];
-  page: number;
-  limit: number;
-  total: number;
-}
-
-/**
- * Maps an API researcher into the UI researcher model.
- */
-function mapResearcherSummaryToResearcher(item: ResearcherSummaryApiDto): Researcher {
-  return {
-    id: item.id,
-    idUcrProfile: item.idUcrProfile,
-    baseUnit: item.baseUnit,
-    name: item.name,
-    firstSurname: item.firstSurname,
-    secondSurname: item.secondSurname,
-    ceaCategory: item.ceaCategory,
-    orcidId: item.orcidId,
-    linkedin: item.linkedin,
-    researchGate: item.researchGate,
-    scopus: item.scopus,
-    photoUrl: item.photoUrl,
-  };
-}
-
-/**
- * Fetches a paginated list of researchers from the backend.
+ * Fetches a paginated list of researchers from mock data.
  */
 export function getResearchers(
   page = 1,
   limit = 9,
   searchQuery = '',
+  queryFilters: ResearcherQueryFilters = {},
 ): Promise<PaginatedResearchers> {
-  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
-  if (searchQuery) params.set('name', searchQuery);
-  return request<PaginatedListResponseDto<ResearcherSummaryApiDto>>(
-    `/researchers?${params.toString()}`,
-  ).then((response) => ({
-    data: response.items.map(mapResearcherSummaryToResearcher),
-    page: response.page,
-    limit: response.limit,
-    total: response.total,
-  }));
+  return Promise.resolve(
+    getMockResearchersPaginated(page, limit, searchQuery, queryFilters),
+  );
 }
 
 /**
  * Fetches a researcher by id from mock data.
-
-export function getResearcherById(id: string): Promise<Researcher> {
+ */
+export function getResearcherById(id: string) {
   const researcher = MOCK_RESEARCHERS.find((item) => item.id === id);
   if (!researcher) {
     return Promise.reject(new Error('Researcher not found'));
   }
   return Promise.resolve(researcher);
-} 
-*/
+}
 
 /**
- * Basic researchers service template.
- 
-export function getResearchers(page = 1, limit = 10) {
-  return request(`/researchers?page=${page}&limit=${limit}`);
+ * Fetches filter options for researchers.
+ */
+export function getResearcherFilters(): Promise<ResearcherFilters> {
+  return Promise.resolve(getMockResearcherFilters());
 }
-
-export function getResearcherById(id: string) {
-  return request(`/researchers/${id}`);
-}
-*/
