@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Button from './Button';
 
 /**
  * Props for the SearchBar component.
@@ -18,9 +16,8 @@ interface SearchBarProps {
 /**
  * SearchBar component.
  *
- * Provides a search input with a submit button and an optional
- * "advanced search" action. It allows users to type a query
- * and trigger a search event.
+ * Provides a search input with a submit button.
+ * It allows users to type a query and trigger a search event.
  *
  * @example
  * <SearchBar onSearch={(query) => console.log(query)} />
@@ -29,7 +26,6 @@ export default function SearchBar({
   placeholder = 'Buscar por nombre, unidad, palabras claves',
   onSearch,
 }: SearchBarProps) {
-  const router = useRouter();
   const [query, setQuery] = useState('');
 
   /**
@@ -40,19 +36,8 @@ export default function SearchBar({
     if (onSearch) onSearch(query);
   };
 
-  const handleAdvancedSearch = () => {
-    const trimmed = query.trim();
-
-    if (trimmed.length > 0) {
-      router.push(`/advanced-search?q=${encodeURIComponent(trimmed)}`);
-      return;
-    }
-
-    router.push('/advanced-search');
-  };
-
   return (
-    <div className="w-full flex flex-col items-end gap-1 max-w-xl mx-auto">
+    <div className="w-full max-w-xl mx-auto">
       <form
         onSubmit={handleSubmit}
         className="
@@ -99,20 +84,6 @@ export default function SearchBar({
           </svg>
         </button>
       </form>
-
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={handleAdvancedSearch}
-        className="
-          rounded-none bg-transparent px-1 py-1
-          text-[var(--color-text-brand-primary)]
-          hover:bg-transparent hover:text-[var(--color-azul-700)] hover:underline
-        "
-      >
-        Búsqueda avanzada
-      </Button>
     </div>
   );
 }
