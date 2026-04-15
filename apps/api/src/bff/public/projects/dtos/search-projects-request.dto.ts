@@ -5,5 +5,5 @@ export class SearchProjectsRequestDto extends PaginatedListRequestDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(120)
-  q!: string;
+  declare q: string;
 }
