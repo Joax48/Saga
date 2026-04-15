@@ -207,7 +207,7 @@ export function ScientificProductionsView({
       />
 
       <div className="max-w-5xl mx-auto py-9">
-        {/* Result count (not used for now, but could be re-enabled if desired) 
+        
         <p
           className="mb-4 text-sm"
           style={{ color: 'var(--color-text-neutral-secondary)' }}
@@ -215,16 +215,15 @@ export function ScientificProductionsView({
           {filtered.length === productions.length
             ? `${productions.length} resultado${productions.length !== 1 ? 's' : ''}`
             : `${filtered.length} de ${productions.length} resultado${productions.length !== 1 ? 's' : ''}`}
-        </p> */}
+        </p>
 
         {/* Content grid */}
         <div className="flex gap-8 pb-12 space-y-12">
-          {/*(not used for now, but could be re-enabled if desired) 
           <FilterSidebar
             groups={filterGroups}
             hasActiveFilters={hasActiveFilters}
             onClearAll={handleClearAll}
-          />*/}
+          />
 
           {/* Results */}
           <section className="flex-1 min-w-0">

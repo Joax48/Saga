@@ -1,24 +1,31 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 
 import { PaginatedListRequestDto } from '../common/dtos/paginated-list-request.dto';
 import { PaginatedListResponseDto } from '../common/dtos/paginated-list-response.dto';
 import { ScientificProductioSummaryResponseDto } from './dtos/public-scientific-productions-summary-response.dto';
+import { ScientificProductionDetailResponseDto } from './dtos/public-scientific-production-detail-response.dto';
 
 import { GetScientificProductionPaginatedListUseCase } from '../../../application/use-cases/get-public-scientific-productions-paginated-list.use-case';
+import { GetScientificProductionDetailUseCase } from '../../../application/use-cases/get-public-scientific-production-detail.use-case';
 
 @Controller('scientific-productions')
 export class PublicScientificProductionsController {
   constructor(
     private readonly getScientificProductionPaginatedListUseCase: GetScientificProductionPaginatedListUseCase,
+    private readonly getScientificProductionDetailUseCase: GetScientificProductionDetailUseCase,
   ) {}
 
   @Get()
   async getScientificProductionsPaginatedList(
     @Query() query: PaginatedListRequestDto,
   ): Promise<PaginatedListResponseDto<ScientificProductioSummaryResponseDto>> {
-    const scientificProductions =
-      await this.getScientificProductionPaginatedListUseCase.execute(query);
+    return this.getScientificProductionPaginatedListUseCase.execute(query);
+  }
 
-    return scientificProductions;
+  @Get(':id')
+  async getScientificProductionDetail(
+    @Param('id') id: string,
+  ): Promise<ScientificProductionDetailResponseDto> {
+    return this.getScientificProductionDetailUseCase.execute(id);
   }
 }

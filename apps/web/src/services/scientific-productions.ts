@@ -5,6 +5,9 @@ interface ApiScientificProduction {
   id: string;
   title: string;
   authors: string; // JSON string
+  principalAuthor: string;
+  unit: string;
+  affiliations: string; // JSON string
   type: string; // JSON string
   openAccess: boolean;
   publicationYear: number;
@@ -30,6 +33,9 @@ function parseScientificProduction(item: ApiScientificProduction): ScientificPro
     id: item.id,
     title: item.title,
     authors: JSON.parse(item.authors),
+    principalAuthor: item.principalAuthor,
+    unit: item.unit,
+    affiliations: JSON.parse(item.affiliations ?? '[]'),
     type: JSON.parse(item.type),
     open_access: item.openAccess,
     publication_year: item.publicationYear,

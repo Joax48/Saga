@@ -5,6 +5,9 @@ const insertScientificProductionSql = `
       id,
       title,
       authors,
+      principal_author,
+      unit,
+      affiliations,
       type,
       open_access,
       publication_year,
@@ -16,13 +19,16 @@ const insertScientificProductionSql = `
       pages,
       citation_count,
       keywords
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
 type ScientificProductionSeedRow = {
   id: string;
   title: string;
   authors: string[];
+  principalAuthor: string;
+  unit: string;
+  affiliations?: string[];
   type: {
     category: string;
     subcategory: string;
@@ -46,13 +52,20 @@ const scientificProductionRows: ScientificProductionSeedRow[] = [
     title:
       'Hydrothermal Synthesis of W-Doped VO2(M) for Smart Windows in Tropical Climates',
     authors: [
-      'Torralbo, G.',
-      'Castillo, O. E.',
-      'Balestra, F.',
-      'Pugliese, A.',
-      'Chini Zitelli, G.',
-      'Cicchi, B.',
-      'Touloupaklls, E.',
+      'Gabriel Torralbo',
+      'Oscar Castillo',
+      'Federico Balestra',
+      'Andrea Pugliese',
+      'Graziella Chini Zitelli',
+      'Beatrice Cicchi',
+      'Eleni Touloupaklls',
+    ],
+    principalAuthor: 'Gabriel Torralbo',
+    unit: 'CINAT',
+    affiliations: [
+      'Freie Universität Berlin',
+      'United Arab Emirates University',
+      'University of Bamberg',
     ],
     type: {
       category: 'Contribución a una revista',
@@ -80,7 +93,19 @@ const scientificProductionRows: ScientificProductionSeedRow[] = [
     id: 'sci-out-002',
     title:
       'Intercensal Updating Using Structure-Preserving Methods and Satellite Imagery',
-    authors: ['Koebe, T.', 'Arias-Salazar, A.', 'Rojas-Perilla, N.', 'Schmid, T.'],
+    authors: [
+      'Till Koebe',
+      'Alejandra Arias-Salazar',
+      'Natalia Rojas-Perilla',
+      'Timo Schmid',
+    ],
+    principalAuthor: 'Alejandra Arias-Salazar',
+    unit: 'Escuela de Estadística',
+    affiliations: [
+      'Freie Universität Berlin',
+      'United Arab Emirates University',
+      'University of Bamberg',
+    ],
     type: {
       category: 'Contribución a una revista',
       subcategory: 'Artículo',
@@ -107,7 +132,9 @@ const scientificProductionRows: ScientificProductionSeedRow[] = [
     id: 'sci-out-003',
     title:
       "Variation in Sexual Size Dimorphism and Fit to Rensch's Rule in Costa Rican Hummingbirds",
-    authors: ['Avalos, G.', 'Triana, F.', 'Klank, J.', 'Araya, M.'],
+    authors: ['Gloriana Avalos', 'Felipe Triana', 'Jenna Klank', 'Marco Araya'],
+    principalAuthor: 'Gloriana Avalos',
+    unit: 'Escuela de Biología',
     type: {
       category: 'Contribución a una revista',
       subcategory: 'Artículo',
@@ -134,17 +161,19 @@ const scientificProductionRows: ScientificProductionSeedRow[] = [
     id: 'sci-out-004',
     title: 'Memory Clinic Experience Under a Social Security Health System in Costa Rica',
     authors: [
-      'Miranda-Valverde, E.',
-      'Valerio-Aguilar, D.',
-      'Hernández-Gabarain, H.-J.',
-      'Chaves-Araya, C.',
-      'Peralta-Azofeifa, M.',
-      'Corrales-Campos, L.',
-      'Angulo-Cruz, R.',
-      'Carballo-Alfaro, A.',
-      'Arias-Segura, S.',
-      'Morales-Martínez, F.',
+      'Eduardo Miranda-Valverde',
+      'Daniel Valerio-Aguilar',
+      'Héctor Hernández-Gabarain',
+      'Carlos Chaves-Araya',
+      'Mariela Peralta-Azofeifa',
+      'Laura Corrales-Campos',
+      'Ricardo Angulo-Cruz',
+      'Adriana Carballo-Alfaro',
+      'Silvia Arias-Segura',
+      'Fernando Morales-Martínez',
     ],
+    principalAuthor: 'Eduardo Miranda-Valverde',
+    unit: 'Escuela de Medicina',
     type: {
       category: 'Contribución a una revista',
       subcategory: 'Artículo',
@@ -172,7 +201,9 @@ const scientificProductionRows: ScientificProductionSeedRow[] = [
     id: 'sci-out-005',
     title:
       'Small Area Estimates of Poverty Incidence in Costa Rica under a Structure-Preserving Estimation (SPREE) Approach',
-    authors: ['Arias-Salazar, A.'],
+    authors: ['Alejandra Arias-Salazar'],
+    principalAuthor: 'Alejandra Arias-Salazar',
+    unit: 'Escuela de Estadística',
     type: {
       category: 'Contribución a una revista',
       subcategory: 'Artículo',
@@ -199,7 +230,9 @@ const scientificProductionRows: ScientificProductionSeedRow[] = [
     id: 'sci-out-006',
     title:
       'Distopía Apocalíptica en Tres Microrrelatos de Fragmentos de la Tierra Prometida de Fernando Contreras Castro',
-    authors: ['Monge Lezcano, F.'],
+    authors: ['Francisco Monge Lezcano'],
+    principalAuthor: 'Francisco Monge Lezcano',
+    unit: 'Escuela de Literatura y Ciencias del Lenguaje',
     type: {
       category: 'Contribución a una revista',
       subcategory: 'Artículo',
@@ -232,12 +265,14 @@ const scientificProductionRows: ScientificProductionSeedRow[] = [
     title:
       'Extension of the Model Reference Robust Tuning Methodology for Fractional-Order PI 2-DoF Controllers',
     authors: [
-      'Camacho, D.',
-      'Madrigal, S.',
-      'Arrieta, O.',
-      'Rojas, J. D.',
-      'Vilanova, R.',
+      'Daniel Camacho',
+      'Sebastián Madrigal',
+      'Oscar Arrieta',
+      'Juan Rojas',
+      'Ramon Vilanova',
     ],
+    principalAuthor: 'Juan Rojas',
+    unit: 'Escuela de Ingeniería Eléctrica',
     type: {
       category: 'Contribución a una revista',
       subcategory: 'Artículo',
@@ -264,7 +299,9 @@ const scientificProductionRows: ScientificProductionSeedRow[] = [
     id: 'sci-out-008',
     title:
       'Biodiversidad de Macroinvertebrados Acuáticos en Ríos de la Cuenca del Río Grande de Térraba, Costa Rica',
-    authors: ['Springer, M.', 'Ramírez, A.', 'Hanson, P.'],
+    authors: ['Monika Springer', 'Alonso Ramírez', 'Paul Hanson'],
+    principalAuthor: 'Monika Springer',
+    unit: 'Escuela de Biología',
     type: {
       category: 'Contribución a un libro',
       subcategory: 'Capítulo',
@@ -291,7 +328,9 @@ const scientificProductionRows: ScientificProductionSeedRow[] = [
     id: 'sci-out-009',
     title:
       'Aplicación de Técnicas de Aprendizaje Automático para la Detección Temprana de Enfermedades en Cultivos de Café',
-    authors: ['Solano, K.', 'Jiménez, R.', 'Castro, M.', 'Vindas, L.'],
+    authors: ['Karen Solano', 'Roberto Jiménez', 'Marianela Castro', 'Luis Vindas'],
+    principalAuthor: 'Karen Solano',
+    unit: 'Escuela de Ciencias de la Computación e Informática',
     type: {
       category: 'Contribución a un libro',
       subcategory: 'Capítulo',
@@ -315,7 +354,9 @@ const scientificProductionRows: ScientificProductionSeedRow[] = [
     id: 'sci-out-010',
     title:
       'Gobernanza del Agua en Cuencas Transfronterizas de Centroamérica: Retos y Perspectivas',
-    authors: ['Aguilar-Arias, H.', 'Alpízar, F.', 'Vargas, M. E.'],
+    authors: ['Héctor Aguilar-Arias', 'Francisco Alpízar', 'María Vargas'],
+    principalAuthor: 'Héctor Aguilar-Arias',
+    unit: 'Escuela de Geografía',
     type: {
       category: 'Libro',
       subcategory: 'Libro',
@@ -338,7 +379,9 @@ const scientificProductionRows: ScientificProductionSeedRow[] = [
   {
     id: 'sci-out-011',
     title: 'Neurobiología del Estrés Crónico: Implicaciones Clínicas y Terapéuticas',
-    authors: ['Ugalde-Muñoz, V.', 'Herrera-Solís, A.', 'Fornaguera-Trías, J.'],
+    authors: ['Víctor Ugalde-Muñoz', 'Alejandro Herrera-Solís', 'Jaime Fornaguera-Trías'],
+    principalAuthor: 'Jaime Fornaguera-Trías',
+    unit: 'Escuela de Psicología',
     type: {
       category: 'Libro',
       subcategory: 'Libro',
@@ -362,7 +405,9 @@ const scientificProductionRows: ScientificProductionSeedRow[] = [
     id: 'sci-out-012',
     title:
       'Impacto del Cambio de Uso del Suelo sobre la Diversidad de Aves en Fragmentos de Bosque Seco Tropical en Guanacaste',
-    authors: ['Sandoval, L.', 'Barrantes, G.', 'Chaves-Campos, J.'],
+    authors: ['Luis Sandoval', 'Gilbert Barrantes', 'Johel Chaves-Campos'],
+    principalAuthor: 'Luis Sandoval',
+    unit: 'Escuela de Biología',
     type: {
       category: 'Contribución a una conferencia',
       subcategory: 'Resumen',
@@ -386,7 +431,9 @@ const scientificProductionRows: ScientificProductionSeedRow[] = [
     id: 'sci-out-013',
     title:
       'Análisis Termoeconómico de un Sistema de Cogeneración Solar-Gas para Hospitales Públicos en Costa Rica',
-    authors: ['Mora, D.', 'Barquero, F.', 'Pérez, A.', 'Serrano, C.'],
+    authors: ['Diego Mora', 'Felipe Barquero', 'Andrés Pérez', 'Carlos Serrano'],
+    principalAuthor: 'Diego Mora',
+    unit: 'Escuela de Ingeniería Mecánica',
     type: {
       category: 'Contribución a una conferencia',
       subcategory: 'Resumen',
@@ -411,7 +458,9 @@ const scientificProductionRows: ScientificProductionSeedRow[] = [
     id: 'sci-out-014',
     title:
       'Guía Metodológica para la Evaluación del Impacto Ambiental de Proyectos de Infraestructura Vial en Zonas de Vida de Costa Rica',
-    authors: ['Picado, M.', 'Chacón, L.', 'Rodríguez, E.'],
+    authors: ['Miguel Picado', 'Laura Chacón', 'Ernesto Rodríguez'],
+    principalAuthor: 'Miguel Picado',
+    unit: 'Escuela de Ingeniería Civil',
     type: {
       category: 'Otras contribuciones',
       subcategory: 'Otras contribuciones',
@@ -436,13 +485,16 @@ const scientificProductionRows: ScientificProductionSeedRow[] = [
     title:
       'Small Area Estimation for Composite Indicators: The Case of Multidimensional Poverty Incidence',
     authors: [
-      'Arias-Salazar, A.',
-      'Gutiérrez, A.',
-      'Mancero, X.',
-      'Guerrero-Gómez, S.',
-      'Rojas-Perilla, N.',
-      'Zhang, H.',
+      'Alejandra Arias-Salazar',
+      'Andrés Gutiérrez',
+      'Xavier Mancero',
+      'Sergio Guerrero-Gómez',
+      'Natalia Rojas-Perilla',
+      'Huiling Zhang',
     ],
+    principalAuthor: 'Alejandra Arias-Salazar',
+    unit: 'Escuela de Estadística',
+    affiliations: ['CEPAL', 'Freie Universität Berlin', 'The World Bank'],
     type: {
       category: 'Contribución a una revista',
       subcategory: 'Artículo',
@@ -475,6 +527,9 @@ export const scientificProductionTable: DatabaseTableDefinition = {
       id STRING,
       title STRING,
       authors STRING,
+      principal_author STRING,
+      unit STRING,
+      affiliations STRING,
       type STRING,
       open_access BOOLEAN,
       publication_year INT,
@@ -494,6 +549,9 @@ export const scientificProductionTable: DatabaseTableDefinition = {
       scientificProduction.id,
       scientificProduction.title,
       JSON.stringify(scientificProduction.authors),
+      scientificProduction.principalAuthor,
+      scientificProduction.unit,
+      JSON.stringify(scientificProduction.affiliations ?? []),
       JSON.stringify(scientificProduction.type),
       scientificProduction.open_access,
       scientificProduction.publication_year,

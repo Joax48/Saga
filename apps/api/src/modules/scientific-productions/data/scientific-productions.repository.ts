@@ -28,6 +28,9 @@ const BASE_SCIENTIFIC_PRODUCTIONS_SELECT = `
     ScientificProduction.id AS id,
     ScientificProduction.title AS title,
     ScientificProduction.authors AS authors,
+    ScientificProduction.principal_author AS principalAuthor,
+    ScientificProduction.unit AS unit,
+    ScientificProduction.affiliations AS affiliations,
     ScientificProduction.type AS type,
     ScientificProduction.open_access AS openAccess,
     ScientificProduction.publication_year AS publicationYear,
@@ -65,6 +68,14 @@ export class ScientificProductionRepository {
       items,
       total,
     };
+  }
+
+  async findById(id: string): Promise<ScientificProduction | null> {
+    const rows = await this.databaseService.query<ScientificProduction>(
+      `${BASE_SCIENTIFIC_PRODUCTIONS_SELECT} WHERE ScientificProduction.id = ?`,
+      [id],
+    );
+    return rows[0] ?? null;
   }
   private async findItemsPage(
     limit: number,

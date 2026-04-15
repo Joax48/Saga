@@ -17,6 +17,7 @@ import { PublicResearchersController } from './bff/public/researchers/public-res
 import { GetResearchersPaginatedListUseCase } from './application/use-cases/get-public-researchers-paginated-list.use-case';
 import { SearchPublicProjectsUseCase } from './application/use-cases/search-public-projects.use-case';
 import { GetScientificProductionPaginatedListUseCase } from './application/use-cases/get-public-scientific-productions-paginated-list.use-case';
+import { GetScientificProductionDetailUseCase } from './application/use-cases/get-public-scientific-production-detail.use-case';
 
 // Root application module.
 // When domain modules (ResearchersModule, UnitsModule, ProjectsModule,
@@ -43,6 +44,7 @@ import { GetScientificProductionPaginatedListUseCase } from './application/use-c
     GetProjectsPaginatedListUseCase,
     SearchPublicProjectsUseCase,
     GetScientificProductionPaginatedListUseCase,
+    GetScientificProductionDetailUseCase,
     GetResearchersPaginatedListUseCase,
     GetUnitsPaginatedListUseCase,
     GetPublicUnitDetailUseCase,

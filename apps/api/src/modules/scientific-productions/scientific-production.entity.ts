@@ -2,6 +2,9 @@ export interface ScientificProduction {
   id: string;
   title: string;
   authors: string;
+  principalAuthor: string;
+  unit: string;
+  affiliations: string;
   type: string;
   openAccess: boolean;
   publicationYear: number;

@@ -4,6 +4,9 @@ export interface ScientificProductionsListItemDto {
   id: string;
   title: string;
   authors: string;
+  principalAuthor: string;
+  unit: string;
+  affiliations: string;
   type: string;
   openAccess: boolean;
   publicationYear: number;
@@ -29,4 +32,5 @@ export interface ScientificProductionsReader {
     page: number,
     limit: number,
   ): Promise<ScientificProductionsPaginatedListDto>;
+  getById(id: string): Promise<ScientificProductionsListItemDto | null>;
 }

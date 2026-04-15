@@ -25,6 +25,9 @@ export class ScientificProductionsService implements ScientificProductionsReader
           id: scientificProduction.id,
           title: scientificProduction.title,
           authors: scientificProduction.authors,
+          principalAuthor: scientificProduction.principalAuthor,
+          unit: scientificProduction.unit,
+          affiliations: scientificProduction.affiliations,
           type: scientificProduction.type,
           openAccess: scientificProduction.openAccess,
           publicationYear: scientificProduction.publicationYear,
@@ -41,6 +44,31 @@ export class ScientificProductionsService implements ScientificProductionsReader
       page,
       limit,
       total: scientificProductionsPage.total,
+    };
+  }
+
+  async getById(id: string): Promise<ScientificProductionsListItemDto | null> {
+    const row = await this.scientificProductionsRepository.findById(id);
+    if (!row) return null;
+
+    return {
+      id: row.id,
+      title: row.title,
+      authors: row.authors,
+      principalAuthor: row.principalAuthor,
+      unit: row.unit,
+      affiliations: row.affiliations,
+      type: row.type,
+      openAccess: row.openAccess,
+      publicationYear: row.publicationYear,
+      abstract: row.abstract,
+      doi: row.doi,
+      journal: row.journal,
+      volume: row.volume,
+      issue: row.issue,
+      pages: row.pages,
+      citationCount: row.citationCount,
+      keywords: row.keywords,
     };
   }
 }

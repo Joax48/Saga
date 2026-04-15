@@ -14,6 +14,9 @@ export interface ScientificProduction {
   id: string;
   title: string;
   authors: string[];
+  principalAuthor: string;
+  unit: string;
+  affiliations: string[];
   type: ScientificProductionType;
   open_access: boolean;
   publication_year: number;

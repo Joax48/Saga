@@ -7,6 +7,24 @@ interface ProductionCardProps {
 }
 
 /**
+ * Converts "Firstname Lastname" or "Firstname Compound Lastname" → "Lastname, F."
+ * For compound last names (e.g. "Graziella Chini Zitelli"), uses the last two
+ * words as the last name when the name has 3+ words.
+ * Falls back to the original string if it can't parse.
+ */
+function abbreviateAuthor(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length < 2) return fullName;
+  const firstInitial = parts[0][0].toUpperCase();
+  // Use last two words as compound last name if 3+ parts, otherwise just the last word
+  const lastName =
+    parts.length >= 3
+      ? `${parts[parts.length - 2]} ${parts[parts.length - 1]}`
+      : parts[parts.length - 1];
+  return `${lastName}, ${firstInitial}.`;
+}
+
+/**
  * List item for a single scientific production.
  *
  * Delegates layout and tag rendering to the global Card component, using
@@ -55,7 +73,7 @@ export function ProductionCard({ production }: ProductionCardProps) {
             className="hover:underline"
             style={{ color: 'var(--color-text-brand-primary)' }}
           >
-            {author}
+            {abbreviateAuthor(author)}
           </Link>
           {index < authors.length - 1 && (
             <span style={{ color: 'var(--color-text-brand-primary)' }}>{', '}</span>
