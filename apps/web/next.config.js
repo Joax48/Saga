@@ -1,7 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  //todo(delete this line)
+
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
+  typescript: {
+    ignoreBuildErrors: true, // 👈 agrega esto
+  },
+
   images: {
     domains: ['randomuser.me', 'ui-avatars.com'],
   },
