@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { getScientificProductions } from '@/services/scientific-productions';
 import { ScientificProductionsView } from './components';
-import type { ScientificProduction } from '@/types';
+import type { SummaryScientificProduction } from '@/types';
 
 /**
  * Scientific productions list page.
@@ -11,7 +11,7 @@ import type { ScientificProduction } from '@/types';
  * view which owns all filter/search/pagination state.
  */
 export default function ScientificProductionsPage() {
-  const [productions, setProductions] = useState<ScientificProduction[]>([]);
+  const [productions, setProductions] = useState<SummaryScientificProduction[]>([]);
 
   useEffect(() => {
     getScientificProductions(1, 100)

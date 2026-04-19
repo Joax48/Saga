@@ -6,7 +6,7 @@ import Pagination from '@/components/Pagination';
 import { FilterSidebar } from '../../../components/FilterSidebar';
 import type { FilterGroupConfig } from '../../../components/FilterSidebar';
 import { ProductionCard } from './ProductionCard';
-import type { ScientificProduction, ProductionFilters } from '@/types';
+import type { SummaryScientificProduction, ProductionFilters } from '@/types';
 
 /* ─── Constants ──────────────────────────────────────────────────────── */
 
@@ -29,9 +29,9 @@ function toggleValue<T>(list: T[], value: T): T[] {
 }
 
 function applyFilters(
-  productions: ScientificProduction[],
+  productions: SummaryScientificProduction[],
   filters: ProductionFilters,
-): ScientificProduction[] {
+): SummaryScientificProduction[] {
   const { searchQuery, selectedTypes, openAccessOnly, selectedYears, selectedKeywords } =
     filters;
   const query = searchQuery.toLowerCase().trim();
@@ -55,7 +55,7 @@ function applyFilters(
 /* ─── Component ──────────────────────────────────────────────────────── */
 
 interface ScientificProductionsViewProps {
-  productions: ScientificProduction[];
+  productions: SummaryScientificProduction[];
 }
 
 /**
@@ -207,7 +207,6 @@ export function ScientificProductionsView({
       />
 
       <div className="max-w-5xl mx-auto py-9">
-        
         <p
           className="mb-4 text-sm"
           style={{ color: 'var(--color-text-neutral-secondary)' }}

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type {
   ScientificProductionsListItemDto,
   ScientificProductionsPaginatedListDto,
+  ScientificProductionsDetailItemDto,
   ScientificProductionsReader,
 } from '../scientific-productions.reader.contract';
 import { ScientificProductionRepository } from './scientific-productions.repository';
@@ -25,19 +26,14 @@ export class ScientificProductionsService implements ScientificProductionsReader
           id: scientificProduction.id,
           title: scientificProduction.title,
           authors: scientificProduction.authors,
-          principalAuthor: scientificProduction.principalAuthor,
-          unit: scientificProduction.unit,
-          affiliations: scientificProduction.affiliations,
           type: scientificProduction.type,
           openAccess: scientificProduction.openAccess,
           publicationYear: scientificProduction.publicationYear,
-          abstract: scientificProduction.abstract,
           doi: scientificProduction.doi,
           journal: scientificProduction.journal,
           volume: scientificProduction.volume,
           issue: scientificProduction.issue,
           pages: scientificProduction.pages,
-          citationCount: scientificProduction.citationCount,
           keywords: scientificProduction.keywords,
         }),
       ),
@@ -47,7 +43,7 @@ export class ScientificProductionsService implements ScientificProductionsReader
     };
   }
 
-  async getById(id: string): Promise<ScientificProductionsListItemDto | null> {
+  async getById(id: string): Promise<ScientificProductionsDetailItemDto | null> {
     const row = await this.scientificProductionsRepository.findById(id);
     if (!row) return null;
 

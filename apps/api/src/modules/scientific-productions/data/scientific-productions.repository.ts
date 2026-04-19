@@ -45,6 +45,23 @@ const BASE_SCIENTIFIC_PRODUCTIONS_SELECT = `
   FROM ScientificProduction
   `;
 
+const SUMMARY_SCIENTIFIC_PRODUCTIONS_SELECT = `
+  SELECT
+    ScientificProduction.id AS id,
+    ScientificProduction.title AS title,
+    ScientificProduction.authors AS authors,
+    ScientificProduction.type AS type,
+    ScientificProduction.open_access AS openAccess,
+    ScientificProduction.publication_year AS publicationYear,
+    ScientificProduction.doi AS doi,
+    ScientificProduction.journal AS journal,
+    ScientificProduction.volume AS volume,
+    ScientificProduction.issue AS issue,
+    ScientificProduction.pages AS pages,
+    ScientificProduction.keywords AS keywords
+  FROM ScientificProduction
+  `;
+
 const COUNT_SCIENTIFIC_PRODUCTIONS_QUERY = `
   SELECT COUNT(*) AS totalCount
   FROM ScientificProduction
@@ -77,13 +94,14 @@ export class ScientificProductionRepository {
     );
     return rows[0] ?? null;
   }
+
   private async findItemsPage(
     limit: number,
     offset: number,
   ): Promise<ScientificProduction[]> {
     return this.databaseService.query<ScientificProduction>(
       `
-        ${BASE_SCIENTIFIC_PRODUCTIONS_SELECT}
+        ${SUMMARY_SCIENTIFIC_PRODUCTIONS_SELECT}
         ORDER BY ScientificProduction.id ASC
         LIMIT ${limit} OFFSET ${offset}
       `,

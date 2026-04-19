@@ -10,6 +10,20 @@ export interface ScientificProductionType {
   review_type?: string;
 }
 
+export interface SummaryScientificProduction {
+  id: string;
+  title: string;
+  authors: string[];
+  type: ScientificProductionType;
+  open_access: boolean;
+  publication_year: number;
+  doi: string;
+  journal?: string;
+  volume?: number;
+  issue?: number;
+  pages?: string;
+  keywords: string[];
+}
 export interface ScientificProduction {
   id: string;
   title: string;

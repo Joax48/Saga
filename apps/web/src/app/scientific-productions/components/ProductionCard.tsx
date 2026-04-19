@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { Card } from '@/components/Card';
-import type { ScientificProduction } from '@/types';
+import type { SummaryScientificProduction } from '@/types';
 
 interface ProductionCardProps {
-  production: ScientificProduction;
+  production: SummaryScientificProduction;
 }
 
 /**

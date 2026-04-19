@@ -1,7 +1,22 @@
 import { request, API_BASE } from './api';
-import type { ScientificProduction } from '@/types';
+import type { SummaryScientificProduction, ScientificProduction } from '@/types';
 
-interface ApiScientificProduction {
+interface ApiSummaryScientificProduction {
+  id: string;
+  title: string;
+  authors: string; // JSON string
+  type: string; // JSON string
+  openAccess: boolean;
+  publicationYear: number;
+  doi: string;
+  journal?: string;
+  volume?: number;
+  issue?: number;
+  pages?: string;
+  keywords: string; // JSON string
+}
+
+interface ApiDetailScientificProduction {
   id: string;
   title: string;
   authors: string; // JSON string
@@ -22,13 +37,34 @@ interface ApiScientificProduction {
 }
 
 interface ApiResponse {
-  items: ApiScientificProduction[];
+  items: ApiSummaryScientificProduction[];
   page: number;
   limit: number;
   total: number;
 }
 
-function parseScientificProduction(item: ApiScientificProduction): ScientificProduction {
+function parseSummaryScientificProduction(
+  item: ApiSummaryScientificProduction,
+): SummaryScientificProduction {
+  return {
+    id: item.id,
+    title: item.title,
+    authors: JSON.parse(item.authors),
+    type: JSON.parse(item.type),
+    open_access: item.openAccess,
+    publication_year: item.publicationYear,
+    doi: item.doi,
+    journal: item.journal,
+    volume: item.volume,
+    issue: item.issue,
+    pages: item.pages,
+    keywords: JSON.parse(item.keywords),
+  };
+}
+
+function parseDetailScientificProduction(
+  item: ApiDetailScientificProduction,
+): ScientificProduction {
   return {
     id: item.id,
     title: item.title,
@@ -53,7 +89,7 @@ function parseScientificProduction(item: ApiScientificProduction): ScientificPro
 export async function getScientificProductions(
   page = 1,
   limit = 10,
-): Promise<{ items: ScientificProduction[]; total: number }> {
+): Promise<{ items: SummaryScientificProduction[]; total: number }> {
   const endpoint = `/scientific-productions?page=${page}&limit=${limit}`;
 
   try {
@@ -61,7 +97,7 @@ export async function getScientificProductions(
     console.log('Fetched successfully:', response.items.length, 'items');
 
     return {
-      items: response.items.map(parseScientificProduction),
+      items: response.items.map(parseSummaryScientificProduction),
       total: response.total,
     };
   } catch (error) {
@@ -73,8 +109,8 @@ export async function getScientificProductions(
 export async function getScientificProductionById(
   id: string,
 ): Promise<ScientificProduction> {
-  const response = await request<ApiScientificProduction>(
+  const response = await request<ApiDetailScientificProduction>(
     `/scientific-productions/${id}`,
   );
-  return parseScientificProduction(response);
+  return parseDetailScientificProduction(response);
 }

@@ -171,7 +171,9 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
             {/* Right */}
             <div className="flex flex-row lg:flex-col gap-8 lg:gap-6 mt-6 lg:mt-0 lg:pl-10 lg:w-55 shrink-0">
               <div className="space-y-1">
-                <p className="text-[16px] font-semibold text-(--color-text-neutral-secondary)">Citas</p>
+                <p className="text-[16px] font-semibold text-(--color-text-neutral-secondary)">
+                  Citas
+                </p>
                 <p
                   className="text-[56px] font-light leading-none text-center"
                   style={{ color: 'var(--color-text-brand-primary)' }}
@@ -297,7 +299,10 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
           {/* ── Keywords ───────────────────────────────────────── */}
           {activeTab === 'keywords' && (
             <div className="space-y-8">
-              <h3 className="text-[1.25rem] leading-[1.75rem] font-normal" style={{ color: '#0F0F0F' }}>
+              <h3
+                className="text-[1.25rem] leading-7 font-normal"
+                style={{ color: '#0F0F0F' }}
+              >
                 Categoría
               </h3>
               <div className="flex flex-wrap gap-2 pb-8">
