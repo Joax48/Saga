@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type {
   ProjectListItemDto,
+  ProjectsFiltersRequestDto,
   ProjectsPaginatedListDto,
   ProjectsReader,
 } from '../projects.reader.contract';
@@ -14,8 +15,14 @@ export class ProjectsReaderService implements ProjectsReader {
     page: number,
     limit: number,
     query?: string,
+    filters?: ProjectsFiltersRequestDto,
   ): Promise<ProjectsPaginatedListDto> {
-    const projectsPage = await this.projectsRepository.findPaginated(page, limit, query);
+    const projectsPage = await this.projectsRepository.findPaginated(
+      page,
+      limit,
+      query,
+      filters,
+    );
 
     let effectivePage = page;
     let effectiveItems = projectsPage.items;
@@ -29,6 +36,7 @@ export class ProjectsReaderService implements ProjectsReader {
         effectivePage,
         limit,
         query,
+        filters,
       );
       effectiveItems = lastPage.items;
     }
@@ -40,6 +48,7 @@ export class ProjectsReaderService implements ProjectsReader {
           projectManager: project.projectManager,
           code: project.code,
           name: project.name,
+          keywords: project.keywords,
           projectType: project.projectType,
           researchType: project.researchType,
           startDate: project.startDate,

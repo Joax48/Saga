@@ -26,7 +26,7 @@ export async function getProjects(
   page = 1,
   limit = 10,
   searchQuery = '',
-  _queryFilters: ProjectQueryFilters = {},
+  queryFilters: ProjectQueryFilters = {},
 ): Promise<PaginatedProjectList> {
   const params = new URLSearchParams({
     page: String(page),
@@ -36,6 +36,22 @@ export async function getProjects(
   if (searchQuery.trim()) {
     params.set('q', searchQuery.trim());
   }
+
+  const appendArrayFilter = (key: string, values?: string[]) => {
+    if (!values || values.length === 0) return;
+
+    const normalizedValues = values.map((value) => value.trim()).filter(Boolean);
+    if (normalizedValues.length === 0) return;
+
+    params.set(key, normalizedValues.join(','));
+  };
+
+  appendArrayFilter('researchType', queryFilters.researchType);
+  appendArrayFilter('projectType', queryFilters.projectType);
+  appendArrayFilter('startYear', queryFilters.startYear);
+  appendArrayFilter('status', queryFilters.status);
+  appendArrayFilter('participants', queryFilters.participants);
+  appendArrayFilter('keywords', queryFilters.keywords);
 
   const endpoint = `/projects?${params.toString()}`;
   const response =

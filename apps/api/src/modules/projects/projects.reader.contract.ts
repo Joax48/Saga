@@ -10,6 +10,7 @@ export interface ProjectListItemDto {
   projectManager: ProjectManagerReferenceDto;
   code: string;
   name: string;
+  keywords: string[];
   projectType: string;
   researchType: string;
   startDate: string;
@@ -23,10 +24,20 @@ export interface ProjectsPaginatedListDto {
   total: number;
 }
 
+export interface ProjectsFiltersRequestDto {
+  researchType?: string[];
+  projectType?: string[];
+  startYear?: string[];
+  status?: string[];
+  participants?: string[];
+  keywords?: string[];
+}
+
 export interface ProjectsReader {
   getPaginatedList(
     page: number,
     limit: number,
     query?: string,
+    filters?: ProjectsFiltersRequestDto,
   ): Promise<ProjectsPaginatedListDto>;
 }

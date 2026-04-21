@@ -8,6 +8,7 @@ export class ProjectSummaryResponseDto {
   projectManager!: ProjectManagerReference;
   code!: string;
   name!: string;
+  keywords!: string[];
   projectType!: string;
   researchType!: string;
   startDate!: string;

@@ -1,12 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { PaginatedListRequestDto } from '../../bff/public/common/dtos/paginated-list-request.dto';
 import { PaginatedListResponseDto } from '../../bff/public/common/dtos/paginated-list-response.dto';
+import { ProjectsListRequestDto } from '../../bff/public/projects/dtos/projects-list-request.dto';
 import { ProjectSummaryResponseDto } from '../../bff/public/projects/dtos/project-summary-response.dto';
 
 import {
   PROJECTS_READER,
   type ProjectsPaginatedListDto,
+  type ProjectsFiltersRequestDto,
   type ProjectsReader,
 } from '../../modules/projects/projects.reader.contract';
 
@@ -18,12 +19,22 @@ export class GetProjectsPaginatedListUseCase {
   ) {}
 
   async execute(
-    input: PaginatedListRequestDto,
+    input: ProjectsListRequestDto,
   ): Promise<PaginatedListResponseDto<ProjectSummaryResponseDto>> {
+    const filters: ProjectsFiltersRequestDto = {
+      researchType: input.researchType,
+      projectType: input.projectType,
+      startYear: input.startYear,
+      status: input.status,
+      participants: input.participants,
+      keywords: input.keywords,
+    };
+
     const projects = await this.projectsReader.getPaginatedList(
       input.page,
       input.limit,
       input.q,
+      filters,
     );
 
     return this.mapToResponseDto(projects);
@@ -38,6 +49,7 @@ export class GetProjectsPaginatedListUseCase {
         projectManager: project.projectManager,
         code: project.code,
         name: project.name,
+        keywords: project.keywords,
         projectType: project.projectType,
         researchType: project.researchType,
         startDate: project.startDate,

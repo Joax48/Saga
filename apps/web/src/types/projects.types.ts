@@ -34,6 +34,7 @@ export interface ProjectSummaryApiDto {
   };
   code: string;
   name: string;
+  keywords: string[];
   projectType: string;
   researchType: string;
   startDate: string;

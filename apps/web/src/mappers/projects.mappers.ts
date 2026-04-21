@@ -14,7 +14,7 @@ export function mapProjectSummaryToProject(
     projectType: item.projectType,
     startDate: item.startDate,
     endDate: item.endDate,
-    keywords: [],
+    keywords: item.keywords ?? [],
     associatedProfiles: item.projectManager
       ? [
           {

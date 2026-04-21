@@ -8,6 +8,7 @@ export interface Project {
   projectManager: NamedExternalReference;
   code: string;
   name: string;
+  keywords: string[];
   projectType: string;
   fundingType: string;
   researchType: string;
