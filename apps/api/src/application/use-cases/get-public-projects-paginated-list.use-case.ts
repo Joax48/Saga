@@ -34,6 +34,7 @@ export class GetProjectsPaginatedListUseCase {
   ): PaginatedListResponseDto<ProjectSummaryResponseDto> {
     return {
       items: projects.items.map((project) => ({
+        id: project.id,
         code: project.code,
         name: project.name,
         projectType: project.projectType,

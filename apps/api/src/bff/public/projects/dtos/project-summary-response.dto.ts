@@ -1,4 +1,5 @@
 export class ProjectSummaryResponseDto {
+  id!: number;
   code!: string;
   name!: string;
   projectType!: string;

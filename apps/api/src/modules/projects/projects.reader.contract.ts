@@ -1,6 +1,7 @@
 export const PROJECTS_READER = Symbol('PROJECTS_READER');
 
 export interface ProjectListItemDto {
+  id: number;
   code: string;
   name: string;
   projectType: string;
