@@ -43,28 +43,15 @@ const SEARCH_PROJECTS_WHERE = `
 export class ProjectsRepository {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async findPaginated(page: number, limit: number): Promise<PaginatedResult<Project>> {
-    const offset = this.calculateOffset(page, limit);
-    const [items, total] = await Promise.all([
-      this.findItemsPage(limit, offset),
-      this.countProjects(),
-    ]);
-
-    return {
-      items,
-      total,
-    };
-  }
-
-  async searchByNameOrCode(
-    query: string,
+  async findPaginated(
     page: number,
     limit: number,
+    searchTerm?: string | null,
   ): Promise<PaginatedResult<Project>> {
     const offset = this.calculateOffset(page, limit);
     const [items, total] = await Promise.all([
-      this.findSearchItemsPage(query, limit, offset),
-      this.countSearchProjects(query),
+      this.findItemsPage(limit, offset, searchTerm),
+      this.countProjects(searchTerm),
     ]);
 
     return {
@@ -73,52 +60,46 @@ export class ProjectsRepository {
     };
   }
 
-  private async findItemsPage(limit: number, offset: number): Promise<Project[]> {
-    return this.databaseService.query<Project>(
-      `
-        ${BASE_PROJECTS_SELECT}
-        ORDER BY Project.name ASC
-        LIMIT ${limit} OFFSET ${offset}
-      `,
-    );
-  }
-
-  private async countProjects(): Promise<number> {
-    const totalRows =
-      await this.databaseService.query<ProjectCountRow>(COUNT_PROJECTS_QUERY);
-
-    return totalRows[0]?.totalCount ?? 0;
-  }
-
-  private async findSearchItemsPage(
-    query: string,
+  private async findItemsPage(
     limit: number,
     offset: number,
+    searchTerm?: string | null,
   ): Promise<Project[]> {
-    const searchTerm = `%${query}%`;
-
     return this.databaseService.query<Project>(
       `
         ${BASE_PROJECTS_SELECT}
-        ${SEARCH_PROJECTS_WHERE}
+        ${this.getWhereClause(searchTerm)}
         ORDER BY Project.name ASC
         LIMIT ${limit} OFFSET ${offset}
       `,
-      [searchTerm, searchTerm],
+      this.getSearchParams(searchTerm),
     );
   }
 
-  private async countSearchProjects(query: string): Promise<number> {
-    const searchTerm = `%${query}%`;
+  private async countProjects(searchTerm?: string | null): Promise<number> {
     const totalRows = await this.databaseService.query<ProjectCountRow>(
       `
         ${COUNT_PROJECTS_QUERY}
-        ${SEARCH_PROJECTS_WHERE}
+        ${this.getWhereClause(searchTerm)}
       `,
-      [searchTerm, searchTerm],
+      this.getSearchParams(searchTerm),
     );
 
     return totalRows[0]?.totalCount ?? 0;
+  }
+
+  private normalizeSearchTerm(searchTerm?: string | null): string | null {
+    const normalizedSearchTerm = searchTerm?.trim();
+    return normalizedSearchTerm ? `%${normalizedSearchTerm}%` : null;
+  }
+
+  private getSearchParams(searchTerm?: string | null): string[] {
+    const likeTerm = this.normalizeSearchTerm(searchTerm);
+    return likeTerm ? [likeTerm, likeTerm] : [];
+  }
+
+  private getWhereClause(searchTerm?: string | null): string {
+    return this.normalizeSearchTerm(searchTerm) ? SEARCH_PROJECTS_WHERE : '';
   }
 
   private calculateOffset(page: number, limit: number): number {

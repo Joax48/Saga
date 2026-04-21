@@ -17,10 +17,9 @@ export interface ProjectsPaginatedListDto {
 }
 
 export interface ProjectsReader {
-  getPaginatedList(page: number, limit: number): Promise<ProjectsPaginatedListDto>;
-  searchByNameOrCode(
-    query: string,
+  getPaginatedList(
     page: number,
     limit: number,
+    query?: string,
   ): Promise<ProjectsPaginatedListDto>;
 }

@@ -15,7 +15,6 @@ import { GetProjectsPaginatedListUseCase } from './application/use-cases/get-pub
 
 import { PublicResearchersController } from './bff/public/researchers/public-researchers.controller';
 import { GetResearchersPaginatedListUseCase } from './application/use-cases/get-public-researchers-paginated-list.use-case';
-import { SearchPublicProjectsUseCase } from './application/use-cases/search-public-projects.use-case';
 import { GetScientificProductionPaginatedListUseCase } from './application/use-cases/get-public-scientific-productions-paginated-list.use-case';
 import { GetScientificProductionDetailUseCase } from './application/use-cases/get-public-scientific-production-detail.use-case';
 
@@ -42,7 +41,6 @@ import { GetScientificProductionDetailUseCase } from './application/use-cases/ge
   ],
   providers: [
     GetProjectsPaginatedListUseCase,
-    SearchPublicProjectsUseCase,
     GetScientificProductionPaginatedListUseCase,
     GetScientificProductionDetailUseCase,
     GetResearchersPaginatedListUseCase,

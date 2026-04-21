@@ -20,7 +20,11 @@ export class GetProjectsPaginatedListUseCase {
   async execute(
     input: PaginatedListRequestDto,
   ): Promise<PaginatedListResponseDto<ProjectSummaryResponseDto>> {
-    const projects = await this.projectsReader.getPaginatedList(input.page, input.limit);
+    const projects = await this.projectsReader.getPaginatedList(
+      input.page,
+      input.limit,
+      input.q,
+    );
 
     return this.mapToResponseDto(projects);
   }
