@@ -12,7 +12,7 @@ import ProjectListItem from '@/app/projects/components/ProjectListItem';
 import {
   getProjectFilters,
   getProjects,
-  type Project,
+  type ProjectSummaryItem,
   type ProjectFilters,
   type ProjectQueryFilters,
 } from '@/services/projects';
@@ -37,7 +37,7 @@ function toggleValue(values: string[] | undefined, value: string): string[] {
 }
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectSummaryItem[]>([]);
   const [filterOptions, setFilterOptions] = useState<ProjectFilters | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<ProjectQueryFilters>(DEFAULT_FILTERS);
@@ -214,7 +214,8 @@ export default function ProjectsPage() {
                 {projects.length > 0 ? (
                   projects.map((project) => {
                     const managerProfile = project.associatedProfiles.find(
-                      (profile) => profile.name === project.manager,
+                      (profile: { id: string; name: string; role?: string }) =>
+                        profile.name === project.manager,
                     );
 
                     return (

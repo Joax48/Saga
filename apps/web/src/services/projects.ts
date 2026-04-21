@@ -1,47 +1,66 @@
-import {
-  getMockProjectById,
-  getMockProjectFilters,
-  getMockProjectsPaginated,
-  type PaginatedProjects,
-  type Project,
-  type ProjectFilters,
-  type ProjectQueryFilters,
-} from '@/mocks/projects-data';
+import { request } from './api';
+import { getMockProjectFilters, PROJECT_DETAIL_EXAMPLE } from '@/mocks/projects-data';
+import { mapProjectSummaryToProject } from '@/mappers/projects.mappers';
+import type {
+  PaginatedListResponseDto,
+  PaginatedProjectList,
+  Project,
+  ProjectFilters,
+  ProjectQueryFilters,
+  ProjectSummaryApiDto,
+  ProjectSummaryItem,
+} from '@/types/projects.types';
 
-export type { PaginatedProjects, Project, ProjectFilters, ProjectQueryFilters };
+export type {
+  PaginatedProjectList,
+  Project,
+  ProjectFilters,
+  ProjectQueryFilters,
+  ProjectSummaryItem,
+};
 
 /**
- * Returns a paginated list of mock projects.
- *
- * Search and filter parameters are applied locally against the simulated dataset.
+ * Returns a paginated list of projects from backend API.
  */
-export function getProjects(
+export async function getProjects(
   page = 1,
   limit = 10,
   searchQuery = '',
-  queryFilters: ProjectQueryFilters = {},
-): Promise<PaginatedProjects> {
-  return Promise.resolve(
-    getMockProjectsPaginated(page, limit, searchQuery, queryFilters),
-  );
-}
+  _queryFilters: ProjectQueryFilters = {},
+): Promise<PaginatedProjectList> {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
 
-/**
- * Returns a project by id/code from the simulated dataset.
- */
-export function getProjectById(id: string): Promise<Project> {
-  const project = getMockProjectById(id);
-
-  if (!project) {
-    return Promise.reject(new Error('Project not found'));
+  if (searchQuery.trim()) {
+    params.set('q', searchQuery.trim());
   }
 
-  return Promise.resolve(project);
+  const endpoint = `/projects?${params.toString()}`;
+  const response =
+    await request<PaginatedListResponseDto<ProjectSummaryApiDto>>(endpoint);
+
+  return {
+    data: response.items.map(mapProjectSummaryToProject),
+    total: response.total,
+    page: response.page,
+    limit: response.limit,
+  };
 }
 
 /**
- * Returns the mock filter facets used by the projects page.
+ * Returns a static example used in the project detail page for every project.
  */
-export function getProjectFilters(): Promise<ProjectFilters> {
+export function getProjectById(_id: string): Promise<Project> {
+  return Promise.resolve({
+    ...PROJECT_DETAIL_EXAMPLE,
+  });
+}
+
+/**
+ * Returns mock filter facets for the projects page.
+ */
+export async function getProjectFilters(): Promise<ProjectFilters> {
   return Promise.resolve(getMockProjectFilters());
 }

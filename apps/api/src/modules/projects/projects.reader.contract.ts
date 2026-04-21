@@ -1,7 +1,13 @@
 export const PROJECTS_READER = Symbol('PROJECTS_READER');
 
+export interface ProjectManagerReferenceDto {
+  id: number;
+  name: string;
+}
+
 export interface ProjectListItemDto {
   id: number;
+  projectManager: ProjectManagerReferenceDto;
   code: string;
   name: string;
   projectType: string;

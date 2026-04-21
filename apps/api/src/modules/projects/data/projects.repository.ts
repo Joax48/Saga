@@ -11,9 +11,35 @@ type ProjectCountRow = {
   totalCount: number;
 };
 
+type ProjectRow = {
+  id: number;
+  projectManagerId: number;
+  projectManagerName: string;
+  code: string;
+  name: string;
+  projectType: string;
+  fundingType: string;
+  researchType: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+};
+
 const BASE_PROJECTS_SELECT = `
   SELECT
     Project.id AS id,
+    Researcher.id AS projectManagerId,
+    TRIM(
+      CONCAT(
+        Researcher.name,
+        ' ',
+        Researcher.first_surname,
+        CASE
+          WHEN Researcher.second_surname = '' THEN ''
+          ELSE CONCAT(' ', Researcher.second_surname)
+        END
+      )
+    ) AS projectManagerName,
     Project.code AS code,
     Project.name AS name,
     Project_Type.description AS projectType,
@@ -23,6 +49,7 @@ const BASE_PROJECTS_SELECT = `
     Project.start_date AS startDate,
     Project.end_date AS endDate
   FROM Project
+  INNER JOIN Researcher ON Project.project_manager = Researcher.id
   INNER JOIN Project_Type ON Project.project_type = Project_Type.id
   INNER JOIN Funding_Type ON Project.funding_type = Funding_Type.id
   INNER JOIN Research_Type ON Project.research_type = Research_Type.id
@@ -65,7 +92,7 @@ export class ProjectsRepository {
     offset: number,
     searchTerm?: string | null,
   ): Promise<Project[]> {
-    return this.databaseService.query<Project>(
+    const rows = await this.databaseService.query<ProjectRow>(
       `
         ${BASE_PROJECTS_SELECT}
         ${this.getWhereClause(searchTerm)}
@@ -74,6 +101,8 @@ export class ProjectsRepository {
       `,
       this.getSearchParams(searchTerm),
     );
+
+    return rows.map((row) => this.mapRowToProject(row));
   }
 
   private async countProjects(searchTerm?: string | null): Promise<number> {
@@ -104,5 +133,23 @@ export class ProjectsRepository {
 
   private calculateOffset(page: number, limit: number): number {
     return (page - 1) * limit;
+  }
+
+  private mapRowToProject(row: ProjectRow): Project {
+    return {
+      id: row.id,
+      projectManager: {
+        id: row.projectManagerId,
+        name: row.projectManagerName,
+      },
+      code: row.code,
+      name: row.name,
+      projectType: row.projectType,
+      fundingType: row.fundingType,
+      researchType: row.researchType,
+      status: row.status,
+      startDate: row.startDate,
+      endDate: row.endDate,
+    };
   }
 }

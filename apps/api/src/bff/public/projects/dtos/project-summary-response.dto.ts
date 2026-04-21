@@ -1,5 +1,11 @@
+export class ProjectManagerReference {
+  id!: number;
+  name!: string;
+}
+
 export class ProjectSummaryResponseDto {
   id!: number;
+  projectManager!: ProjectManagerReference;
   code!: string;
   name!: string;
   projectType!: string;

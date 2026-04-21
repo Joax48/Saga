@@ -37,6 +37,7 @@ export class ProjectsReaderService implements ProjectsReader {
       items: effectiveItems.map(
         (project): ProjectListItemDto => ({
           id: project.id,
+          projectManager: project.projectManager,
           code: project.code,
           name: project.name,
           projectType: project.projectType,

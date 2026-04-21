@@ -35,6 +35,7 @@ export class GetProjectsPaginatedListUseCase {
     return {
       items: projects.items.map((project) => ({
         id: project.id,
+        projectManager: project.projectManager,
         code: project.code,
         name: project.name,
         projectType: project.projectType,

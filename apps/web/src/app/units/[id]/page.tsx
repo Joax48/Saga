@@ -8,7 +8,11 @@ import Pagination from '@/components/Pagination';
 import { getUnitById } from '@/services/units';
 import type { UnitDetail } from '@/services/units';
 import { getScientificProductions } from '@/services/scientific-productions';
-import { getProjects, type Project, type ProjectQueryFilters } from '@/services/projects';
+import {
+  getProjects,
+  type ProjectSummaryItem,
+  type ProjectQueryFilters,
+} from '@/services/projects';
 import ResearchersList from '@/app/researchers/components/ResearchersList';
 import CollaborationMapPreview from '@/components/CollaborationMapPreview';
 import { ProductionCard } from '@/app/scientific-productions/components';
@@ -40,7 +44,7 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
   const [activeTab, setActiveTab] = useState('profiles');
   const [productions, setProductions] = useState<ScientificProduction[]>([]);
   const [productionsPage, setProductionsPage] = useState(1);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectSummaryItem[]>([]);
   const [projectPage, setProjectPage] = useState(1);
   const [projectTotalPages, setProjectTotalPages] = useState(1);
 

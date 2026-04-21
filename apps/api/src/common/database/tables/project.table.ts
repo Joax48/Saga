@@ -3,6 +3,7 @@ import type { DatabaseTableDefinition } from './database-table';
 const insertProjectSql = `
   INSERT INTO Project (
     id,
+    project_manager,
     project_type,
     funding_type,
     research_type,
@@ -11,11 +12,12 @@ const insertProjectSql = `
     start_date,
     end_date,
     code
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 
 type ProjectSeedRow = {
   id: number;
+  projectManager: number;
   projectType: number;
   fundingType: number;
   researchType: number;
@@ -29,6 +31,7 @@ type ProjectSeedRow = {
 const projectRows: ProjectSeedRow[] = [
   {
     id: 1,
+    projectManager: 2,
     projectType: 1,
     fundingType: 1,
     researchType: 1,
@@ -40,6 +43,7 @@ const projectRows: ProjectSeedRow[] = [
   },
   {
     id: 2,
+    projectManager: 3,
     projectType: 2,
     fundingType: 2,
     researchType: 1,
@@ -51,6 +55,7 @@ const projectRows: ProjectSeedRow[] = [
   },
   {
     id: 3,
+    projectManager: 1,
     projectType: 2,
     fundingType: 1,
     researchType: 1,
@@ -62,6 +67,7 @@ const projectRows: ProjectSeedRow[] = [
   },
   {
     id: 4,
+    projectManager: 4,
     projectType: 1,
     fundingType: 1,
     researchType: 1,
@@ -73,6 +79,7 @@ const projectRows: ProjectSeedRow[] = [
   },
   {
     id: 5,
+    projectManager: 8,
     projectType: 3,
     fundingType: 1,
     researchType: 1,
@@ -84,6 +91,7 @@ const projectRows: ProjectSeedRow[] = [
   },
   {
     id: 6,
+    projectManager: 9,
     projectType: 2,
     fundingType: 3,
     researchType: 1,
@@ -95,6 +103,7 @@ const projectRows: ProjectSeedRow[] = [
   },
   {
     id: 7,
+    projectManager: 3,
     projectType: 3,
     fundingType: 2,
     researchType: 1,
@@ -106,6 +115,7 @@ const projectRows: ProjectSeedRow[] = [
   },
   {
     id: 8,
+    projectManager: 4,
     projectType: 2,
     fundingType: 1,
     researchType: 2,
@@ -117,6 +127,7 @@ const projectRows: ProjectSeedRow[] = [
   },
   {
     id: 9,
+    projectManager: 2,
     projectType: 2,
     fundingType: 2,
     researchType: 1,
@@ -128,6 +139,7 @@ const projectRows: ProjectSeedRow[] = [
   },
   {
     id: 10,
+    projectManager: 3,
     projectType: 1,
     fundingType: 2,
     researchType: 1,
@@ -139,6 +151,7 @@ const projectRows: ProjectSeedRow[] = [
   },
   {
     id: 11,
+    projectManager: 1,
     projectType: 3,
     fundingType: 2,
     researchType: 2,
@@ -150,6 +163,7 @@ const projectRows: ProjectSeedRow[] = [
   },
   {
     id: 12,
+    projectManager: 5,
     projectType: 3,
     fundingType: 1,
     researchType: 2,
@@ -167,6 +181,7 @@ export const projectTable: DatabaseTableDefinition = {
   createSql: `
     CREATE TABLE Project (
       id INT,
+      project_manager INT,
       project_type INT,
       funding_type INT,
       research_type INT,
@@ -181,6 +196,7 @@ export const projectTable: DatabaseTableDefinition = {
   seedRows: projectRows.map((project) => ({
     params: [
       project.id,
+      project.projectManager,
       project.projectType,
       project.fundingType,
       project.researchType,
