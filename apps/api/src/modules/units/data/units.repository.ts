@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '../../../common/database/database.service';
 import type { Unit } from '../unit.entity';
 
@@ -45,6 +45,7 @@ export class UnitsRepository {
     search?: string,
   ): Promise<PaginatedResult<Unit>> {
     const offset = this.calculateOffset(page, limit);
+
     const [items, total] = await Promise.all([
       this.findItemsPage(limit, offset, search),
       this.countUnits(search),
@@ -61,7 +62,13 @@ export class UnitsRepository {
     offset: number,
     search?: string,
   ): Promise<Unit[]> {
-    const whereClause = search ? `WHERE Unit.name LIKE '%${search}%'` : '';
+    const whereClause = search ? `WHERE Unit.name LIKE ?` : '';
+    const params: any[] = [];
+
+    if (search) {
+      params.push(`%${search}%`);
+    }
+
     return this.databaseService.query<Unit>(
       `
         ${BASE_UNITS_SELECT}
@@ -69,13 +76,21 @@ export class UnitsRepository {
         ORDER BY Unit.name ASC
         LIMIT ${limit} OFFSET ${offset}
       `,
+      params,
     );
   }
 
   private async countUnits(search?: string): Promise<number> {
-    const whereClause = search ? `WHERE Unit.name LIKE '%${search}%'` : '';
+    const whereClause = search ? `WHERE Unit.name LIKE ?` : '';
+    const params: any[] = [];
+
+    if (search) {
+      params.push(`%${search}%`);
+    }
+
     const totalRows = await this.databaseService.query<UnitCountRow>(
       `${COUNT_UNITS_QUERY} ${whereClause}`,
+      params,
     );
 
     return totalRows[0]?.totalCount ?? 0;
