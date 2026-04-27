@@ -216,7 +216,16 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {/* ── Keywords title strip (gray, full-width) ────────────────────── */}
+      {/* ── Tab title strip (gray, full-width) ─────────────────────────── */}
+      {activeTab === 'general' && (
+        <div className="bg-(--color-bg-neutral-secondary) px-6 lg:px-10 py-6">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-[26px] font-normal text-(--color-text-neutral-primary)">
+              Información general
+            </h2>
+          </div>
+        </div>
+      )}
       {activeTab === 'keywords' && (
         <div className="bg-(--color-bg-neutral-secondary) px-6 lg:px-10 py-6">
           <div className="max-w-7xl mx-auto">
