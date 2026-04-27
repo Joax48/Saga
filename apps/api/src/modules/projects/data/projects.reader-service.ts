@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type {
+  ProjectAssociatedProfileDto,
+  ProjectDetailItemDto,
   ProjectListItemDto,
   ProjectsFiltersRequestDto,
   ProjectsPaginatedListDto,
@@ -58,6 +60,38 @@ export class ProjectsReaderService implements ProjectsReader {
       page: effectivePage,
       limit,
       total: projectsPage.total,
+    };
+  }
+
+  async getById(id: string): Promise<ProjectDetailItemDto | null> {
+    const project = await this.projectsRepository.findById(id);
+
+    if (!project) {
+      return null;
+    }
+
+    return {
+      id: String(project.id),
+      code: project.code,
+      title: project.name,
+      description: project.description,
+      manager: project.projectManager,
+      unit: project.unit,
+      disciplines: project.disciplines,
+      researchType: project.researchType,
+      projectType: project.projectType,
+      fundingType: project.fundingType,
+      status: project.status,
+      startDate: project.startDate,
+      endDate: project.endDate,
+      keywords: project.keywords,
+      associatedProfiles: project.associatedProfiles.map(
+        (profile): ProjectAssociatedProfileDto => ({
+          id: String(profile.id),
+          name: profile.name,
+          ...(profile.role ? { role: profile.role } : {}),
+        }),
+      ),
     };
   }
 }

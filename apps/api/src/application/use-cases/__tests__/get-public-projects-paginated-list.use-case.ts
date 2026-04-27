@@ -8,6 +8,7 @@ describe('GetProjectsPaginatedListUseCase', () => {
   beforeEach(() => {
     projectsReader = {
       getPaginatedList: jest.fn(),
+      getById: jest.fn(),
     } as unknown as jest.Mocked<ProjectsReader>;
 
     useCase = new GetProjectsPaginatedListUseCase(projectsReader);
@@ -22,17 +23,23 @@ describe('GetProjectsPaginatedListUseCase', () => {
       const mockReaderResult = {
         items: [
           {
+            id: 1,
+            projectManager: { id: 2, name: 'Koen Voorend' },
             code: 'C3992',
             name: 'El costo de una vida digna en Costa Rica',
-            projectType: 'Humanistico',
+            keywords: ['pobreza'],
+            projectType: 'Proyecto',
             researchType: 'Basica',
             startDate: '2023-06-01',
             endDate: '2025-12-31',
           },
           {
+            id: 2,
+            projectManager: { id: 3, name: 'Shu Wei Chou Chen' },
             code: 'C4196',
             name: 'Analisis espacio-temporal del impacto de factores climaticos',
-            projectType: 'Interdisciplinario',
+            keywords: ['clima'],
+            projectType: 'Proyecto',
             researchType: 'Basica',
             startDate: '2024-01-01',
             endDate: '2026-12-15',
@@ -50,16 +57,26 @@ describe('GetProjectsPaginatedListUseCase', () => {
       expect(result.page).toBe(1);
       expect(result.limit).toBe(10);
       expect(result.total).toBe(12);
-      expect(projectsReader.getPaginatedList).toHaveBeenCalledWith(1, 10);
+      expect(projectsReader.getPaginatedList).toHaveBeenCalledWith(1, 10, undefined, {
+        researchType: undefined,
+        projectType: undefined,
+        startYear: undefined,
+        status: undefined,
+        participants: undefined,
+        keywords: undefined,
+      });
     });
 
     it('should map each item to the ProjectSummaryResponseDto format', async () => {
       const mockReaderResult = {
         items: [
           {
+            id: 8,
+            projectManager: { id: 4, name: 'Daniel Jose Alvarado Abarca' },
             code: 'B0661',
             name: 'Gestion de iniciativas de produccion agroecoturisticas sostenibles',
-            projectType: 'Interdisciplinario',
+            keywords: ['sostenibilidad', 'territorio'],
+            projectType: 'Accion',
             researchType: 'Aplicada',
             startDate: '2010-01-01',
             endDate: '2011-12-15',
@@ -74,16 +91,19 @@ describe('GetProjectsPaginatedListUseCase', () => {
       const result = await useCase.execute({ page: 1, limit: 10 });
 
       expect(result.items[0]).toEqual({
+        id: 8,
+        projectManager: { id: 4, name: 'Daniel Jose Alvarado Abarca' },
         code: 'B0661',
         name: 'Gestion de iniciativas de produccion agroecoturisticas sostenibles',
-        projectType: 'Interdisciplinario',
+        keywords: ['sostenibilidad', 'territorio'],
+        projectType: 'Accion',
         researchType: 'Aplicada',
         startDate: '2010-01-01',
         endDate: '2011-12-15',
       });
     });
 
-    it('should forward page and limit to the projects reader', async () => {
+    it('should forward pagination, search, and filters to the projects reader', async () => {
       projectsReader.getPaginatedList.mockResolvedValue({
         items: [],
         page: 3,
@@ -91,9 +111,26 @@ describe('GetProjectsPaginatedListUseCase', () => {
         total: 12,
       });
 
-      await useCase.execute({ page: 3, limit: 5 });
+      await useCase.execute({
+        page: 3,
+        limit: 5,
+        q: 'clima',
+        researchType: ['basica'],
+        projectType: ['proyecto'],
+        startYear: ['2024'],
+        status: ['activo'],
+        participants: ['shu wei chou chen'],
+        keywords: ['clima'],
+      });
 
-      expect(projectsReader.getPaginatedList).toHaveBeenCalledWith(3, 5);
+      expect(projectsReader.getPaginatedList).toHaveBeenCalledWith(3, 5, 'clima', {
+        researchType: ['basica'],
+        projectType: ['proyecto'],
+        startYear: ['2024'],
+        status: ['activo'],
+        participants: ['shu wei chou chen'],
+        keywords: ['clima'],
+      });
       expect(projectsReader.getPaginatedList).toHaveBeenCalledTimes(1);
     });
 

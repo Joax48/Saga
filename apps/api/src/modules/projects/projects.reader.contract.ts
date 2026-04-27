@@ -1,13 +1,24 @@
 export const PROJECTS_READER = Symbol('PROJECTS_READER');
 
-export interface ProjectManagerReferenceDto {
+export interface ManagerReferenceDto {
   id: number;
   name: string;
 }
 
+export interface UnitReferenceDto {
+  id: number;
+  name: string;
+}
+
+export interface ProjectAssociatedProfileDto {
+  id: string;
+  name: string;
+  role?: string;
+}
+
 export interface ProjectListItemDto {
   id: number;
-  projectManager: ProjectManagerReferenceDto;
+  projectManager: ManagerReferenceDto;
   code: string;
   name: string;
   keywords: string[];
@@ -22,6 +33,24 @@ export interface ProjectsPaginatedListDto {
   page: number;
   limit: number;
   total: number;
+}
+
+export interface ProjectDetailItemDto {
+  id: string;
+  code: string;
+  title: string;
+  description: string;
+  manager: ManagerReferenceDto;
+  unit: UnitReferenceDto;
+  disciplines: string[];
+  researchType: string;
+  projectType: string;
+  fundingType: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  keywords: string[];
+  associatedProfiles: ProjectAssociatedProfileDto[];
 }
 
 export interface ProjectsFiltersRequestDto {
@@ -40,4 +69,5 @@ export interface ProjectsReader {
     query?: string,
     filters?: ProjectsFiltersRequestDto,
   ): Promise<ProjectsPaginatedListDto>;
+  getById(id: string): Promise<ProjectDetailItemDto | null>;
 }

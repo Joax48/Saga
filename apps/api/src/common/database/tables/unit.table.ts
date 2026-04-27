@@ -157,6 +157,50 @@ const unitRows: UnitSeedRow[] = [
     imageUrl: 'quimica.jpg',
     phoneNumber: '+506 2511-8520',
   },
+  {
+    id: 13,
+    isPartOf: null,
+    name: 'Instituto de Investigaciones Sociales',
+    description:
+      'Unidad academica dedicada a la investigacion social interdisciplinaria y al analisis de fenomenos sociales, economicos y politicos relevantes para Costa Rica y la region.',
+    email: 'iis@ucr.ac.cr',
+    pageUrl: 'https://iis.ucr.ac.cr',
+    imageUrl: 'iis.jpg',
+    phoneNumber: '+506 2511-4300',
+  },
+  {
+    id: 14,
+    isPartOf: null,
+    name: 'Escuela de Matemática',
+    description:
+      'Unidad dedicada a la docencia, investigacion y accion social en matematica pura, aplicada y estadistica matematica.',
+    email: 'matematica@ucr.ac.cr',
+    pageUrl: 'https://emate.ucr.ac.cr',
+    imageUrl: 'matematica.jpg',
+    phoneNumber: '+506 2511-6550',
+  },
+  {
+    id: 15,
+    isPartOf: null,
+    name: 'Escuela de Ciencias Políticas',
+    description:
+      'Unidad academica enfocada en el estudio de la teoria politica, las instituciones publicas, la participacion ciudadana y las politicas publicas.',
+    email: 'cpoliticas@ucr.ac.cr',
+    pageUrl: 'https://cpoliticas.ucr.ac.cr',
+    imageUrl: 'cpoliticas.jpg',
+    phoneNumber: '+506 2511-6400',
+  },
+  {
+    id: 16,
+    isPartOf: null,
+    name: 'Escuela de Agronomía',
+    description:
+      'Unidad academica dedicada a la investigacion y formacion en agronomia, produccion vegetal, manejo sostenible de cultivos y transferencia tecnologica al sector agropecuario.',
+    email: 'agronomia@ucr.ac.cr',
+    pageUrl: 'https://agro.ucr.ac.cr',
+    imageUrl: 'agronomia.jpg',
+    phoneNumber: '+506 2511-2205',
+  },
 ];
 
 export const unitTable: DatabaseTableDefinition = {

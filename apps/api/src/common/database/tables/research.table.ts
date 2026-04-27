@@ -187,6 +187,20 @@ const researcherRows: ResearcherSeedRow[] = [
     scopus: null,
     photoUrl: 'https://randomuser.me/api/portraits/women/50.jpg',
   },
+  {
+    id: 12,
+    idUcrProfile: '12',
+    baseUnit: 'Instituto de Investigaciones Sociales',
+    name: 'Maria',
+    firstSurname: 'Perez',
+    secondSurname: 'Sanchez',
+    ceaCategory: 'Investigadora asociada',
+    orcidId: null,
+    linkedin: null,
+    researchGate: null,
+    scopus: null,
+    photoUrl: 'https://randomuser.me/api/portraits/women/21.jpg',
+  },
 ];
 
 export const researcherTable: DatabaseTableDefinition = {

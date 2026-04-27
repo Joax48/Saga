@@ -15,11 +15,15 @@ type ProjectStatusSeedRow = {
 const projectStatusRows: ProjectStatusSeedRow[] = [
   {
     id: 1,
-    description: 'completed',
+    description: 'Finalizado',
   },
   {
     id: 2,
-    description: 'in-progress',
+    description: 'Activo',
+  },
+  {
+    id: 3,
+    description: 'Vencido',
   },
 ];
 

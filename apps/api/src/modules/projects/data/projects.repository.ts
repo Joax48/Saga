@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../common/database/database.service';
-import type { Project } from '../project.entity';
+import type { Project, ProjectAssociatedProfile, ProjectDetail } from '../project.entity';
 import type { ProjectsFiltersRequestDto } from '../projects.reader.contract';
 
 type PaginatedResult<T> = {
@@ -25,6 +25,22 @@ type ProjectRow = {
   status: string;
   startDate: string;
   endDate: string;
+};
+
+type ProjectDetailRow = ProjectRow & {
+  description: string;
+  unitId: number;
+  unitName: string;
+};
+
+type ProjectDisciplineRow = {
+  description: string;
+};
+
+type ProjectAssociatedProfileRow = {
+  id: number;
+  name: string;
+  role: string | null;
 };
 
 const PROJECT_MANAGER_NAME_SQL = `TRIM(
@@ -71,6 +87,48 @@ const COUNT_PROJECTS_QUERY = `
   INNER JOIN Project_Status ON Project.status = Project_Status.id
 `;
 
+const PROJECT_DETAIL_SELECT = `
+  SELECT
+    Project.id AS id,
+    Researcher.id AS projectManagerId,
+    ${PROJECT_MANAGER_NAME_SQL} AS projectManagerName,
+    Project.code AS code,
+    Project.name AS name,
+    Project.description AS description,
+    Unit.id AS unitId,
+    Unit.name AS unitName,
+    Project.keywords AS keywords,
+    Project_Type.description AS projectType,
+    Funding_Type.description AS fundingType,
+    Research_Type.description AS researchType,
+    Project_Status.description AS status,
+    Project.start_date AS startDate,
+    Project.end_date AS endDate
+  FROM Project
+  INNER JOIN Researcher ON Project.project_manager = Researcher.id
+  INNER JOIN Unit ON Project.base_unit = Unit.id
+  INNER JOIN Project_Type ON Project.project_type = Project_Type.id
+  INNER JOIN Funding_Type ON Project.funding_type = Funding_Type.id
+  INNER JOIN Research_Type ON Project.research_type = Research_Type.id
+  INNER JOIN Project_Status ON Project.status = Project_Status.id
+`;
+
+const PROJECT_DISCIPLINES_SELECT = `
+  SELECT Project_Discipline.description AS description
+  FROM Project_Discipline_Relation
+  INNER JOIN Project_Discipline
+    ON Project_Discipline_Relation.discipline_id = Project_Discipline.id
+`;
+
+const PROJECT_ASSOCIATED_PROFILES_SELECT = `
+  SELECT
+    Researcher.id AS id,
+    ${PROJECT_MANAGER_NAME_SQL} AS name,
+    Project_Researcher.role AS role
+  FROM Project_Researcher
+  INNER JOIN Researcher ON Project_Researcher.researcher_id = Researcher.id
+`;
+
 const SEARCH_PROJECTS_WHERE = `
   WHERE LOWER(Project.code) LIKE LOWER(?)
      OR LOWER(Project.name) LIKE LOWER(?)
@@ -104,6 +162,32 @@ export class ProjectsRepository {
     };
   }
 
+  async findById(id: string): Promise<ProjectDetail | null> {
+    const numericId = Number(id);
+
+    if (!Number.isInteger(numericId)) {
+      return null;
+    }
+
+    const rows = await this.databaseService.query<ProjectDetailRow>(
+      `${PROJECT_DETAIL_SELECT} WHERE Project.id = ?`,
+      [numericId],
+    );
+
+    const row = rows[0];
+
+    if (!row) {
+      return null;
+    }
+
+    const [associatedProfiles, disciplines] = await Promise.all([
+      this.findAssociatedProfiles(numericId),
+      this.findDisciplines(numericId),
+    ]);
+
+    return this.mapRowToProjectDetail(row, associatedProfiles, disciplines);
+  }
+
   private async findItemsPage(
     limit: number,
     offset: number,
@@ -132,6 +216,30 @@ export class ProjectsRepository {
     );
 
     return totalRows[0]?.totalCount ?? 0;
+  }
+
+  private async findAssociatedProfiles(
+    projectId: number,
+  ): Promise<ProjectAssociatedProfile[]> {
+    const rows = await this.databaseService.query<ProjectAssociatedProfileRow>(
+      `${PROJECT_ASSOCIATED_PROFILES_SELECT} WHERE Project_Researcher.project_id = ? ORDER BY Researcher.id ASC`,
+      [projectId],
+    );
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      ...(row.role ? { role: row.role } : {}),
+    }));
+  }
+
+  private async findDisciplines(projectId: number): Promise<string[]> {
+    const rows = await this.databaseService.query<ProjectDisciplineRow>(
+      `${PROJECT_DISCIPLINES_SELECT} WHERE Project_Discipline_Relation.project_id = ? ORDER BY Project_Discipline.description ASC`,
+      [projectId],
+    );
+
+    return rows.map((row) => row.description);
   }
 
   private normalizeSearchTerm(searchTerm?: string | null): string | null {
@@ -232,6 +340,23 @@ export class ProjectsRepository {
       status: row.status,
       startDate: row.startDate,
       endDate: row.endDate,
+    };
+  }
+
+  private mapRowToProjectDetail(
+    row: ProjectDetailRow,
+    associatedProfiles: ProjectAssociatedProfile[],
+    disciplines: string[],
+  ): ProjectDetail {
+    return {
+      ...this.mapRowToProject(row),
+      description: row.description,
+      unit: {
+        id: row.unitId,
+        name: row.unitName,
+      },
+      disciplines,
+      associatedProfiles,
     };
   }
 

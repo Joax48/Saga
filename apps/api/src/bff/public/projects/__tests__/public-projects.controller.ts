@@ -1,24 +1,23 @@
 import { PublicProjectsController } from '../public-projects.controller';
+import { GetProjectDetailUseCase } from '../../../../application/use-cases/get-public-project-detail.use-case';
 import { GetProjectsPaginatedListUseCase } from '../../../../application/use-cases/get-public-projects-paginated-list.use-case';
-import { SearchPublicProjectsUseCase } from '../../../../application/use-cases/search-public-projects.use-case';
-import { PaginatedListRequestDto } from '../../common/dtos/paginated-list-request.dto';
-import { SearchProjectsRequestDto } from '../dtos/search-projects-request.dto';
+import { ProjectsListRequestDto } from '../dtos/projects-list-request.dto';
 
 describe('PublicProjectsController', () => {
   let controller: PublicProjectsController;
-  let useCase: jest.Mocked<GetProjectsPaginatedListUseCase>;
-  let searchUseCase: jest.Mocked<SearchPublicProjectsUseCase>;
+  let listUseCase: jest.Mocked<GetProjectsPaginatedListUseCase>;
+  let detailUseCase: jest.Mocked<GetProjectDetailUseCase>;
 
   beforeEach(() => {
-    useCase = {
+    listUseCase = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<GetProjectsPaginatedListUseCase>;
 
-    searchUseCase = {
+    detailUseCase = {
       execute: jest.fn(),
-    } as unknown as jest.Mocked<SearchPublicProjectsUseCase>;
+    } as unknown as jest.Mocked<GetProjectDetailUseCase>;
 
-    controller = new PublicProjectsController(useCase, searchUseCase);
+    controller = new PublicProjectsController(listUseCase, detailUseCase);
   });
 
   afterEach(() => {
@@ -27,23 +26,29 @@ describe('PublicProjectsController', () => {
 
   describe('getProjectsPaginatedList', () => {
     it('should return the paginated project list from the use case', async () => {
-      const mockQuery = new PaginatedListRequestDto();
+      const mockQuery = new ProjectsListRequestDto();
       mockQuery.page = 1;
       mockQuery.limit = 10;
       const mockResponse = {
         items: [
           {
+            id: 1,
+            projectManager: { id: 2, name: 'Koen Voorend' },
             code: 'C3992',
             name: 'El costo de una vida digna en Costa Rica',
-            projectType: 'Humanistico',
+            keywords: ['pobreza'],
+            projectType: 'Proyecto',
             researchType: 'Basica',
             startDate: '2023-06-01',
             endDate: '2025-12-31',
           },
           {
+            id: 8,
+            projectManager: { id: 4, name: 'Daniel Jose Alvarado Abarca' },
             code: 'B0661',
             name: 'Gestion de iniciativas de produccion agroecoturisticas sostenibles',
-            projectType: 'Interdisciplinario',
+            keywords: ['sostenibilidad'],
+            projectType: 'Accion',
             researchType: 'Aplicada',
             startDate: '2010-01-01',
             endDate: '2011-12-15',
@@ -53,20 +58,20 @@ describe('PublicProjectsController', () => {
         limit: 10,
         total: 12,
       };
-      useCase.execute.mockResolvedValue(mockResponse);
+      listUseCase.execute.mockResolvedValue(mockResponse);
 
       const result = await controller.getProjectsPaginatedList(mockQuery);
 
       expect(result).toEqual(mockResponse);
-      expect(useCase.execute).toHaveBeenCalledWith(mockQuery);
-      expect(useCase.execute).toHaveBeenCalledTimes(1);
+      expect(listUseCase.execute).toHaveBeenCalledWith(mockQuery);
+      expect(listUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
     it('should forward pagination parameters to the use case', async () => {
-      const mockQuery = new PaginatedListRequestDto();
+      const mockQuery = new ProjectsListRequestDto();
       mockQuery.page = 2;
       mockQuery.limit = 10;
-      useCase.execute.mockResolvedValue({
+      listUseCase.execute.mockResolvedValue({
         items: [],
         page: 2,
         limit: 10,
@@ -75,14 +80,14 @@ describe('PublicProjectsController', () => {
 
       await controller.getProjectsPaginatedList(mockQuery);
 
-      expect(useCase.execute).toHaveBeenCalledWith(mockQuery);
+      expect(listUseCase.execute).toHaveBeenCalledWith(mockQuery);
     });
 
     it('should return an empty list when no projects exist', async () => {
-      const mockQuery = new PaginatedListRequestDto();
+      const mockQuery = new ProjectsListRequestDto();
       mockQuery.page = 1;
       mockQuery.limit = 10;
-      useCase.execute.mockResolvedValue({
+      listUseCase.execute.mockResolvedValue({
         items: [],
         page: 1,
         limit: 10,
@@ -96,10 +101,10 @@ describe('PublicProjectsController', () => {
     });
 
     it('should propagate database errors to the exception layer', async () => {
-      const mockQuery = new PaginatedListRequestDto();
+      const mockQuery = new ProjectsListRequestDto();
       mockQuery.page = 1;
       mockQuery.limit = 10;
-      useCase.execute.mockRejectedValue(new Error('Connection to database lost'));
+      listUseCase.execute.mockRejectedValue(new Error('Connection to database lost'));
 
       await expect(controller.getProjectsPaginatedList(mockQuery)).rejects.toThrow(
         'Connection to database lost',
@@ -107,73 +112,31 @@ describe('PublicProjectsController', () => {
     });
   });
 
-  describe('searchProjects', () => {
-    it('should return matching projects from the search use case', async () => {
-      const mockQuery: SearchProjectsRequestDto = { q: 'clima', page: 1, limit: 10 };
+  describe('getProjectDetail', () => {
+    it('should return the project detail from the use case', async () => {
       const mockResponse = {
-        items: [
-          {
-            code: 'C4196',
-            name: 'Analisis espacio-temporal del impacto de factores climaticos',
-            projectType: 'Basico',
-            researchType: 'Basica',
-            startDate: '2024-01-01',
-            endDate: '2026-12-15',
-          },
+        id: '1',
+        code: 'C3992',
+        title: 'El costo de una vida digna en Costa Rica',
+        description: 'Descripcion del proyecto',
+        manager: { id: 2, name: 'Koen Voorend' },
+        unit: { id: 15, name: 'Instituto de Investigaciones Sociales' },
+        disciplines: ['Ciencias Sociales', 'Estadistica'],
+        researchType: 'Basica',
+        projectType: 'Proyecto',
+        fundingType: 'Financiamiento UCREA',
+        status: 'Vencido',
+        startDate: '2023-06-01',
+        endDate: '2025-12-31',
+        keywords: ['pobreza'],
+        associatedProfiles: [
+          { id: '2', name: 'Koen Voorend', role: 'Investigador principal' },
         ],
-        page: 1,
-        limit: 10,
-        total: 1,
       };
-      searchUseCase.execute.mockResolvedValue(mockResponse);
+      detailUseCase.execute.mockResolvedValue(mockResponse);
 
-      const result = await controller.searchProjects(mockQuery);
-
-      expect(result).toEqual(mockResponse);
-      expect(searchUseCase.execute).toHaveBeenCalledWith(mockQuery);
-      expect(searchUseCase.execute).toHaveBeenCalledTimes(1);
-    });
-
-    it('should forward search parameters to the use case', async () => {
-      const mockQuery: SearchProjectsRequestDto = { q: 'produccion', page: 2, limit: 5 };
-      searchUseCase.execute.mockResolvedValue({
-        items: [],
-        page: 2,
-        limit: 5,
-        total: 8,
-      });
-
-      await controller.searchProjects(mockQuery);
-
-      expect(searchUseCase.execute).toHaveBeenCalledWith(mockQuery);
-    });
-
-    it('should return an empty list when no projects match the search', async () => {
-      const mockQuery: SearchProjectsRequestDto = {
-        q: 'xyznonexistent',
-        page: 1,
-        limit: 10,
-      };
-      searchUseCase.execute.mockResolvedValue({
-        items: [],
-        page: 1,
-        limit: 10,
-        total: 0,
-      });
-
-      const result = await controller.searchProjects(mockQuery);
-
-      expect(result.items).toEqual([]);
-      expect(result.total).toBe(0);
-    });
-
-    it('should propagate database errors to the exception layer', async () => {
-      const mockQuery: SearchProjectsRequestDto = { q: 'clima', page: 1, limit: 10 };
-      searchUseCase.execute.mockRejectedValue(new Error('Connection to database lost'));
-
-      await expect(controller.searchProjects(mockQuery)).rejects.toThrow(
-        'Connection to database lost',
-      );
+      await expect(controller.getProjectDetail('1')).resolves.toEqual(mockResponse);
+      expect(detailUseCase.execute).toHaveBeenCalledWith('1');
     });
   });
 });
