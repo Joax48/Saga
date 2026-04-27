@@ -3,6 +3,7 @@ import type {
   ScientificProductionsListItemDto,
   ScientificProductionsPaginatedListDto,
   ScientificProductionsDetailItemDto,
+  ScientificProductionsFiltersDto,
   ScientificProductionsReader,
 } from '../scientific-productions.reader.contract';
 import { ScientificProductionRepository } from './scientific-productions.repository';
@@ -16,9 +17,10 @@ export class ScientificProductionsService implements ScientificProductionsReader
   async getPaginatedList(
     page: number,
     limit: number,
+    filters?: ScientificProductionsFiltersDto,
   ): Promise<ScientificProductionsPaginatedListDto> {
     const scientificProductionsPage =
-      await this.scientificProductionsRepository.findPaginated(page, limit);
+      await this.scientificProductionsRepository.findPaginated(page, limit, filters);
 
     return {
       items: scientificProductionsPage.items.map(

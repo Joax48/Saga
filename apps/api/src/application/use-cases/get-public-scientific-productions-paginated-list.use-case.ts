@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { PaginatedListRequestDto } from '../../bff/public/common/dtos/paginated-list-request.dto';
 import { PaginatedListResponseDto } from '../../bff/public/common/dtos/paginated-list-response.dto';
 import { ScientificProductioSummaryResponseDto } from '../../bff/public/scientific-productions/dtos/public-scientific-productions-summary-response.dto';
 
@@ -9,6 +8,7 @@ import {
   type ScientificProductionsPaginatedListDto,
   type ScientificProductionsReader,
 } from '../../modules/scientific-productions/scientific-productions.reader.contract';
+import { ScientificProductionsListRequestDto } from '../../bff/public/scientific-productions/dtos/scientific-productions-list-request.dto';
 
 @Injectable()
 export class GetScientificProductionPaginatedListUseCase {
@@ -18,11 +18,18 @@ export class GetScientificProductionPaginatedListUseCase {
   ) {}
 
   async execute(
-    input: PaginatedListRequestDto,
+    input: ScientificProductionsListRequestDto,
   ): Promise<PaginatedListResponseDto<ScientificProductioSummaryResponseDto>> {
     const scientificProductions = await this.scientificProductionsReader.getPaginatedList(
       input.page,
       input.limit,
+      {
+        q: input.q,
+        type: input.type,
+        openAccess: input.openAccess,
+        year: input.year,
+        keywords: input.keywords,
+      },
     );
     return this.mapToResponseDto(scientificProductions);
   }

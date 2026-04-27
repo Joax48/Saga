@@ -1,25 +1,50 @@
-'use client';
-import { useEffect, useState } from 'react';
+// app/(public)/scientific-productions/page.tsx
 import { getScientificProductions } from '@/services/scientific-productions';
 import { ScientificProductionsView } from './components';
-import type { SummaryScientificProduction } from '@/types';
 
-/**
- * Scientific productions list page.
- *
- * Server component: fetches data from the API and passes it to the client-side
- * view which owns all filter/search/pagination state.
- */
-export default function ScientificProductionsPage() {
-  const [productions, setProductions] = useState<SummaryScientificProduction[]>([]);
+interface PageProps {
+  searchParams: {
+    page?: string;
+    limit?: string;
+    q?: string;
+    type?: string;
+    openAccess?: string;
+    year?: string;
+    keywords?: string;
+  };
+}
 
-  useEffect(() => {
-    getScientificProductions(1, 100)
-      .then((response) => setProductions(response.items))
-      .catch((error) => {
-        console.error('Failed to fetch scientific productions:', error);
-      });
-  }, []);
+export default async function ScientificProductionsPage({ searchParams }: PageProps) {
+  const page = Number(searchParams.page ?? 1);
+  const limit = Number(searchParams.limit ?? 10);
+  const keywords = searchParams.keywords
+    ? searchParams.keywords.split(',').map((k) => k.trim())
+    : undefined;
 
-  return <ScientificProductionsView productions={productions} />;
+  const response = await getScientificProductions({
+    page,
+    limit,
+    q: searchParams.q,
+    type: searchParams.type,
+    openAccess: searchParams.openAccess === 'true' ? true : undefined,
+    year: searchParams.year ? Number(searchParams.year) : undefined,
+    keywords,
+  });
+
+  return (
+    <ScientificProductionsView
+      productions={response.items}
+      total={response.total}
+      currentPage={page}
+      limit={limit}
+      // para que el sidebar sepa qué filtros están activos al cargar
+      activeFilters={{
+        q: searchParams.q,
+        type: searchParams.type,
+        openAccess: searchParams.openAccess === 'true',
+        year: searchParams.year ? Number(searchParams.year) : undefined,
+        keywords: searchParams.keywords?.split(',') ?? [],
+      }}
+    />
+  );
 }

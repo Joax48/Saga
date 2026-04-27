@@ -42,10 +42,18 @@ export interface ScientificProductionsPaginatedListDto {
   total: number;
 }
 
+export interface ScientificProductionsFiltersDto {
+  q?: string;
+  type?: string;
+  openAccess?: boolean;
+  year?: number;
+  keywords?: string[];
+}
 export interface ScientificProductionsReader {
   getPaginatedList(
     page: number,
     limit: number,
+    filters?: ScientificProductionsFiltersDto,
   ): Promise<ScientificProductionsPaginatedListDto>;
   getById(id: string): Promise<ScientificProductionsDetailItemDto | null>;
 }

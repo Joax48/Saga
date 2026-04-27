@@ -1,5 +1,20 @@
+/* eslint-disable prettier/prettier */
 import { request, API_BASE } from './api';
-import type { SummaryScientificProduction, ScientificProduction } from '@/types';
+import type {
+  SummaryScientificProduction,
+  ScientificProduction,
+  ProductionFilters,
+} from '@/types';
+
+interface GetScientificProductionsParams {
+  page?: number;
+  limit?: number;
+  q?: string;
+  type?: string;
+  openAccess?: boolean;
+  year?: number;
+  keywords?: string[];
+}
 
 interface ApiSummaryScientificProduction {
   id: string;
@@ -87,23 +102,28 @@ function parseDetailScientificProduction(
 }
 
 export async function getScientificProductions(
-  page = 1,
-  limit = 10,
+  params: GetScientificProductionsParams = {},
 ): Promise<{ items: SummaryScientificProduction[]; total: number }> {
-  const endpoint = `/scientific-productions?page=${page}&limit=${limit}`;
+  const { page = 1, limit = 10, q, type, openAccess, year, keywords } = params;
 
-  try {
-    const response = await request<ApiResponse>(endpoint);
-    console.log('Fetched successfully:', response.items.length, 'items');
+  const searchParams = new URLSearchParams();
+  searchParams.set('page', String(page));
+  searchParams.set('limit', String(limit));
 
-    return {
-      items: response.items.map(parseSummaryScientificProduction),
-      total: response.total,
-    };
-  } catch (error) {
-    console.error('Fetch error:', error);
-    throw error;
-  }
+  if (q) searchParams.set('q', q);
+  if (type) searchParams.set('type', type);
+  if (openAccess) searchParams.set('openAccess', 'true');
+  if (year) searchParams.set('year', String(year));
+  if (keywords?.length) searchParams.set('keywords', keywords.join(','));
+
+  const endpoint = `/scientific-productions?${searchParams.toString()}`;
+
+  const response = await request<ApiResponse>(endpoint);
+
+  return {
+    items: response.items.map(parseSummaryScientificProduction),
+    total: response.total,
+  };
 }
 
 export async function getScientificProductionById(

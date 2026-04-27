@@ -98,7 +98,6 @@ export function ProductionCard({ production }: ProductionCardProps) {
       tags={allTags}
       hideImage
       chromeless
-      className="py-5"
     />
   );
 }

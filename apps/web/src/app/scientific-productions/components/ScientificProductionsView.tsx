@@ -1,116 +1,104 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useTransition, useState, useEffect } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import PageHeroSearch from '@/components/PageHeroSearch';
 import Pagination from '@/components/Pagination';
+import Button from '@/components/Button';
 import { FilterSidebar } from '../../../components/FilterSidebar';
-import type { FilterGroupConfig } from '../../../components/FilterSidebar';
 import { ProductionCard } from './ProductionCard';
-import type { SummaryScientificProduction, ProductionFilters } from '@/types';
+import type { FilterGroupConfig } from '../../../components/FilterSidebar';
+import type { SummaryScientificProduction } from '@/types';
 
 /* ─── Constants ──────────────────────────────────────────────────────── */
 
-const PAGE_SIZE = 10;
-
 const BREADCRUMB_ITEMS = [{ label: 'Producción científica' }];
 
-const DEFAULT_FILTERS: ProductionFilters = {
-  searchQuery: '',
-  selectedTypes: [],
-  openAccessOnly: false,
-  selectedYears: [],
-  selectedKeywords: [],
-};
-
-/* ─── Helpers ────────────────────────────────────────────────────────── */
-
-function toggleValue<T>(list: T[], value: T): T[] {
-  return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+interface ActiveFilters {
+  q?: string;
+  type?: string;
+  openAccess?: boolean;
+  year?: number;
+  keywords?: string[];
 }
-
-function applyFilters(
-  productions: SummaryScientificProduction[],
-  filters: ProductionFilters,
-): SummaryScientificProduction[] {
-  const { searchQuery, selectedTypes, openAccessOnly, selectedYears, selectedKeywords } =
-    filters;
-  const query = searchQuery.toLowerCase().trim();
-
-  return productions.filter((p) => {
-    if (query && !p.title.toLowerCase().includes(query)) return false;
-    if (selectedTypes.length > 0 && !selectedTypes.includes(p.type.subcategory))
-      return false;
-    if (openAccessOnly && !p.open_access) return false;
-    if (selectedYears.length > 0 && !selectedYears.includes(p.publication_year))
-      return false;
-    if (
-      selectedKeywords.length > 0 &&
-      !selectedKeywords.some((kw) => p.keywords.includes(kw))
-    )
-      return false;
-    return true;
-  });
-}
-
-/* ─── Component ──────────────────────────────────────────────────────── */
 
 interface ScientificProductionsViewProps {
   productions: SummaryScientificProduction[];
+  total: number;
+  currentPage: number;
+  limit: number;
+  activeFilters: ActiveFilters;
 }
 
-/**
- * Main client-side view for the scientific productions list page.
- *
- * Owns all filter, search, and pagination state. Computes facet counts and
- * builds the `FilterGroupConfig[]` array that drives the generic sidebar.
- */
 export function ScientificProductionsView({
   productions,
+  total,
+  currentPage,
+  limit,
+  activeFilters,
 }: ScientificProductionsViewProps) {
-  const [filters, setFilters] = useState<ProductionFilters>(DEFAULT_FILTERS);
-  const [currentPage, setCurrentPage] = useState(1);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
-  /* ── Handlers ── */
+  const updateParams = useCallback(
+    (
+      updates: Record<string, string | null>,
+      resetPage = true,
+      mode: 'push' | 'replace' = 'push',
+    ) => {
+      const params = new URLSearchParams(searchParams.toString());
 
-  const handleFiltersChange = useCallback((updated: Partial<ProductionFilters>) => {
-    setFilters((prev) => ({ ...prev, ...updated }));
-    setCurrentPage(1);
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === '') {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+
+      if (resetPage) {
+        params.set('page', '1');
+      }
+
+      startTransition(() => {
+        const url = `${pathname}?${params.toString()}`;
+        mode === 'replace' ? router.replace(url) : router.push(url);
+      });
+    },
+    [router, pathname, searchParams],
+  );
+
+  useEffect(() => {
+    if (!searchParams.get('page')) {
+      updateParams({ page: '1' }, false, 'replace');
+    }
+    // Se desactiva para que solo se realice una vez
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearch = useCallback(
-    (query: string) => {
-      handleFiltersChange({ searchQuery: query });
+    (q: string) => {
+      updateParams({ q: q || null });
     },
-    [handleFiltersChange],
+    [updateParams],
   );
 
-  const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
-
-  /* ── Derived data ── */
-
-  const filtered = useMemo(
-    () => applyFilters(productions, filters),
-    [productions, filters],
+  const handlePageChange = useCallback(
+    (page: number) => {
+      updateParams({ page: String(page) }, false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    [updateParams],
   );
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(total / limit));
 
-  const paginated = useMemo(
-    () => filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
-    [filtered, currentPage],
-  );
-
-  /* ── Filter groups (facet computation + handlers bundled for the sidebar) ── */
-
+  // los filterGroups ahora leen activeFilters en lugar del estado local
   const filterGroups = useMemo<FilterGroupConfig[]>(() => {
-    const typeCounts = productions.reduce<Record<string, number>>((acc, p) => {
-      acc[p.type.subcategory] = (acc[p.type.subcategory] ?? 0) + 1;
-      return acc;
-    }, {});
-
+    // los conteos vienen de los items de la página actual
+    // cuando tengas el endpoint de facets del servidor los reemplazás
     const yearCounts = productions.reduce<Record<number, number>>((acc, p) => {
       acc[p.publication_year] = (acc[p.publication_year] ?? 0) + 1;
       return acc;
@@ -123,7 +111,10 @@ export function ScientificProductionsView({
       return acc;
     }, {});
 
-    const openAccessCount = productions.filter((p) => p.open_access).length;
+    const typeCounts = productions.reduce<Record<string, number>>((acc, p) => {
+      acc[p.type.subcategory] = (acc[p.type.subcategory] ?? 0) + 1;
+      return acc;
+    }, {});
 
     return [
       {
@@ -133,18 +124,23 @@ export function ScientificProductionsView({
         options: Object.entries(typeCounts)
           .sort((a, b) => b[1] - a[1])
           .map(([value, count]) => ({ value, label: value, count })),
-        selectedValues: filters.selectedTypes,
+        selectedValues: activeFilters.type ? [activeFilters.type] : [],
         onToggle: (v) =>
-          handleFiltersChange({ selectedTypes: toggleValue(filters.selectedTypes, v) }),
+          updateParams({
+            type: activeFilters.type === v ? null : v,
+          }),
       },
       {
         kind: 'boolean',
         title: 'Acceso abierto',
         id: 'filter-open-access',
         label: 'Contenido abierto',
-        count: openAccessCount,
-        checked: filters.openAccessOnly,
-        onChange: () => handleFiltersChange({ openAccessOnly: !filters.openAccessOnly }),
+        count: productions.filter((p) => p.open_access).length,
+        checked: activeFilters.openAccess ?? false,
+        onChange: () =>
+          updateParams({
+            openAccess: activeFilters.openAccess ? null : 'true',
+          }),
       },
       {
         kind: 'options',
@@ -153,10 +149,10 @@ export function ScientificProductionsView({
         options: Object.entries(yearCounts)
           .sort((a, b) => Number(b[0]) - Number(a[0]))
           .map(([value, count]) => ({ value, label: value, count })),
-        selectedValues: filters.selectedYears.map(String),
+        selectedValues: activeFilters.year ? [String(activeFilters.year)] : [],
         onToggle: (v) =>
-          handleFiltersChange({
-            selectedYears: toggleValue(filters.selectedYears, Number(v)),
+          updateParams({
+            year: activeFilters.year === Number(v) ? null : v,
           }),
       },
       {
@@ -166,39 +162,44 @@ export function ScientificProductionsView({
         options: Object.entries(keywordCounts)
           .sort((a, b) => b[1] - a[1])
           .map(([value, count]) => ({ value, label: value, count })),
-        selectedValues: filters.selectedKeywords,
-        onToggle: (v) =>
-          handleFiltersChange({
-            selectedKeywords: toggleValue(filters.selectedKeywords, v),
-          }),
+        selectedValues: activeFilters.keywords ?? [],
+        onToggle: (v) => {
+          const current = activeFilters.keywords ?? [];
+          const updated = current.includes(v)
+            ? current.filter((kw) => kw !== v)
+            : [...current, v];
+          updateParams({
+            keywords: updated.length > 0 ? updated.join(',') : null,
+          });
+        },
       },
     ];
-  }, [productions, filters, handleFiltersChange]);
+  }, [
+    productions,
+    activeFilters.type,
+    activeFilters.openAccess,
+    activeFilters.year,
+    activeFilters.keywords,
+    updateParams,
+  ]);
+
+  const [filtersVisible, setFiltersVisible] = useState(false);
 
   const hasActiveFilters =
-    filters.selectedTypes.length > 0 ||
-    filters.openAccessOnly ||
-    filters.selectedYears.length > 0 ||
-    filters.selectedKeywords.length > 0;
+    !!activeFilters.q ||
+    !!activeFilters.type ||
+    !!activeFilters.openAccess ||
+    !!activeFilters.year ||
+    (activeFilters.keywords?.length ?? 0) > 0;
 
-  const handleClearAll = useCallback(
-    () =>
-      handleFiltersChange({
-        selectedTypes: [],
-        openAccessOnly: false,
-        selectedYears: [],
-        selectedKeywords: [],
-      }),
-    [handleFiltersChange],
-  );
-
-  /* ── Render ── */
+  const handleClearAll = useCallback(() => {
+    startTransition(() => {
+      router.push(pathname); // URL sin params = sin filtros
+    });
+  }, [router, pathname]);
 
   return (
-    <main
-      className="min-h-screen"
-      style={{ backgroundColor: 'var(--color-bg-neutral-primary)' }}
-    >
+    <main className="bg-(--color-bg-neutral-secondary) min-h-screen">
       <PageHeroSearch
         items={BREADCRUMB_ITEMS}
         title="Producción científica"
@@ -206,36 +207,62 @@ export function ScientificProductionsView({
         onSearch={handleSearch}
       />
 
-      <div className="max-w-5xl mx-auto py-9">
-        <p
-          className="mb-4 text-sm"
-          style={{ color: 'var(--color-text-neutral-secondary)' }}
-        >
-          {filtered.length === productions.length
-            ? `${productions.length} resultado${productions.length !== 1 ? 's' : ''}`
-            : `${filtered.length} de ${productions.length} resultado${productions.length !== 1 ? 's' : ''}`}
-        </p>
+      <section className="bg-(--color-bg-neutral-primary) px-6 lg:px-10 py-14">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-4 lg:hidden">
+            <Button
+              variant="brandOutline"
+              size="sm"
+              onClick={() => setFiltersVisible((prev) => !prev)}
+              aria-expanded={filtersVisible}
+              aria-controls="scientific-productions-filter-sidebar"
+            >
+              {filtersVisible ? 'Ocultar filtros' : 'Mostrar filtros'}
+            </Button>
+          </div>
 
-        {/* Content grid */}
-        <div className="flex gap-8 pb-12 space-y-12">
-          <FilterSidebar
-            groups={filterGroups}
-            hasActiveFilters={hasActiveFilters}
-            onClearAll={handleClearAll}
-          />
+          <p
+            className="mb-4 text-sm"
+            style={{ color: 'var(--color-text-neutral-secondary)' }}
+          >
+            {total} resultado{total !== 1 ? 's' : ''}
+          </p>
 
-          {/* Results */}
-          <section className="flex-1 min-w-0">
-            {paginated.length > 0 ? (
-              <>
-                <div className="">
-                  {paginated.map((production) => (
+          <div className="flex flex-col gap-8 lg:flex-row">
+            <div
+              id="scientific-productions-filter-sidebar"
+              className={`${filtersVisible ? 'block' : 'hidden'} lg:block`}
+            >
+              <FilterSidebar
+                groups={filterGroups}
+                hasActiveFilters={hasActiveFilters}
+                onClearAll={handleClearAll}
+              />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="space-y-8">
+                {productions.length > 0 ? (
+                  productions.map((production) => (
                     <ProductionCard key={production.id} production={production} />
-                  ))}
-                </div>
+                  ))
+                ) : (
+                  <div
+                    className="flex flex-col items-center justify-center py-16 text-center"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <p className="text-base font-medium text-gray-500">
+                      No se encontraron resultados.
+                    </p>
+                    <p className="mt-1 text-sm text-gray-400">
+                      Intenta ajustar los filtros o el término de búsqueda.
+                    </p>
+                  </div>
+                )}
 
-                {totalPages > 1 && (
-                  <div className="mt-8">
+                {productions.length > 0 && totalPages > 1 && (
+                  <div className="pt-8">
                     <Pagination
                       currentPage={currentPage}
                       totalPages={totalPages}
@@ -243,30 +270,11 @@ export function ScientificProductionsView({
                     />
                   </div>
                 )}
-              </>
-            ) : (
-              <div
-                className="flex flex-col items-center justify-center py-16 text-center"
-                role="status"
-                aria-live="polite"
-              >
-                <p
-                  className="text-base font-medium"
-                  style={{ color: 'var(--color-text-neutral-secondary)' }}
-                >
-                  No se encontraron resultados.
-                </p>
-                <p
-                  className="mt-1 text-sm"
-                  style={{ color: 'var(--color-text-neutral-tertiary)' }}
-                >
-                  Intenta ajustar los filtros o el término de búsqueda.
-                </p>
               </div>
-            )}
-          </section>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
     </main>
   );
 }

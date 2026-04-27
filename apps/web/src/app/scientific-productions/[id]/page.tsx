@@ -169,7 +169,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
             <div className="hidden lg:block w-px bg-gray-300 self-stretch mx-2" />
 
             {/* Right */}
-            <div className="flex flex-row lg:flex-col gap-8 lg:gap-6 mt-6 lg:mt-0 lg:pl-10 lg:w-55 shrink-0">
+            <div className="flex flex-col gap-6 mt-6 lg:mt-0 lg:pl-10 lg:w-55 shrink-0">
               <div className="space-y-1">
                 <p className="text-[16px] font-semibold text-(--color-text-neutral-secondary)">
                   Citas
