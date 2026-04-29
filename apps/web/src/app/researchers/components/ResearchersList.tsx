@@ -3,7 +3,10 @@
 import { useState, useEffect } from 'react';
 import Pagination from '../../../components/Pagination.tsx';
 import Card from '../../../components/Card.tsx';
-import { getResearchers, type ResearcherQueryFilters } from '../../../services/researchers';
+import {
+  getResearchers,
+  type ResearcherQueryFilters,
+} from '../../../services/researchers';
 
 import type { Researcher } from '@/types/researcher-data.js';
 
@@ -25,7 +28,12 @@ export default function ResearchersList({ searchQuery, filters }: ResearchersLis
   useEffect(() => {
     const fetchResearchers = async () => {
       try {
-        const response = await getResearchers(currentPage, PAGE_SIZE, searchQuery, filters);
+        const response = await getResearchers(
+          currentPage,
+          PAGE_SIZE,
+          searchQuery,
+          filters,
+        );
         setResearchers(response.data);
         setTotalPages(Math.max(1, Math.ceil(response.total / response.limit)));
       } catch (error) {
@@ -56,7 +64,10 @@ export default function ResearchersList({ searchQuery, filters }: ResearchersLis
             title={`${researcher.name} ${researcher.firstSurname}`}
             description={researcher.baseUnit}
             excerpt={researcher.ceaCategory || 'Investigador'}
-            imageSrc={researcher.photoUrl || getAvatarUrl(researcher.name, researcher.firstSurname)}
+            imageSrc={
+              researcher.photoUrl ||
+              getAvatarUrl(researcher.name, researcher.firstSurname)
+            }
             imageShape="circle"
             href={`/researchers/${researcher.id}`}
             chromeless

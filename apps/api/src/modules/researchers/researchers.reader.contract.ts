@@ -24,5 +24,9 @@ export interface ResearchersPaginatedListDto {
 }
 
 export interface ResearchersReader {
-  getPaginatedList(page: number, limit: number, name?: string): Promise<ResearchersPaginatedListDto>;
+  getPaginatedList(
+    page: number,
+    limit: number,
+    name?: string,
+  ): Promise<ResearchersPaginatedListDto>;
 }

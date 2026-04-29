@@ -20,7 +20,11 @@ export class GetResearchersPaginatedListUseCase {
   async execute(
     input: ResearchersListRequestDto,
   ): Promise<PaginatedListResponseDto<ResearcherSummaryResponseDto>> {
-    const researchers = await this.researchersReader.getPaginatedList(input.page, input.limit, input.name);
+    const researchers = await this.researchersReader.getPaginatedList(
+      input.page,
+      input.limit,
+      input.name,
+    );
 
     return this.mapToResponseDto(researchers);
   }

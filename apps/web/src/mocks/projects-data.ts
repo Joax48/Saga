@@ -2,28 +2,6 @@
 // TYPES
 // =========================
 
-export interface Project {
-  id: string;
-  code: string;
-  title: string;
-  description: string;
-  manager: string;
-  institute: string;
-  discipline: string;
-  researchType: string;
-  projectType: string;
-  fundingType: string;
-  status: string;
-  startDate: string;
-  endDate: string;
-  keywords: string[];
-  associatedProfiles: Array<{
-    id: string;
-    name: string;
-    role?: string;
-  }>;
-}
-
 export interface FilterOption {
   label: string;
   count: number;
@@ -39,13 +17,6 @@ export interface ProjectFilters {
   keywords: FilterOption[];
 }
 
-export interface PaginatedProjects {
-  data: Project[];
-  total: number;
-  page: number;
-  limit: number;
-}
-
 export interface ProjectQueryFilters {
   researchType?: string[];
   projectType?: string[];
@@ -54,45 +25,6 @@ export interface ProjectQueryFilters {
   participants?: string[];
   keywords?: string[];
 }
-
-// =========================
-// MOCK DATA
-// =========================
-
-export const PROJECT_DETAIL_EXAMPLE: Project = {
-  id: 'example-project',
-  code: 'C-EXAMPLE-2026',
-  title: 'Proyecto demostrativo de visualizacion del detalle',
-  description:
-    'Este es un ejemplo estatico para mostrar la estructura completa del detalle del proyecto mientras se integra el endpoint real de detalle.',
-  manager: 'Persona Investigadora Ejemplo',
-  institute: 'Instituto de Investigacion de Ejemplo',
-  discipline: 'Ciencias Aplicadas',
-  researchType: 'Aplicada',
-  projectType: 'Proyecto',
-  fundingType: 'Fondos Institucionales',
-  status: 'Activo',
-  startDate: '2026-01-01',
-  endDate: '2027-12-31',
-  keywords: ['Innovacion', 'Investigacion', 'Transferencia'],
-  associatedProfiles: [
-    {
-      id: '101',
-      name: 'Persona Investigadora Ejemplo',
-      role: 'Persona encargada del proyecto',
-    },
-    {
-      id: '102',
-      name: 'Colaborador Academico Ejemplo',
-      role: 'Co-investigador',
-    },
-    {
-      id: '103',
-      name: 'Asistente de Investigacion Ejemplo',
-      role: 'Asistente',
-    },
-  ],
-};
 
 // =========================
 // FILTERS

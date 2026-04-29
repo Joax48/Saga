@@ -62,9 +62,9 @@ export default function ResearchersPage() {
     };
   }, []);
 
-  const hasActiveFilters = Object.values(filters).some(
-    (value) => Array.isArray(value) && value.length > 0,
-  ) || searchQuery.length > 0;
+  const hasActiveFilters =
+    Object.values(filters).some((value) => Array.isArray(value) && value.length > 0) ||
+    searchQuery.length > 0;
 
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });

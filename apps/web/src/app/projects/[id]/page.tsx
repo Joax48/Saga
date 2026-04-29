@@ -87,6 +87,10 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
   const managerProfile = project.associatedProfiles.find(
     (profile) => profile.name === project.manager,
   );
+  const disciplinesText =
+    project.disciplines.length > 0
+      ? project.disciplines.join(', ')
+      : 'Sin disciplinas registradas';
 
   return (
     <main className="bg-[var(--color-bg-neutral-secondary)] min-h-screen">
@@ -126,9 +130,9 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
 
                 <p>
                   <span className="font-medium text-[var(--color-text-neutral-primary)]">
-                    Disciplina:
+                    Disciplinas:
                   </span>{' '}
-                  {project.discipline}
+                  {disciplinesText}
                 </p>
               </div>
             </div>
@@ -201,7 +205,7 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
                       </p>
 
                       <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
-                        {project.discipline}
+                        {disciplinesText}
                       </p>
 
                       {profile.role && (

@@ -18,7 +18,11 @@ export class ResearchersReaderService implements ResearchersReader {
     limit: number,
     name?: string,
   ): Promise<ResearchersPaginatedListDto> {
-    const researchersPage = await this.researchersRepository.findPaginated(page, limit, name);
+    const researchersPage = await this.researchersRepository.findPaginated(
+      page,
+      limit,
+      name,
+    );
 
     return {
       items: researchersPage.items.map(

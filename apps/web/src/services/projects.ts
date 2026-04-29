@@ -1,10 +1,14 @@
 import { request } from './api';
-import { getMockProjectFilters, PROJECT_DETAIL_EXAMPLE } from '@/mocks/projects-data';
-import { mapProjectSummaryToProject } from '@/mappers/projects.mappers';
+import { getMockProjectFilters } from '@/mocks/projects-data';
+import {
+  mapProjectDetailToProject,
+  mapProjectSummaryToProject,
+} from '@/mappers/projects.mappers';
 import type {
   PaginatedListResponseDto,
   PaginatedProjectList,
   Project,
+  ProjectDetailApiDto,
   ProjectFilters,
   ProjectQueryFilters,
   ProjectSummaryApiDto,
@@ -66,12 +70,13 @@ export async function getProjects(
 }
 
 /**
- * Returns a static example used in the project detail page for every project.
+ * Returns a project detail from backend API.
  */
-export function getProjectById(_id: string): Promise<Project> {
-  return Promise.resolve({
-    ...PROJECT_DETAIL_EXAMPLE,
-  });
+export async function getProjectById(id: string): Promise<Project> {
+  const encodedId = encodeURIComponent(id);
+  const response = await request<ProjectDetailApiDto>(`/projects/${encodedId}`);
+
+  return mapProjectDetailToProject(response);
 }
 
 /**

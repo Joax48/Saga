@@ -38,7 +38,11 @@ const COUNT_RESEARCHERS_QUERY = `
 export class ResearchersRepository {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async findPaginated(page: number, limit: number, name?: string): Promise<PaginatedResult<Researcher>> {
+  async findPaginated(
+    page: number,
+    limit: number,
+    name?: string,
+  ): Promise<PaginatedResult<Researcher>> {
     const offset = this.calculateOffset(page, limit);
     const [items, total] = await Promise.all([
       this.findItemsPage(limit, offset, name),
@@ -51,7 +55,11 @@ export class ResearchersRepository {
     };
   }
 
-  private async findItemsPage(limit: number, offset: number, name?: string): Promise<Researcher[]> {
+  private async findItemsPage(
+    limit: number,
+    offset: number,
+    name?: string,
+  ): Promise<Researcher[]> {
     if (name) {
       return this.databaseService.query<Researcher>(
         `

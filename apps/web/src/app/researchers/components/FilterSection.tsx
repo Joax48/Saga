@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { FilterSidebar, type FilterGroupConfig } from '@/components/FilterSidebar';
-import { getResearcherFilters, type ResearcherQueryFilters } from '@/services/researchers';
+import {
+  getResearcherFilters,
+  type ResearcherQueryFilters,
+} from '@/services/researchers';
 import type { ResearcherFilters } from '@/services/researchers';
 
 interface FilterSectionProps {

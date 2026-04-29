@@ -126,7 +126,9 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
     ...defaultProfileData,
     name: `${researcher.name} ${researcher.firstSurname} ${researcher.secondSurname}`,
     unit: researcher.baseUnit,
-    image: researcher.photoUrl || getAvatarUrl(researcher.name, researcher.firstSurname, researcher.secondSurname),
+    image:
+      researcher.photoUrl ||
+      getAvatarUrl(researcher.name, researcher.firstSurname, researcher.secondSurname),
   };
 
   return (
@@ -232,7 +234,8 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                     <li key={item.bold} className="flex items-start gap-2">
                       <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[var(--color-text-neutral-primary)] shrink-0" />
                       <span>
-                        <strong>{item.bold}</strong>{item.rest}
+                        <strong>{item.bold}</strong>
+                        {item.rest}
                       </span>
                     </li>
                   ))}
@@ -244,8 +247,10 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                   Biografía
                 </h3>
                 <p className="text-base leading-7 text-[var(--color-text-neutral-primary)]">
-                  Investigadora con experiencia en modelos estadísticos aplicados a datos ambientales y de salud pública.
-                  Su trabajo se centra en la integración de métodos cuantitativos para apoyar la toma de decisiones en políticas públicas.
+                  Investigadora con experiencia en modelos estadísticos aplicados a datos
+                  ambientales y de salud pública. Su trabajo se centra en la integración
+                  de métodos cuantitativos para apoyar la toma de decisiones en políticas
+                  públicas.
                 </p>
               </div>
             </section>
@@ -255,7 +260,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
             <section className="space-y-4">
               <h2 className="text-xl font-semibold text-[var(--color-text-neutral-primary)]">
                 Palabras clave
-                </h2>
+              </h2>
               <div className="flex flex-wrap gap-3">
                 {profile.keywords.map((keyword) => (
                   <span
