@@ -11,11 +11,10 @@ const insertProjectSql = `
     base_unit,
     name,
     description,
-    keywords,
     start_date,
     end_date,
     code
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 
 type ProjectSeedRow = {
@@ -28,7 +27,6 @@ type ProjectSeedRow = {
   baseUnit: number;
   name: string;
   description: string;
-  keywords: string;
   startDate: string;
   endDate: string;
   code: string;
@@ -46,7 +44,6 @@ const projectRows: ProjectSeedRow[] = [
     name: 'El costo de una vida digna en Costa Rica. Ingreso vital y la construccion de metodologias para el calculo de variaciones subnacionales.',
     description:
       'Analizar y mapear las variaciones subnacionales en el ingreso vital en Costa Rica mediante metodologias cuantitativas y cualitativas para apoyar la politica publica.',
-    keywords: 'pobreza,economia social,politica publica,costa rica',
     startDate: '2023-06-01',
     endDate: '2025-12-31',
     code: 'C3992',
@@ -62,7 +59,6 @@ const projectRows: ProjectSeedRow[] = [
     name: 'Analisis espacio-temporal del impacto de factores climaticos y de contaminacion sobre las hospitalizaciones respiratorias',
     description:
       'Estudio del impacto de variables ambientales en la salud publica mediante analisis de datos espaciales y temporales.',
-    keywords: 'clima,salud publica,modelado espacial,contaminacion',
     startDate: '2024-01-01',
     endDate: '2026-12-15',
     code: 'C4196',
@@ -78,7 +74,6 @@ const projectRows: ProjectSeedRow[] = [
     name: 'Metodologias para la estimacion de pobreza en areas pequenas en Costa Rica.',
     description:
       'Desarrollo de modelos estadisticos para estimar pobreza en regiones con baja disponibilidad de datos.',
-    keywords: 'estadistica,pobreza,areas pequenas,metodologia',
     startDate: '2023-04-07',
     endDate: '2024-12-31',
     code: 'C3223',
@@ -94,7 +89,6 @@ const projectRows: ProjectSeedRow[] = [
     name: 'Analisis comparativo de las encuestas de opinion a estudiantes y administrativos de la Universidad de Costa Rica 2005 y 2018.',
     description:
       'Comparacion de percepciones de estudiantes y personal administrativo para apoyar la mejora institucional de la UCR.',
-    keywords: 'encuestas,opinion publica,universidad,analisis comparativo',
     startDate: '2018-02-20',
     endDate: '2018-12-15',
     code: 'C3224',
@@ -110,7 +104,6 @@ const projectRows: ProjectSeedRow[] = [
     name: 'Metodos para modelaje y mitigacion de la dependencia en modelos ocultos de Markov y semi-Markov.',
     description:
       'Investigacion sobre modelos ocultos de Markov y semi-Markov para mejorar el modelaje y la mitigacion de dependencias complejas.',
-    keywords: 'markov,modelos ocultos,dependencia,metodos cuantitativos',
     startDate: '2022-09-15',
     endDate: '2023-12-31',
     code: 'C2227',
@@ -126,7 +119,6 @@ const projectRows: ProjectSeedRow[] = [
     name: 'Sintesis de evidencia y modelos de decision complejos, aplicados al estudio dinamico de enfermedades cronicas no comunicables para la salud poblacional, considerando globalidad.',
     description:
       'Sintesis de evidencia y modelado de decisiones para apoyar el estudio de enfermedades cronicas no comunicables en salud poblacional.',
-    keywords: 'salud poblacional,enfermedades cronicas,sintesis de evidencia,decision',
     startDate: '2016-03-07',
     endDate: '2018-04-30',
     code: 'B6226',
@@ -142,7 +134,6 @@ const projectRows: ProjectSeedRow[] = [
     name: 'Aplicaciones de modelos heteroscedasticos y modelos mixtos.',
     description:
       'Aplicacion de modelos heteroscedasticos y mixtos para resolver problemas de inferencia en escenarios con alta variabilidad.',
-    keywords: 'modelos mixtos,heteroscedasticidad,estadistica aplicada,analisis',
     startDate: '2015-03-01',
     endDate: '2016-07-31',
     code: 'B5227',
@@ -158,7 +149,6 @@ const projectRows: ProjectSeedRow[] = [
     name: 'Gestion de iniciativas de produccion agroecoturisticas sostenibles en la parte alta de la cuenca del rio Candelaria.',
     description:
       'Fortalecimiento de iniciativas agroecoturisticas sostenibles mediante gestion territorial en la cuenca del rio Candelaria.',
-    keywords: 'agroecoturismo,sostenibilidad,gestion territorial,cuencas',
     startDate: '2010-01-01',
     endDate: '2011-12-15',
     code: 'B0661',
@@ -174,7 +164,6 @@ const projectRows: ProjectSeedRow[] = [
     name: 'Monitoreo de ecosistemas forestales para el fortalecimiento de estrategias de conservacion y uso de bosques: una contribucion a la iniciativa Costa Rica Carbono Neutral',
     description:
       'Monitoreo de ecosistemas forestales para fortalecer estrategias de conservacion, mitigacion y carbono neutral.',
-    keywords: 'bosques,conservacion,carbono neutral,monitoreo ambiental',
     startDate: '2010-01-15',
     endDate: '2013-12-16',
     code: 'B0651',
@@ -190,7 +179,6 @@ const projectRows: ProjectSeedRow[] = [
     name: 'El ciclo politico electoral en los flujos migratorios en Latinoamerica.',
     description:
       'Analisis del ciclo politico electoral y su relacion con los flujos migratorios en Latinoamerica.',
-    keywords: 'migracion,politica electoral,latinoamerica,ciencias sociales',
     startDate: '2008-09-01',
     endDate: '2009-06-30',
     code: 'A8205',
@@ -206,7 +194,6 @@ const projectRows: ProjectSeedRow[] = [
     name: 'Mejoramiento de la calidad de exportacion de Schefflera arboricola mediante el uso de reguladores quimicos de crecimiento.',
     description:
       'Evaluacion de reguladores quimicos de crecimiento para mejorar la calidad de exportacion de Schefflera arboricola.',
-    keywords: 'agronomia,exportacion,reguladores de crecimiento,calidad',
     startDate: '2008-03-01',
     endDate: '2009-02-28',
     code: 'A8152',
@@ -222,7 +209,6 @@ const projectRows: ProjectSeedRow[] = [
     name: 'Efecto de la aplicacion de giberelinas en la concentracion de la cosecha de tres variedades de rosa (Rosa spp).',
     description:
       'Analisis del efecto de giberelinas para concentrar la cosecha de variedades de rosa en contextos productivos.',
-    keywords: 'giberelinas,rosa,horticultura,cosecha',
     startDate: '2008-03-01',
     endDate: '2009-02-28',
     code: 'A8151',
@@ -243,7 +229,6 @@ export const projectTable: DatabaseTableDefinition = {
       base_unit INT,
       name STRING,
       description STRING,
-      keywords STRING,
       start_date STRING,
       end_date STRING,
       code STRING
@@ -261,7 +246,6 @@ export const projectTable: DatabaseTableDefinition = {
       project.baseUnit,
       project.name,
       project.description,
-      project.keywords,
       project.startDate,
       project.endDate,
       project.code,

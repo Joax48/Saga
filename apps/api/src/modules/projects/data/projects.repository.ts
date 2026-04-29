@@ -18,7 +18,6 @@ type ProjectRow = {
   projectManagerName: string;
   code: string;
   name: string;
-  keywords: string;
   projectType: string;
   fundingType: string;
   researchType: string;
@@ -34,6 +33,15 @@ type ProjectDetailRow = ProjectRow & {
 };
 
 type ProjectDisciplineRow = {
+  description: string;
+};
+
+type ProjectKeywordRow = {
+  description: string;
+};
+
+type ProjectKeywordByProjectRow = {
+  projectId: number;
   description: string;
 };
 
@@ -62,7 +70,6 @@ const BASE_PROJECTS_SELECT = `
     ${PROJECT_MANAGER_NAME_SQL} AS projectManagerName,
     Project.code AS code,
     Project.name AS name,
-    Project.keywords AS keywords,
     Project_Type.description AS projectType,
     Funding_Type.description AS fundingType,
     Research_Type.description AS researchType,
@@ -97,7 +104,6 @@ const PROJECT_DETAIL_SELECT = `
     Project.description AS description,
     Unit.id AS unitId,
     Unit.name AS unitName,
-    Project.keywords AS keywords,
     Project_Type.description AS projectType,
     Funding_Type.description AS fundingType,
     Research_Type.description AS researchType,
@@ -118,6 +124,15 @@ const PROJECT_DISCIPLINES_SELECT = `
   FROM Project_Discipline_Relation
   INNER JOIN Project_Discipline
     ON Project_Discipline_Relation.discipline_id = Project_Discipline.id
+`;
+
+const PROJECT_KEYWORDS_SELECT = `
+  SELECT
+    Project_Keyword_Relation.project_id AS projectId,
+    Project_Keyword.description AS description
+  FROM Project_Keyword_Relation
+  INNER JOIN Project_Keyword
+    ON Project_Keyword_Relation.keyword_id = Project_Keyword.id
 `;
 
 const PROJECT_ASSOCIATED_PROFILES_SELECT = `
@@ -180,12 +195,13 @@ export class ProjectsRepository {
       return null;
     }
 
-    const [associatedProfiles, disciplines] = await Promise.all([
+    const [associatedProfiles, disciplines, keywords] = await Promise.all([
       this.findAssociatedProfiles(numericId),
       this.findDisciplines(numericId),
+      this.findKeywords(numericId),
     ]);
 
-    return this.mapRowToProjectDetail(row, associatedProfiles, disciplines);
+    return this.mapRowToProjectDetail(row, associatedProfiles, disciplines, keywords);
   }
 
   private async findItemsPage(
@@ -203,7 +219,17 @@ export class ProjectsRepository {
       builtWhereClause.params,
     );
 
-    return rows.map((row) => this.mapRowToProject(row));
+    if (rows.length === 0) {
+      return [];
+    }
+
+    const keywordsByProjectId = await this.findKeywordsByProjectIds(
+      rows.map((row) => row.id),
+    );
+
+    return rows.map((row) =>
+      this.mapRowToProject(row, keywordsByProjectId.get(row.id) ?? []),
+    );
   }
 
   private async countProjects(builtWhereClause: BuiltWhereClause): Promise<number> {
@@ -242,6 +268,32 @@ export class ProjectsRepository {
     return rows.map((row) => row.description);
   }
 
+  private async findKeywords(projectId: number): Promise<string[]> {
+    const rows = await this.databaseService.query<ProjectKeywordRow>(
+      `${PROJECT_KEYWORDS_SELECT} WHERE Project_Keyword_Relation.project_id = ? ORDER BY Project_Keyword.description ASC`,
+      [projectId],
+    );
+
+    return rows.map((row) => row.description);
+  }
+
+  private async findKeywordsByProjectIds(
+    projectIds: number[],
+  ): Promise<Map<number, string[]>> {
+    const placeholders = projectIds.map(() => '?').join(', ');
+    const rows = await this.databaseService.query<ProjectKeywordByProjectRow>(
+      `${PROJECT_KEYWORDS_SELECT} WHERE Project_Keyword_Relation.project_id IN (${placeholders}) ORDER BY Project_Keyword_Relation.project_id ASC, Project_Keyword.description ASC`,
+      projectIds,
+    );
+
+    return rows.reduce((keywordsByProjectId, row) => {
+      const projectKeywords = keywordsByProjectId.get(row.projectId) ?? [];
+      projectKeywords.push(row.description);
+      keywordsByProjectId.set(row.projectId, projectKeywords);
+      return keywordsByProjectId;
+    }, new Map<number, string[]>());
+  }
+
   private normalizeSearchTerm(searchTerm?: string | null): string | null {
     const normalizedSearchTerm = searchTerm?.trim();
     return normalizedSearchTerm ? `%${normalizedSearchTerm}%` : null;
@@ -258,9 +310,19 @@ export class ProjectsRepository {
     return `${columnSql} IN (${placeholders})`;
   }
 
-  private buildKeywordsLikeClause(values: string[]): string {
-    const clauses = values.map(() => 'LOWER(Project.keywords) LIKE ?').join(' OR ');
-    return `(${clauses})`;
+  private buildKeywordsExistsClause(values: string[]): string {
+    const clauses = values
+      .map(() => 'LOWER(Project_Keyword.description) LIKE ?')
+      .join(' OR ');
+
+    return `EXISTS (
+      SELECT 1
+      FROM Project_Keyword_Relation
+      INNER JOIN Project_Keyword
+        ON Project_Keyword_Relation.keyword_id = Project_Keyword.id
+      WHERE Project_Keyword_Relation.project_id = Project.id
+        AND (${clauses})
+    )`;
   }
 
   private buildWhereClause(
@@ -310,7 +372,7 @@ export class ProjectsRepository {
 
     const keywords = this.normalizeFilterValues(filters?.keywords);
     if (keywords.length > 0) {
-      clauses.push(this.buildKeywordsLikeClause(keywords));
+      clauses.push(this.buildKeywordsExistsClause(keywords));
       params.push(...keywords.map((keyword) => `%${keyword}%`));
     }
 
@@ -324,7 +386,7 @@ export class ProjectsRepository {
     return (page - 1) * limit;
   }
 
-  private mapRowToProject(row: ProjectRow): Project {
+  private mapRowToProject(row: ProjectRow, keywords: string[]): Project {
     return {
       id: row.id,
       projectManager: {
@@ -333,7 +395,7 @@ export class ProjectsRepository {
       },
       code: row.code,
       name: row.name,
-      keywords: this.parseKeywords(row.keywords),
+      keywords,
       projectType: row.projectType,
       fundingType: row.fundingType,
       researchType: row.researchType,
@@ -347,9 +409,10 @@ export class ProjectsRepository {
     row: ProjectDetailRow,
     associatedProfiles: ProjectAssociatedProfile[],
     disciplines: string[],
+    keywords: string[],
   ): ProjectDetail {
     return {
-      ...this.mapRowToProject(row),
+      ...this.mapRowToProject(row, keywords),
       description: row.description,
       unit: {
         id: row.unitId,
@@ -358,12 +421,5 @@ export class ProjectsRepository {
       disciplines,
       associatedProfiles,
     };
-  }
-
-  private parseKeywords(rawKeywords: string): string[] {
-    return rawKeywords
-      .split(',')
-      .map((keyword) => keyword.trim())
-      .filter(Boolean);
   }
 }

@@ -2,6 +2,8 @@ import type { DatabaseTableDefinition } from './database-table';
 import { fundingTypeTable } from './funding-type.table';
 import { projectDisciplineTable } from './project-discipline.table';
 import { projectDisciplineRelationTable } from './project-discipline-relation.table';
+import { projectKeywordTable } from './project-keyword.table';
+import { projectKeywordRelationTable } from './project-keyword-relation.table';
 import { projectResearcherTable } from './project-researcher.table';
 import { researcherTable } from './research.table';
 import { projectStatusTable } from './project-status.table';
@@ -13,6 +15,7 @@ import { scientificProductionTable } from './scientific-production.table';
 
 export const databaseTables: DatabaseTableDefinition[] = [
   projectDisciplineTable,
+  projectKeywordTable,
   projectTypeTable,
   fundingTypeTable,
   researchTypeTable,
@@ -20,6 +23,7 @@ export const databaseTables: DatabaseTableDefinition[] = [
   researcherTable,
   projectTable,
   projectDisciplineRelationTable,
+  projectKeywordRelationTable,
   projectResearcherTable,
   unitTable,
   scientificProductionTable,
