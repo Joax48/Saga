@@ -1,62 +1,78 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin "daisyui";
+
+@font-face {
+  font-family: 'Trueno';
+  src: url('/fonts/TruenoRg.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Trueno';
+  src: url('/fonts/TruenoBd.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* ─── Colour Primitives ──────────────────────────────────────────────── */
 
 @theme {
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: 'Trueno', Arial, Helvetica, sans-serif;
 
   /* Azul (Blue) */
-  --color-azul-50: #E5F4FF;
-  --color-azul-100: #CCE9FF;
-  --color-azul-200: #99D3FF;
-  --color-azul-300: #66BDFF;
-  --color-azul-400: #33A7FF;
-  --color-azul-500: #005DA4;
-  --color-azul-600: #0074CC;
+  --color-azul-50: #e5f4ff;
+  --color-azul-100: #cce9ff;
+  --color-azul-200: #99d3ff;
+  --color-azul-300: #66bdff;
+  --color-azul-400: #33a7ff;
+  --color-azul-500: #005da4;
+  --color-azul-600: #0074cc;
   --color-azul-700: #005799;
-  --color-azul-800: #003A66;
-  --color-azul-900: #001D33;
-  --color-azul-950: #000E1A;
+  --color-azul-800: #003a66;
+  --color-azul-900: #001d33;
+  --color-azul-950: #000e1a;
 
   /* Celeste (SkyBlue) */
-  --color-celeste-50: #E5F9FF;
+  --color-celeste-50: #e5f9ff;
   --color-celeste-100: #ccf4ff;
   --color-celeste-200: #99e9ff;
   --color-celeste-300: #66deff;
   --color-celeste-400: #33d3ff;
-  --color-celeste-500: #00bef3;
+  --color-celeste-500: #00c0f3;
   --color-celeste-600: #00a0cc;
   --color-celeste-700: #007899;
   --color-celeste-800: #005066;
   --color-celeste-900: #002833;
-  --color-celeste-950: #00141A;
+  --color-celeste-950: #00141a;
 
   /* Amarillo (Yellow) */
-  --color-amarillo-300: #FFE066;
-  --color-amarillo-500: #FFE16A;
-  --color-amarillo-700: #997A00;
+  --color-amarillo-300: #ffe066;
+  --color-amarillo-500: #ffdd00;
+  --color-amarillo-700: #997a00;
 
   /* Verde (Green) */
-  --color-verde-300: #97D293;
-  --color-verde-500: #6DC067;
-  --color-verde-700: #316C2D;
+  --color-verde-300: #97d293;
+  --color-verde-500: #6dc067;
+  --color-verde-700: #316c2d;
 
   /* Escala de Grises */
   --color-gray-0: #ffffff;
   --color-gray-25: #fafafa;
-  --color-gray-50: #F7F7F7;
-  --color-gray-100: #F2F2F2;
-  --color-gray-200: #E6E6E6;
-  --color-gray-300: #D9D9D9;
-  --color-gray-400: #BDBDBD;
+  --color-gray-50: #f7f7f7;
+  --color-gray-100: #f2f2f2;
+  --color-gray-200: #e6e6e6;
+  --color-gray-300: #d9d9d9;
+  --color-gray-400: #bdbdbd;
   --color-gray-500: #999999;
   --color-gray-600: #666666;
   --color-gray-700: #494949;
   --color-gray-800: #323232;
   --color-gray-850: #232323;
-  --color-gray-900: #1A1A1A;
-  --color-gray-950: #0F0F0F;
+  --color-gray-900: #1a1a1a;
+  --color-gray-950: #0f0f0f;
 
   /* Border Radius */
   --radius-100: 0px;
@@ -104,17 +120,17 @@
 
 :root {
   /* DaisyUI theme overrides */
-  --color-primary: var(--color-azul-600);
+  --color-primary: var(--color-azul-500);
   --color-primary-content: var(--color-gray-0);
   --color-secondary: var(--color-celeste-500);
   --color-secondary-content: var(--color-gray-0);
   --color-accent: var(--color-amarillo-500);
-  --color-neutral: var(--color-gray-900);
+  --color-neutral: var(--color-gray-950);
   --color-neutral-content: var(--color-gray-0);
   --color-base-100: var(--color-gray-0);
   --color-base-200: var(--color-gray-50);
   --color-base-300: var(--color-gray-100);
-  --color-base-content: var(--color-gray-900);
+  --color-base-content: var(--color-gray-950);
   --color-success: var(--color-verde-500);
   --color-success-content: var(--color-gray-0);
   --color-error: #ef4444;
@@ -135,7 +151,7 @@
   --color-bg-success-bold: var(--color-verde-700);
   --color-bg-error-subtle: #fca5a5;
   --color-bg-error-bold: #dc2626;
-  --color-bg-info-subtle: #005DA4; /* Semantic/Info/Subtle — used for tags */
+  --color-bg-info-subtle: #005da4; /* Semantic/Info/Subtle — used for tags */
   --color-bg-info-bold: var(--color-azul-600);
 
   /* Semantic Text Tokens */
@@ -144,8 +160,8 @@
   --color-text-neutral-tertiary: var(--color-gray-400);
   --color-text-neutral-disabled: var(--color-gray-300);
   --color-text-neutral-inverse-primary: var(--color-gray-0);
-  --color-text-brand-primary: #005799; /* Text/Link/Default */
-  --color-text-brand-secondary: var(--color-gray-0);
+  --color-text-brand-primary: var(--color-azul-500); /* Text/Link/Default */
+  --color-text-brand-secondary: var(--color-celeste-500);
   --color-text-success-primary: var(--color-verde-500);
   --color-text-error-primary: #ef4444;
   --color-text-info-primary: var(--color-azul-500);
@@ -157,6 +173,10 @@
   --color-icon-neutral-disabled: var(--color-gray-300);
   --color-icon-neutral-inverse-primary: var(--color-gray-0);
   --color-icon-brand-primary: var(--color-azul-600);
+}
+
+body {
+  font-family: var(--font-sans);
 }
 
 .text-h1 {
