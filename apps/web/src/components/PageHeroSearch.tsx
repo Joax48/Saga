@@ -52,21 +52,18 @@ export default function PageHeroSearch({
   onSearch,
 }: PageHeroSearchProps) {
   return (
-    <section
-      className="px-6 lg:px-10 pt-4 pb-20"
-      style={{ backgroundColor: 'var(--color-bg-neutral-secondary)' }}
-    >
+    <section className="px-6 lg:px-10 pt-4 pb-20 bg-[url('/ucr_pretil.jpg')] bg-cover bg-center bg-black/30 bg-blend-darken">
+      <div className="flex justify-start h-15"></div>
       <div className="max-w-6xl mx-auto">
         <div className="pt-2 pb-4">
           <Breadcrumb items={items} />
         </div>
 
-        <h1 className="mb-6 text-h1 text-center font-bold text-[var(--color-text-neutral-primary)]">
-          {title}
-        </h1>
+        <h1 className="mb-6 text-h1 text-center font-bold text-white">{title}</h1>
 
         <SearchBar placeholder={searchPlaceholder} onSearch={onSearch} />
       </div>
+      <div className="flex justify-start h-30"></div>
     </section>
   );
 }

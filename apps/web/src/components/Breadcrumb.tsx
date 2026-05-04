@@ -47,7 +47,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
           <Link
             href="/"
             className="flex items-center justify-center 
-              text-[var(--color-text-neutral-primary)] 
+              text-white 
               transition-colors duration-200 
               hover:text-[var(--color-text-brand-primary)]"
             aria-label="Inicio"

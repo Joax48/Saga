@@ -12,6 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
+        <div className="flex justify-start h-22"></div>
         <Navbar />
         {children}
         <Footer />

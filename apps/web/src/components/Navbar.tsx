@@ -1,72 +1,122 @@
+'use client';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export default function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50); // umbral
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 w-full">
+    // It need to be fixed isntead of sticky but it will be over all so the space need to be in the PageHero
+    <header
+      className={`fixed top-0 z-50 w-full transition-colors duration-300 group ${scrolled ? 'scrolled' : ''}`}
+    >
+      <div className="flex justify-start h-3 bg-[#00c0f3] transition-all duration-300 group-[.scrolled]:h-0"></div>
       {/*First Bar - Logos*/}
-      <div className="flex justify-start h-22 bg-[#005DA4] px-8 py-2">
+      <div className="flex justify-start h-22 bg-[#ffffff] px-8 py-2 transition-all duration-500 group-[.scrolled]:bg-[#00c0f3] group-[.scrolled]:h-16">
         <div className="flex h-full w-full max-w-6xl items-center">
+          <div className="pr-2">
+            <a href="https://www.ucr.ac.cr/" target="_blank" rel="noopener noreferrer">
+              <Image
+                src="/logo_ucr_crest.png"
+                alt="logo ucr"
+                width={80}
+                height={50}
+                className={`
+                  object-contain origin-left overflow-hidden
+                  transition-all duration-500
+                  ${scrolled ? 'scale-0 w-0 opacity-0' : 'scale-100 w-[80px] opacity-100'}
+                `}
+              />
+            </a>
+          </div>
           <div className="pr-7">
             <a href="https://www.ucr.ac.cr/" target="_blank" rel="noopener noreferrer">
-              <Image src="/logo_UCR.png" alt="logo" width={200} height={50} />
+              <Image
+                src="/logo_ucr_black_nocrest6.png"
+                alt="logo ucr"
+                width={120}
+                height={50}
+                className={`object-contain transition-all duration-300 ${
+                  scrolled ? 'invert' : ''
+                }`}
+              />
             </a>
           </div>
           <div className="pr-2">
             <a href="/" target="_blank" rel="noopener noreferrer">
-              <Image src="/logo_OBDI.png" alt="logo" width={100} height={50} />
+              <Image
+                src="/logo_obdi_black_acronym.png"
+                alt="logo obdi"
+                width={90}
+                height={50}
+                className={`border-b border-[#00c0f3] object-contain transition-all duration-300 ${
+                  scrolled ? 'invert' : ''
+                } group-[.scrolled]:border-black`}
+              />
             </a>
           </div>
-          <h1 className="font-bold text-white/80 w-42 max-sm:hidden">
-            Observatorio de Datos Institucionales
-          </h1>
+          <div className="pr-2">
+            <a href="/" target="_blank" rel="noopener noreferrer">
+              <Image
+                src="/logo_obdi_black_no_acro.png"
+                alt="logo obdi"
+                width={170}
+                height={50}
+                className={'group-[.scrolled]:hidden'}
+              />
+            </a>
+          </div>
         </div>
       </div>
       {/*Second Bar - Intern Links*/}
-      <div className="h-12 bg-[#F2F2F2] px-6 py-2">
+      <div className="text-[#005da4] text-xs font-bold bg-transparent px-6 py-2 group-[.scrolled]:bg-white">
         <div className="mx-auto flex h-full w-full max-w-6xl items-center">
           <div className="grow flex sm:items-center sm:justify-center max-sm:justify-end max-sm:pr-11">
-            <div className="hidden sm:flex items-center justify-center gap-2 md:gap-8 whitespace-nowrap">
+            <div className="h-4 hidden sm:flex items-center justify-center gap-2 md:gap-8 whitespace-nowrap">
               <Link
                 href="/"
-                className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition"
+                className="px-3 py-2 rounded-md hover:text-[#00c0f3] transition"
               >
                 Inicio
               </Link>
               <Link
                 href="/researchers"
-                className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition"
+                className="px-3 py-2 rounded-md hover:text-[#00c0f3] transition"
               >
                 Investigadores
               </Link>
               <Link
                 href="/units"
-                className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition"
+                className="px-3 py-2 rounded-md hover:text-[#00c0f3] transition"
               >
                 Unidades
               </Link>
               <Link
                 href="/scientific-productions"
-                className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition"
+                className="px-3 py-2 rounded-md hover:text-[#00c0f3] transition"
               >
                 Producción Científica
               </Link>
               <Link
                 href="/projects"
-                className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition"
+                className="px-3 py-2 rounded-md hover:text-[#00c0f3] transition"
               >
                 Proyectos
-              </Link>
-              <Link
-                href="/other-productions"
-                className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition"
-              >
-                Otros tipos de producción
               </Link>
             </div>
             <div className="sm:hidden dropdown dropdown-end bg-[#F2F2F2]">
               {/*Responsive part for Intern Links, please do not touch*/}
-              <label tabIndex={0} className="btn btn-ghost">
+              <label tabIndex={0} className="btn btn-ghost bg-white">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-6 w-6"
@@ -124,14 +174,6 @@ export default function Navbar() {
                     className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition active:bg-[#D9D9D9] focus:bg-[#D9D9D9]"
                   >
                     Proyectos
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/other-productions"
-                    className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition active:bg-[#D9D9D9] focus:bg-[#D9D9D9]"
-                  >
-                    Otros tipos de producción
                   </Link>
                 </li>
               </ul>
