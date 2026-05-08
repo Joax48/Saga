@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { SearchModule } from './modules/search/search.module';
 import { CacheModule } from './modules/cache/cache.module';
 import { DatabaseModule } from './common/database/database.module';
@@ -26,6 +27,7 @@ import { GetProjectDetailUseCase } from './application/use-cases/get-public-proj
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     SearchModule,
     CacheModule,
     DatabaseModule,
