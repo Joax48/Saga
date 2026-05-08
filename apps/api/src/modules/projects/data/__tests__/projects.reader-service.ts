@@ -24,11 +24,14 @@ describe('ProjectsReaderService', () => {
         items: [
           {
             id: 1,
-            projectManager: { id: 2, name: 'Koen Voorend' },
+            projectManager: {
+              id: 11,
+              name: 'Alice Manager',
+            },
             code: 'C3992',
             name: 'El costo de una vida digna en Costa Rica',
-            keywords: ['pobreza'],
-            projectType: 'Proyecto',
+            keywords: ['costo de vida', 'economia'],
+            projectType: 'Humanistico',
             fundingType: 'Fondos internos',
             researchType: 'Basica',
             status: 'Activo',
@@ -37,11 +40,14 @@ describe('ProjectsReaderService', () => {
           },
           {
             id: 2,
-            projectManager: { id: 3, name: 'Shu Wei Chou Chen' },
+            projectManager: {
+              id: 12,
+              name: 'Bob Manager',
+            },
             code: 'C4196',
             name: 'Analisis espacio-temporal del impacto de factores climaticos',
-            keywords: ['clima'],
-            projectType: 'Proyecto',
+            keywords: ['clima', 'impacto'],
+            projectType: 'Interdisciplinario',
             fundingType: 'Fondos externos',
             researchType: 'Basica',
             status: 'Activo',
@@ -67,11 +73,14 @@ describe('ProjectsReaderService', () => {
         items: [
           {
             id: 3,
-            projectManager: { id: 1, name: 'Alejandra Arias Salazar' },
+            projectManager: {
+              id: 13,
+              name: 'Carla Manager',
+            },
             code: 'C3223',
             name: 'Metodologias para la estimacion de pobreza en areas pequenas',
-            keywords: ['pobreza', 'estadistica'],
-            projectType: 'Proyecto',
+            keywords: ['pobreza', 'metodologias'],
+            projectType: 'Interdisciplinario',
             fundingType: 'Fondos internos',
             researchType: 'Basica',
             status: 'Activo',
@@ -87,11 +96,14 @@ describe('ProjectsReaderService', () => {
 
       expect(result.items[0]).toEqual({
         id: 3,
-        projectManager: { id: 1, name: 'Alejandra Arias Salazar' },
+        projectManager: {
+          id: 13,
+          name: 'Carla Manager',
+        },
         code: 'C3223',
         name: 'Metodologias para la estimacion de pobreza en areas pequenas',
-        keywords: ['pobreza', 'estadistica'],
-        projectType: 'Proyecto',
+        keywords: ['pobreza', 'metodologias'],
+        projectType: 'Interdisciplinario',
         researchType: 'Basica',
         startDate: '2023-04-07',
         endDate: '2024-12-31',
@@ -119,15 +131,52 @@ describe('ProjectsReaderService', () => {
       expect(result.page).toBe(1);
       expect(result.limit).toBe(10);
     });
+
+    it('should forward query, page and limit to repository', async () => {
+      const mockRepositoryResult = {
+        items: [
+          {
+            id: 1,
+            projectManager: {
+              id: 11,
+              name: 'Alice Manager',
+            },
+            code: 'C3992',
+            name: 'El costo de una vida digna en Costa Rica',
+            keywords: ['costo de vida', 'economia'],
+            projectType: 'Humanistico',
+            fundingType: 'Fondos internos',
+            researchType: 'Basica',
+            status: 'in-progress',
+            startDate: '2023-06-01',
+            endDate: '2025-12-31',
+          },
+        ],
+        total: 1,
+      };
+      repository.findPaginated.mockResolvedValue(mockRepositoryResult);
+
+      const result = await service.getPaginatedList(1, 10, 'costo');
+
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(10);
+      expect(result.total).toBe(1);
+      expect(result.items).toHaveLength(1);
+      expect(repository.findPaginated).toHaveBeenCalledWith(1, 10, 'costo', undefined);
+    });
+
     it('should clamp to last valid page when requested page exceeds total pages', async () => {
       const lastPageItems = [
         {
           id: 5,
-          projectManager: { id: 8, name: 'Carlos Andres Gomez Vargas' },
+          projectManager: {
+            id: 15,
+            name: 'Diego Manager',
+          },
           code: 'A1001',
           name: 'Estudio de biodiversidad en humedales tropicales',
-          keywords: ['biodiversidad'],
-          projectType: 'Proyecto',
+          keywords: ['biodiversidad', 'humedales'],
+          projectType: 'Interdisciplinario',
           fundingType: 'Fondos internos',
           researchType: 'Basica',
           status: 'Activo',
@@ -158,6 +207,36 @@ describe('ProjectsReaderService', () => {
         'biodiversidad',
         undefined,
       );
+    });
+
+    it('should not clamp when requested page is within range', async () => {
+      const mockRepositoryResult = {
+        items: [
+          {
+            id: 1,
+            projectManager: {
+              id: 11,
+              name: 'Alice Manager',
+            },
+            code: 'C3992',
+            name: 'El costo de una vida digna en Costa Rica',
+            keywords: ['costo de vida', 'economia'],
+            projectType: 'Humanistico',
+            fundingType: 'Fondos internos',
+            researchType: 'Basica',
+            status: 'in-progress',
+            startDate: '2023-06-01',
+            endDate: '2025-12-31',
+          },
+        ],
+        total: 5,
+      };
+      repository.findPaginated.mockResolvedValue(mockRepositoryResult);
+
+      const result = await service.getPaginatedList(1, 5, 'costo');
+
+      expect(result.page).toBe(1);
+      expect(repository.findPaginated).toHaveBeenCalledTimes(1);
     });
 
     it('should map the project detail to the frontend-friendly shape', async () => {

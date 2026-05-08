@@ -24,22 +24,28 @@ describe('GetProjectsPaginatedListUseCase', () => {
         items: [
           {
             id: 1,
-            projectManager: { id: 2, name: 'Koen Voorend' },
+            projectManager: {
+              id: 101,
+              name: 'Alice Manager',
+            },
             code: 'C3992',
             name: 'El costo de una vida digna en Costa Rica',
-            keywords: ['pobreza'],
-            projectType: 'Proyecto',
+            keywords: ['costo de vida', 'economia'],
+            projectType: 'Humanistico',
             researchType: 'Basica',
             startDate: '2023-06-01',
             endDate: '2025-12-31',
           },
           {
             id: 2,
-            projectManager: { id: 3, name: 'Shu Wei Chou Chen' },
+            projectManager: {
+              id: 102,
+              name: 'Bob Manager',
+            },
             code: 'C4196',
             name: 'Analisis espacio-temporal del impacto de factores climaticos',
-            keywords: ['clima'],
-            projectType: 'Proyecto',
+            keywords: ['clima', 'impacto'],
+            projectType: 'Interdisciplinario',
             researchType: 'Basica',
             startDate: '2024-01-01',
             endDate: '2026-12-15',
@@ -71,12 +77,15 @@ describe('GetProjectsPaginatedListUseCase', () => {
       const mockReaderResult = {
         items: [
           {
-            id: 8,
-            projectManager: { id: 4, name: 'Daniel Jose Alvarado Abarca' },
+            id: 7,
+            projectManager: {
+              id: 201,
+              name: 'Carla Manager',
+            },
             code: 'B0661',
             name: 'Gestion de iniciativas de produccion agroecoturisticas sostenibles',
-            keywords: ['sostenibilidad', 'territorio'],
-            projectType: 'Accion',
+            keywords: ['agroecoturisticas', 'sostenibles'],
+            projectType: 'Interdisciplinario',
             researchType: 'Aplicada',
             startDate: '2010-01-01',
             endDate: '2011-12-15',
@@ -91,12 +100,15 @@ describe('GetProjectsPaginatedListUseCase', () => {
       const result = await useCase.execute({ page: 1, limit: 10 });
 
       expect(result.items[0]).toEqual({
-        id: 8,
-        projectManager: { id: 4, name: 'Daniel Jose Alvarado Abarca' },
+        id: 7,
+        projectManager: {
+          id: 201,
+          name: 'Carla Manager',
+        },
         code: 'B0661',
         name: 'Gestion de iniciativas de produccion agroecoturisticas sostenibles',
-        keywords: ['sostenibilidad', 'territorio'],
-        projectType: 'Accion',
+        keywords: ['agroecoturisticas', 'sostenibles'],
+        projectType: 'Interdisciplinario',
         researchType: 'Aplicada',
         startDate: '2010-01-01',
         endDate: '2011-12-15',
@@ -130,6 +142,58 @@ describe('GetProjectsPaginatedListUseCase', () => {
         status: ['activo'],
         participants: ['shu wei chou chen'],
         keywords: ['clima'],
+      });
+      expect(projectsReader.getPaginatedList).toHaveBeenCalledTimes(1);
+    });
+
+    it('should forward query, page and limit to the projects reader', async () => {
+      projectsReader.getPaginatedList.mockResolvedValue({
+        items: [],
+        page: 1,
+        limit: 10,
+        total: 0,
+      });
+
+      await useCase.execute({ page: 1, limit: 10, q: 'clima' });
+
+      expect(projectsReader.getPaginatedList).toHaveBeenCalledWith(1, 10, 'clima', {
+        researchType: undefined,
+        projectType: undefined,
+        startYear: undefined,
+        status: undefined,
+        participants: undefined,
+        keywords: undefined,
+      });
+      expect(projectsReader.getPaginatedList).toHaveBeenCalledTimes(1);
+    });
+
+    it('should forward all filters to the projects reader', async () => {
+      projectsReader.getPaginatedList.mockResolvedValue({
+        items: [],
+        page: 1,
+        limit: 10,
+        total: 0,
+      });
+
+      await useCase.execute({
+        page: 1,
+        limit: 10,
+        q: 'clima',
+        researchType: ['Basica'],
+        projectType: ['Interdisciplinario'],
+        startYear: ['2024'],
+        status: ['in-progress'],
+        participants: ['Alice Manager'],
+        keywords: ['impacto'],
+      });
+
+      expect(projectsReader.getPaginatedList).toHaveBeenCalledWith(1, 10, 'clima', {
+        researchType: ['Basica'],
+        projectType: ['Interdisciplinario'],
+        startYear: ['2024'],
+        status: ['in-progress'],
+        participants: ['Alice Manager'],
+        keywords: ['impacto'],
       });
       expect(projectsReader.getPaginatedList).toHaveBeenCalledTimes(1);
     });
