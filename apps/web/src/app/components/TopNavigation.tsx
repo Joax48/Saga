@@ -1,60 +1,52 @@
 import Link from 'next/link';
-import {
-  User,
-  Building2,
-  FileText,
-  FolderKanban,
-  Lightbulb,
-  type LucideIcon,
-} from 'lucide-react';
+import Image from 'next/image';
 
 type TopNavItem = {
   label: string;
   href: string;
-  count: number;
-  icon: LucideIcon;
+  image: string;
 };
 
 export default function TopNavigation() {
   const items: TopNavItem[] = [
-    { label: 'Perfiles', href: '/researchers', count: 202, icon: User },
-    { label: 'Unidades', href: '/units', count: 50, icon: Building2 },
+    {
+      label: 'Investigadores',
+      href: '/researchers',
+      image: '/icons/icon_researchers_lightblue.png',
+    },
+    { label: 'Unidades', href: '/units', image: '/icons/icon_units_lightblue.png' },
     {
       label: 'Producción Científica',
       href: '/scientific-productions',
-      count: 3470,
-      icon: FileText,
+      image: '/icons/icon_productions_lightblue.png',
     },
-    { label: 'Proyectos', href: '/projects', count: 406, icon: FolderKanban },
     {
-      label: 'Otras producciones',
-      href: '/other-productions',
-      count: 203,
-      icon: Lightbulb,
+      label: 'Proyectos',
+      href: '/projects',
+      image: '/icons/icon_projects_lightblue.png',
     },
   ];
 
   return (
     <div className="bg-white py-8">
-      <div className="max-w-6xl mx-auto grid grid-cols-2 gap-4 text-center md:grid-cols-3 lg:grid-cols-5">
+      <div className="max-w-6xl mx-auto grid grid-cols-2 gap-4 text-center md:grid-cols-3 lg:grid-cols-4">
         {items.map((item) => (
           <Link
             key={item.label}
             href={item.href}
             className="group flex flex-col items-center gap-3 rounded-xl px-2 py-3 transition-colors hover:bg-[var(--color-bg-neutral-secondary)]"
           >
-            <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-neutral-secondary)]">
-              <item.icon
-                size={22}
-                strokeWidth={1.9}
-                className="text-[var(--color-icon-neutral-primary)]"
+            <div className="flex h-20 w-20 items-center justify-center rounded-full">
+              <Image
+                src={item.image}
+                alt={item.label}
+                width={70}
+                height={70}
+                className="object-contain transition-transform duration-200 group-hover:scale-110"
               />
-              <span className="absolute -top-2 -right-3 rounded-full border border-[var(--color-gray-300)] bg-white px-2 py-[1px] text-[11px] font-semibold leading-none text-[var(--color-text-neutral-primary)]">
-                {item.count.toLocaleString('es-CR')}
-              </span>
             </div>
 
-            <span className="text-sm text-center text-[var(--color-text-neutral-primary)] group-hover:text-[var(--color-text-brand-primary)]">
+            <span className="text-sm text-center text-[var(--color-secondary)] group-hover:scale-110">
               {item.label}
             </span>
           </Link>

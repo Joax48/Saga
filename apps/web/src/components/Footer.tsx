@@ -10,7 +10,7 @@ export default function Footer() {
             <Image src="/logo_ucr_white_acronym.png" alt="logo" width={150} height={50} />
           </a>
         </div>
-        <h2 className="mb-2 mt-50 text-white text-xs">
+        <h2 className="mb-2 mt-30 text-white text-xs">
           Ⓒ 2026 Universidad de Costa Rica
         </h2>
       </div>
@@ -35,11 +35,6 @@ export default function Footer() {
           <li>
             <Link href="/projects" className="hover:underline">
               Proyectos
-            </Link>
-          </li>
-          <li>
-            <Link href="/other-productions" className="hover:underline">
-              Otros tipos de producción
             </Link>
           </li>
         </ul>
