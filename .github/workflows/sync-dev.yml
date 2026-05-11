@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Sync repos
         run: |
+          set -x
+
           git clone --branch develop https://JORGE.QUIROSANDERSON:${{ secrets.GITUCR_TOKEN }}@git.ucr.ac.cr/project/saga_ucr.git repo
           cd repo
 
@@ -20,21 +22,32 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          # Traer main de GitHub
+          echo "Fetching github/main..."
           git fetch github main
 
-          # Crear rama main basada en develop
+          echo "Creating local 'main' from develop..."
           git checkout -B main
 
-          # Intentar merge con lo que ya existe en GitHub,
-          # priorizando la version actual (develop clonado) en conflictos.
-          # Si quedan conflictos (ej: modify/delete), forzar resolucion con "ours".
+          echo "Merging github/main into local main (favoring ours on auto-resolvable conflicts)..."
           git merge github/main --allow-unrelated-histories -X ours || true
+
+          # If there are still unmerged paths (modify/delete, etc.), attempt automated resolution per-file.
           if [ -n "$(git ls-files -u)" ]; then
-            git checkout --ours .
-            git add -A
-            git commit -m "Resolve conflicts favoring GitUCR develop"
+            echo "Unmerged files detected. Attempting automated per-file resolution..."
+            git ls-files -u | awk '{print $4}' | sort -u | while read -r file; do
+              echo "Resolving: $file"
+              # Try to keep 'ours' (cloned develop). If that fails, fall back to 'theirs' (github/main).
+              git checkout --ours -- "$file" 2>/dev/null || \
+              git checkout --theirs -- "$file" 2>/dev/null || \
+              (echo "Neither side present for $file, removing" && git rm -f -- "$file" 2>/dev/null) || true
+              git add -- "$file" 2>/dev/null || true
+            done
+
+            # Commit the automated resolutions if any
+            git commit -m "Resolve conflicts favoring GitUCR develop (automated)" || true
+          else
+            echo "No unmerged files remain."
           fi
 
-          # Push normal
+          echo "Pushing to github main..."
           git push github main
