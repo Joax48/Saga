@@ -26,8 +26,9 @@ jobs:
           # Crear rama main basada en develop
           git checkout -B main
 
-          # Hacer merge con lo que ya existe en GitHub
-          git merge github/main --allow-unrelated-histories -X theirs
+          # Hacer merge con lo que ya existe en GitHub,
+          # priorizando la version actual (develop clonado) en conflictos
+          git merge github/main --allow-unrelated-histories -X ours
 
           # Push normal
           git push github main
