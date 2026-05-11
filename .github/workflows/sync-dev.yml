@@ -26,9 +26,15 @@ jobs:
           # Crear rama main basada en develop
           git checkout -B main
 
-          # Hacer merge con lo que ya existe en GitHub,
-          # priorizando la version actual (develop clonado) en conflictos
-          git merge github/main --allow-unrelated-histories -X ours
+          # Intentar merge con lo que ya existe en GitHub,
+          # priorizando la version actual (develop clonado) en conflictos.
+          # Si quedan conflictos (ej: modify/delete), forzar resolucion con "ours".
+          git merge github/main --allow-unrelated-histories -X ours || true
+          if [ -n "$(git ls-files -u)" ]; then
+            git checkout --ours .
+            git add -A
+            git commit -m "Resolve conflicts favoring GitUCR develop"
+          fi
 
           # Push normal
           git push github main
