@@ -200,7 +200,7 @@ export class ProjectsRepository {
           INNER JOIN Project_Status ON Project.status = Project_Status.id
           ${researchTypeWhere.clause}
           GROUP BY Research_Type.description
-          ORDER BY Research_Type.description ASC
+          ORDER BY UPPER(Research_Type.description) ASC
         `,
           researchTypeWhere.params,
         ),
@@ -217,7 +217,7 @@ export class ProjectsRepository {
           INNER JOIN Project_Status ON Project.status = Project_Status.id
           ${projectTypeWhere.clause}
           GROUP BY Project_Type.description
-          ORDER BY Project_Type.description ASC
+          ORDER BY UPPER(Project_Type.description) ASC
         `,
           projectTypeWhere.params,
         ),
@@ -251,7 +251,7 @@ export class ProjectsRepository {
           INNER JOIN Project_Status ON Project.status = Project_Status.id
           ${statusWhere.clause}
           GROUP BY Project_Status.description
-          ORDER BY Project_Status.description ASC
+          ORDER BY UPPER(Project_Status.description) ASC
         `,
           statusWhere.params,
         ),
@@ -488,7 +488,7 @@ export class ProjectsRepository {
         ON Project_Keyword_Relation.keyword_id = Project_Keyword.id
       ${builtWhereClause.clause}
       GROUP BY Project_Keyword.description
-      ORDER BY Project_Keyword.description ASC
+      ORDER BY UPPER(Project_Keyword.description) ASC
     `,
       builtWhereClause.params,
     );
