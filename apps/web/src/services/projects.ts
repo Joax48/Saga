@@ -1,5 +1,4 @@
 import { request } from './api';
-import { getMockProjectFilters } from '@/mocks/projects-data';
 import {
   mapProjectDetailToProject,
   mapProjectSummaryToProject,
@@ -80,8 +79,35 @@ export async function getProjectById(id: string): Promise<Project> {
 }
 
 /**
- * Returns mock filter facets for the projects page.
+ * Returns filter facets for the projects page from backend API.
  */
-export async function getProjectFilters(): Promise<ProjectFilters> {
-  return Promise.resolve(getMockProjectFilters());
+export async function getProjectFilters(
+  queryFilters: ProjectQueryFilters = {},
+  searchQuery = '',
+): Promise<ProjectFilters> {
+  const params = new URLSearchParams();
+
+  if (searchQuery.trim()) {
+    params.set('q', searchQuery.trim());
+  }
+
+  const appendArrayFilter = (key: string, values?: string[]) => {
+    if (!values || values.length === 0) return;
+
+    const normalizedValues = values.map((value) => value.trim()).filter(Boolean);
+    if (normalizedValues.length === 0) return;
+
+    params.set(key, normalizedValues.join(','));
+  };
+
+  appendArrayFilter('researchType', queryFilters.researchType);
+  appendArrayFilter('projectType', queryFilters.projectType);
+  appendArrayFilter('startYear', queryFilters.startYear);
+  appendArrayFilter('status', queryFilters.status);
+  appendArrayFilter('participants', queryFilters.participants);
+  appendArrayFilter('keywords', queryFilters.keywords);
+
+  const query = params.toString();
+  const endpoint = query ? `/projects/filters?${query}` : '/projects/filters';
+  return request<ProjectFilters>(endpoint);
 }

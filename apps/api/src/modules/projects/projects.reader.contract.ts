@@ -28,6 +28,21 @@ export interface ProjectListItemDto {
   endDate: string;
 }
 
+export interface ProjectsFilterOptionDto {
+  label: string;
+  value: string;
+  count: number;
+}
+
+export interface ProjectsFiltersDto {
+  researchType: ProjectsFilterOptionDto[];
+  projectType: ProjectsFilterOptionDto[];
+  startYear: ProjectsFilterOptionDto[];
+  status: ProjectsFilterOptionDto[];
+  participants: ProjectsFilterOptionDto[];
+  keywords: ProjectsFilterOptionDto[];
+}
+
 export interface ProjectsPaginatedListDto {
   items: ProjectListItemDto[];
   page: number;
@@ -69,5 +84,11 @@ export interface ProjectsReader {
     query?: string,
     filters?: ProjectsFiltersRequestDto,
   ): Promise<ProjectsPaginatedListDto>;
+
+  getFilterOptions(
+    query?: string,
+    filters?: ProjectsFiltersRequestDto,
+  ): Promise<ProjectsFiltersDto>;
+
   getById(id: string): Promise<ProjectDetailItemDto | null>;
 }

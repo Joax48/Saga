@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../common/database/database.service';
+import type {
+  ProjectsFilterOptionDto,
+  ProjectsFiltersDto,
+  ProjectsFiltersRequestDto,
+} from '../projects.reader.contract';
 import type { Project, ProjectAssociatedProfile, ProjectDetail } from '../project.entity';
-import type { ProjectsFiltersRequestDto } from '../projects.reader.contract';
 
 type PaginatedResult<T> = {
   items: T[];
@@ -24,6 +28,12 @@ type ProjectRow = {
   status: string;
   startDate: string;
   endDate: string;
+};
+
+type ProjectFilterValueRow = {
+  label: string;
+  optionValue?: string;
+  optionCount: number;
 };
 
 type ProjectDetailRow = ProjectRow & {
@@ -154,9 +164,126 @@ type BuiltWhereClause = {
   params: string[];
 };
 
+type FilterField = keyof ProjectsFiltersRequestDto;
+
 @Injectable()
 export class ProjectsRepository {
   constructor(private readonly databaseService: DatabaseService) {}
+
+  async findFilterOptions(
+    searchTerm?: string,
+    filters?: ProjectsFiltersRequestDto,
+  ): Promise<ProjectsFiltersDto> {
+    const researchTypeWhere = this.buildWhereClause(searchTerm, filters, [
+      'researchType',
+    ]);
+    const projectTypeWhere = this.buildWhereClause(searchTerm, filters, ['projectType']);
+    const startYearWhere = this.buildWhereClause(searchTerm, filters, ['startYear']);
+    const statusWhere = this.buildWhereClause(searchTerm, filters, ['status']);
+    const participantsWhere = this.buildWhereClause(searchTerm, filters, [
+      'participants',
+    ]);
+    const keywordsWhere = this.buildWhereClause(searchTerm, filters, ['keywords']);
+
+    const [researchType, projectType, startYear, status, participants, keywords] =
+      await Promise.all([
+        this.findDistinctFilterOptions(
+          `
+          SELECT Research_Type.description AS label,
+               LOWER(Research_Type.description) AS optionValue,
+               COUNT(*) AS optionCount
+          FROM Project
+          INNER JOIN Researcher ON Project.project_manager = Researcher.id
+          INNER JOIN Project_Type ON Project.project_type = Project_Type.id
+          INNER JOIN Funding_Type ON Project.funding_type = Funding_Type.id
+          INNER JOIN Research_Type ON Project.research_type = Research_Type.id
+          INNER JOIN Project_Status ON Project.status = Project_Status.id
+          ${researchTypeWhere.clause}
+          GROUP BY Research_Type.description
+          ORDER BY Research_Type.description ASC
+        `,
+          researchTypeWhere.params,
+        ),
+        this.findDistinctFilterOptions(
+          `
+          SELECT Project_Type.description AS label,
+               LOWER(Project_Type.description) AS optionValue,
+               COUNT(*) AS optionCount
+          FROM Project
+          INNER JOIN Researcher ON Project.project_manager = Researcher.id
+          INNER JOIN Project_Type ON Project.project_type = Project_Type.id
+          INNER JOIN Funding_Type ON Project.funding_type = Funding_Type.id
+          INNER JOIN Research_Type ON Project.research_type = Research_Type.id
+          INNER JOIN Project_Status ON Project.status = Project_Status.id
+          ${projectTypeWhere.clause}
+          GROUP BY Project_Type.description
+          ORDER BY Project_Type.description ASC
+        `,
+          projectTypeWhere.params,
+        ),
+        this.findDistinctFilterOptions(
+          `
+          SELECT SUBSTR(Project.start_date, 1, 4) AS label,
+               SUBSTR(Project.start_date, 1, 4) AS optionValue,
+               COUNT(*) AS optionCount
+          FROM Project
+          INNER JOIN Researcher ON Project.project_manager = Researcher.id
+          INNER JOIN Project_Type ON Project.project_type = Project_Type.id
+          INNER JOIN Funding_Type ON Project.funding_type = Funding_Type.id
+          INNER JOIN Research_Type ON Project.research_type = Research_Type.id
+          INNER JOIN Project_Status ON Project.status = Project_Status.id
+          ${startYearWhere.clause}
+          GROUP BY SUBSTR(Project.start_date, 1, 4)
+          ORDER BY SUBSTR(Project.start_date, 1, 4) DESC
+        `,
+          startYearWhere.params,
+        ),
+        this.findDistinctFilterOptions(
+          `
+          SELECT Project_Status.description AS label,
+               LOWER(Project_Status.description) AS optionValue,
+               COUNT(*) AS optionCount
+          FROM Project
+          INNER JOIN Researcher ON Project.project_manager = Researcher.id
+          INNER JOIN Project_Type ON Project.project_type = Project_Type.id
+          INNER JOIN Funding_Type ON Project.funding_type = Funding_Type.id
+          INNER JOIN Research_Type ON Project.research_type = Research_Type.id
+          INNER JOIN Project_Status ON Project.status = Project_Status.id
+          ${statusWhere.clause}
+          GROUP BY Project_Status.description
+          ORDER BY Project_Status.description ASC
+        `,
+          statusWhere.params,
+        ),
+        this.findDistinctFilterOptions(
+          `
+          SELECT ${PROJECT_MANAGER_NAME_SQL} AS label,
+            LOWER(${PROJECT_MANAGER_NAME_SQL}) AS optionValue,
+            COUNT(*) AS optionCount
+          FROM Project
+          INNER JOIN Researcher ON Project.project_manager = Researcher.id
+          INNER JOIN Project_Type ON Project.project_type = Project_Type.id
+          INNER JOIN Funding_Type ON Project.funding_type = Funding_Type.id
+          INNER JOIN Research_Type ON Project.research_type = Research_Type.id
+          INNER JOIN Project_Status ON Project.status = Project_Status.id
+          ${participantsWhere.clause}
+          GROUP BY ${PROJECT_MANAGER_NAME_SQL}
+          ORDER BY label ASC
+        `,
+          participantsWhere.params,
+        ),
+        this.findKeywordFilterOptions(keywordsWhere),
+      ]);
+
+    return {
+      researchType,
+      projectType,
+      startYear,
+      status,
+      participants,
+      keywords,
+    };
+  }
 
   async findPaginated(
     page: number,
@@ -280,6 +407,10 @@ export class ProjectsRepository {
   private async findKeywordsByProjectIds(
     projectIds: number[],
   ): Promise<Map<number, string[]>> {
+    if (projectIds.length === 0) {
+      return new Map<number, string[]>();
+    }
+
     const placeholders = projectIds.map(() => '?').join(', ');
     const rows = await this.databaseService.query<ProjectKeywordByProjectRow>(
       `${PROJECT_KEYWORDS_SELECT} WHERE Project_Keyword_Relation.project_id IN (${placeholders}) ORDER BY Project_Keyword_Relation.project_id ASC, Project_Keyword.description ASC`,
@@ -310,7 +441,7 @@ export class ProjectsRepository {
     return `${columnSql} IN (${placeholders})`;
   }
 
-  private buildKeywordsExistsClause(values: string[]): string {
+  private buildKeywordsLikeClause(values: string[]): string {
     const clauses = values
       .map(() => 'LOWER(Project_Keyword.description) LIKE ?')
       .join(' OR ');
@@ -325,9 +456,63 @@ export class ProjectsRepository {
     )`;
   }
 
+  private async findDistinctFilterOptions(
+    query: string,
+    params: string[] = [],
+  ): Promise<ProjectsFilterOptionDto[]> {
+    const rows = await this.databaseService.query<ProjectFilterValueRow>(query, params);
+    return rows.map((row) => ({
+      label: row.label,
+      value: this.normalizeFacetValue(row.optionValue, row.label),
+      count: row.optionCount,
+    }));
+  }
+
+  private async findKeywordFilterOptions(
+    builtWhereClause: BuiltWhereClause,
+  ): Promise<ProjectsFilterOptionDto[]> {
+    const rows = await this.databaseService.query<ProjectFilterValueRow>(
+      `
+      SELECT Project_Keyword.description AS label,
+        LOWER(Project_Keyword.description) AS optionValue,
+        COUNT(*) AS optionCount
+      FROM Project
+      INNER JOIN Researcher ON Project.project_manager = Researcher.id
+      INNER JOIN Project_Type ON Project.project_type = Project_Type.id
+      INNER JOIN Funding_Type ON Project.funding_type = Funding_Type.id
+      INNER JOIN Research_Type ON Project.research_type = Research_Type.id
+      INNER JOIN Project_Status ON Project.status = Project_Status.id
+      INNER JOIN Project_Keyword_Relation
+        ON Project_Keyword_Relation.project_id = Project.id
+      INNER JOIN Project_Keyword
+        ON Project_Keyword_Relation.keyword_id = Project_Keyword.id
+      ${builtWhereClause.clause}
+      GROUP BY Project_Keyword.description
+      ORDER BY Project_Keyword.description ASC
+    `,
+      builtWhereClause.params,
+    );
+
+    return rows.map((row) => ({
+      label: this.toTitleCase(row.label),
+      value: this.normalizeFacetValue(row.optionValue, row.label),
+      count: row.optionCount,
+    }));
+  }
+
+  private normalizeFacetValue(value: string | undefined, fallbackLabel: string): string {
+    const normalizedValue = value?.trim();
+    return normalizedValue ? normalizedValue : fallbackLabel;
+  }
+
+  private shouldSkipFilter(field: FilterField, excludedFilters: FilterField[]): boolean {
+    return excludedFilters.includes(field);
+  }
+
   private buildWhereClause(
     searchTerm?: string | null,
     filters?: ProjectsFiltersRequestDto,
+    excludedFilters: FilterField[] = [],
   ): BuiltWhereClause {
     const clauses: string[] = [];
     const params: string[] = [];
@@ -339,31 +524,40 @@ export class ProjectsRepository {
     }
 
     const researchTypes = this.normalizeFilterValues(filters?.researchType);
-    if (researchTypes.length > 0) {
+    if (
+      !this.shouldSkipFilter('researchType', excludedFilters) &&
+      researchTypes.length > 0
+    ) {
       clauses.push(this.buildInClause('LOWER(Research_Type.description)', researchTypes));
       params.push(...researchTypes);
     }
 
     const projectTypes = this.normalizeFilterValues(filters?.projectType);
-    if (projectTypes.length > 0) {
+    if (
+      !this.shouldSkipFilter('projectType', excludedFilters) &&
+      projectTypes.length > 0
+    ) {
       clauses.push(this.buildInClause('LOWER(Project_Type.description)', projectTypes));
       params.push(...projectTypes);
     }
 
     const startYears = this.normalizeFilterValues(filters?.startYear);
-    if (startYears.length > 0) {
+    if (!this.shouldSkipFilter('startYear', excludedFilters) && startYears.length > 0) {
       clauses.push(this.buildInClause('SUBSTR(Project.start_date, 1, 4)', startYears));
       params.push(...startYears);
     }
 
     const statuses = this.normalizeFilterValues(filters?.status);
-    if (statuses.length > 0) {
+    if (!this.shouldSkipFilter('status', excludedFilters) && statuses.length > 0) {
       clauses.push(this.buildInClause('LOWER(Project_Status.description)', statuses));
       params.push(...statuses);
     }
 
     const participants = this.normalizeFilterValues(filters?.participants);
-    if (participants.length > 0) {
+    if (
+      !this.shouldSkipFilter('participants', excludedFilters) &&
+      participants.length > 0
+    ) {
       clauses.push(
         this.buildInClause(`LOWER(${PROJECT_MANAGER_NAME_SQL})`, participants),
       );
@@ -371,8 +565,8 @@ export class ProjectsRepository {
     }
 
     const keywords = this.normalizeFilterValues(filters?.keywords);
-    if (keywords.length > 0) {
-      clauses.push(this.buildKeywordsExistsClause(keywords));
+    if (!this.shouldSkipFilter('keywords', excludedFilters) && keywords.length > 0) {
+      clauses.push(this.buildKeywordsLikeClause(keywords));
       params.push(...keywords.map((keyword) => `%${keyword}%`));
     }
 
@@ -403,6 +597,14 @@ export class ProjectsRepository {
       startDate: row.startDate,
       endDate: row.endDate,
     };
+  }
+
+  private toTitleCase(value: string): string {
+    return value
+      .toLowerCase()
+      .split(' ')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
   }
 
   private mapRowToProjectDetail(

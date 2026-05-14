@@ -18,6 +18,93 @@ describe('ProjectsRepository', () => {
     jest.clearAllMocks();
   });
 
+  describe('findFilterOptions', () => {
+    it('should return static counts for each filter option', async () => {
+      mockDb.query
+        .mockResolvedValueOnce([
+          { label: 'Basica', optionValue: 'basica', optionCount: 7 },
+        ])
+        .mockResolvedValueOnce([
+          { label: 'Proyecto', optionValue: 'proyecto', optionCount: 8 },
+        ])
+        .mockResolvedValueOnce([{ label: '2024', optionValue: '2024', optionCount: 3 }])
+        .mockResolvedValueOnce([
+          { label: 'Activo', optionValue: 'activo', optionCount: 6 },
+        ])
+        .mockResolvedValueOnce([
+          {
+            label: 'Koen Voorend',
+            optionValue: 'koen voorend',
+            optionCount: 2,
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            label: 'economia social',
+            optionValue: 'economia social',
+            optionCount: 4,
+          },
+        ]);
+
+      const result = await repository.findFilterOptions();
+
+      expect(result).toEqual({
+        researchType: [{ label: 'Basica', value: 'basica', count: 7 }],
+        projectType: [{ label: 'Proyecto', value: 'proyecto', count: 8 }],
+        startYear: [{ label: '2024', value: '2024', count: 3 }],
+        status: [{ label: 'Activo', value: 'activo', count: 6 }],
+        participants: [{ label: 'Koen Voorend', value: 'koen voorend', count: 2 }],
+        keywords: [{ label: 'Economia Social', value: 'economia social', count: 4 }],
+      });
+
+      expect(mockDb.query).toHaveBeenCalledTimes(6);
+    });
+
+    it('should compute dynamic counts by excluding each facet own filter', async () => {
+      mockDb.query
+        .mockResolvedValueOnce([
+          { label: 'Basica', optionValue: 'basica', optionCount: 7 },
+        ])
+        .mockResolvedValueOnce([
+          { label: 'Proyecto', optionValue: 'proyecto', optionCount: 8 },
+        ])
+        .mockResolvedValueOnce([{ label: '2024', optionValue: '2024', optionCount: 3 }])
+        .mockResolvedValueOnce([
+          { label: 'Activo', optionValue: 'activo', optionCount: 6 },
+        ])
+        .mockResolvedValueOnce([
+          {
+            label: 'Koen Voorend',
+            optionValue: 'koen voorend',
+            optionCount: 2,
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            label: 'pobreza',
+            optionValue: 'pobreza',
+            optionCount: 4,
+          },
+        ]);
+
+      await repository.findFilterOptions('clima', {
+        researchType: ['Basica'],
+        status: ['Activo'],
+        keywords: ['pobreza'],
+      });
+
+      const researchTypeQuery = mockDb.query.mock.calls[0][0] as string;
+      expect(researchTypeQuery).toContain('LOWER(Project_Status.description) IN (?)');
+      expect(researchTypeQuery).toContain('EXISTS');
+      expect(researchTypeQuery).not.toContain('LOWER(Research_Type.description) IN (?)');
+
+      const keywordsQuery = mockDb.query.mock.calls[5][0] as string;
+      expect(keywordsQuery).toContain('LOWER(Research_Type.description) IN (?)');
+      expect(keywordsQuery).toContain('LOWER(Project_Status.description) IN (?)');
+      expect(keywordsQuery).not.toContain('EXISTS');
+    });
+  });
+
   describe('findPaginated', () => {
     it('should return the first page of projects with total count', async () => {
       const mockRows = [

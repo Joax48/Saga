@@ -13,6 +13,7 @@ import { ScientificProductionsModule } from './modules/scientific-productions/sc
 import { PublicProjectsController } from './bff/public/projects/public-projects.controller';
 import { PublicScientificProductionsController } from './bff/public/scientific-productions/public-scientific-productions.controller';
 import { GetProjectsPaginatedListUseCase } from './application/use-cases/get-public-projects-paginated-list.use-case';
+import { GetProjectsFiltersUseCase } from './application/use-cases/get-public-projects-filters.use-case';
 
 import { PublicResearchersController } from './bff/public/researchers/public-researchers.controller';
 import { GetResearchersPaginatedListUseCase } from './application/use-cases/get-public-researchers-paginated-list.use-case';
@@ -44,6 +45,7 @@ import { GetProjectDetailUseCase } from './application/use-cases/get-public-proj
   ],
   providers: [
     GetProjectsPaginatedListUseCase,
+    GetProjectsFiltersUseCase,
     GetProjectDetailUseCase,
     GetScientificProductionPaginatedListUseCase,
     GetScientificProductionDetailUseCase,

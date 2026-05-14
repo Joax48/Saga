@@ -3,6 +3,7 @@ import type {
   ProjectAssociatedProfileDto,
   ProjectDetailItemDto,
   ProjectListItemDto,
+  ProjectsFiltersDto,
   ProjectsFiltersRequestDto,
   ProjectsPaginatedListDto,
   ProjectsReader,
@@ -61,6 +62,13 @@ export class ProjectsReaderService implements ProjectsReader {
       limit,
       total: projectsPage.total,
     };
+  }
+
+  async getFilterOptions(
+    query?: string,
+    filters?: ProjectsFiltersRequestDto,
+  ): Promise<ProjectsFiltersDto> {
+    return this.projectsRepository.findFilterOptions(query, filters);
   }
 
   async getById(id: string): Promise<ProjectDetailItemDto | null> {

@@ -22,7 +22,7 @@ export interface Project {
 
 export interface FilterOption {
   label: string;
-  count: number;
+  count?: number;
   value: string;
 }
 

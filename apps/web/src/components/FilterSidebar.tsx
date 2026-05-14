@@ -11,7 +11,7 @@ const POPUP_THRESHOLD = 10;
 export interface FacetOption {
   value: string;
   label: string;
-  count: number;
+  count?: number;
 }
 
 /**
@@ -87,7 +87,7 @@ function FilterGroupShell({ title, children }: FilterGroupShellProps) {
 interface CheckboxOptionProps {
   id: string;
   label: string;
-  count: number;
+  count?: number;
   checked: boolean;
   onChange: () => void;
 }
@@ -109,12 +109,14 @@ function CheckboxOption({ id, label, count, checked, onChange }: CheckboxOptionP
       >
         {label}
       </span>
-      <span
-        className="text-sm font-normal shrink-0"
-        style={{ color: 'var(--color-gray-600)' }}
-      >
-        ({count})
-      </span>
+      {typeof count === 'number' ? (
+        <span
+          className="text-sm font-normal shrink-0"
+          style={{ color: 'var(--color-gray-600)' }}
+        >
+          ({count})
+        </span>
+      ) : null}
     </label>
   );
 }

@@ -70,12 +70,12 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     const loadFilters = async () => {
-      const options = await getProjectFilters();
+      const options = await getProjectFilters(filters, searchQuery);
       setFilterOptions(options);
     };
 
     loadFilters();
-  }, []);
+  }, [filters, searchQuery]);
 
   useEffect(() => {
     const handleScroll = () => {
