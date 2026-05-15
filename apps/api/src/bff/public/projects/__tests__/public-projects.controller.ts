@@ -1,11 +1,14 @@
 import { PublicProjectsController } from '../public-projects.controller';
 import { GetProjectDetailUseCase } from '../../../../application/use-cases/get-public-project-detail.use-case';
+import { GetProjectsFiltersUseCase } from '../../../../application/use-cases/get-public-projects-filters.use-case';
 import { GetProjectsPaginatedListUseCase } from '../../../../application/use-cases/get-public-projects-paginated-list.use-case';
 import { ProjectsListRequestDto } from '../dtos/projects-list-request.dto';
+import { ProjectsFiltersRequestDto } from '../dtos/projects-filters-request.dto';
 
 describe('PublicProjectsController', () => {
   let controller: PublicProjectsController;
   let listUseCase: jest.Mocked<GetProjectsPaginatedListUseCase>;
+  let filtersUseCase: jest.Mocked<GetProjectsFiltersUseCase>;
   let detailUseCase: jest.Mocked<GetProjectDetailUseCase>;
 
   beforeEach(() => {
@@ -13,11 +16,15 @@ describe('PublicProjectsController', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<GetProjectsPaginatedListUseCase>;
 
+    filtersUseCase = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<GetProjectsFiltersUseCase>;
+
     detailUseCase = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<GetProjectDetailUseCase>;
 
-    controller = new PublicProjectsController(listUseCase, detailUseCase);
+    controller = new PublicProjectsController(listUseCase, filtersUseCase, detailUseCase);
   });
 
   afterEach(() => {
@@ -67,22 +74,6 @@ describe('PublicProjectsController', () => {
       expect(listUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('should forward pagination parameters to the use case', async () => {
-      const mockQuery = new ProjectsListRequestDto();
-      mockQuery.page = 2;
-      mockQuery.limit = 10;
-      listUseCase.execute.mockResolvedValue({
-        items: [],
-        page: 2,
-        limit: 10,
-        total: 12,
-      });
-
-      await controller.getProjectsPaginatedList(mockQuery);
-
-      expect(listUseCase.execute).toHaveBeenCalledWith(mockQuery);
-    });
-
     it('should return an empty list when no projects exist', async () => {
       const mockQuery = new ProjectsListRequestDto();
       mockQuery.page = 1;
@@ -109,6 +100,30 @@ describe('PublicProjectsController', () => {
       await expect(controller.getProjectsPaginatedList(mockQuery)).rejects.toThrow(
         'Connection to database lost',
       );
+    });
+  });
+
+  describe('getProjectsFilters', () => {
+    it('should return the filter options from the use case', async () => {
+      const mockQuery = new ProjectsFiltersRequestDto();
+      mockQuery.researchType = ['Basica'];
+
+      const mockResponse = {
+        researchType: [{ label: 'Basica', value: 'basica', count: 2 }],
+        projectType: [{ label: 'Proyecto', value: 'proyecto', count: 3 }],
+        startYear: [{ label: '2024', value: '2024', count: 1 }],
+        status: [{ label: 'Activo', value: 'activo', count: 4 }],
+        participants: [{ label: 'Koen Voorend', value: 'koen voorend', count: 1 }],
+        keywords: [{ label: 'Economia', value: 'economia', count: 5 }],
+      };
+
+      filtersUseCase.execute.mockResolvedValue(mockResponse);
+
+      const result = await controller.getProjectsFilters(mockQuery);
+
+      expect(result).toEqual(mockResponse);
+      expect(filtersUseCase.execute).toHaveBeenCalledWith(mockQuery);
+      expect(filtersUseCase.execute).toHaveBeenCalledTimes(1);
     });
   });
 

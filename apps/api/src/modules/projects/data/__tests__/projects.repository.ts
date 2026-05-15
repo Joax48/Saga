@@ -436,6 +436,41 @@ describe('ProjectsRepository', () => {
       expect(mockDb.query.mock.calls[3][1]).toEqual([1]);
     });
 
+    it('should omit role when associated profile role is null', async () => {
+      mockDb.query
+        .mockResolvedValueOnce([
+          {
+            id: 1,
+            projectManagerId: 2,
+            projectManagerName: 'Koen Voorend',
+            code: 'C3992',
+            name: 'El costo de una vida digna en Costa Rica',
+            description: 'Descripcion del proyecto',
+            unitId: 15,
+            unitName: 'Instituto de Investigaciones Sociales',
+            projectType: 'Proyecto',
+            fundingType: 'Financiamiento UCREA',
+            researchType: 'Basica',
+            status: 'Vencido',
+            startDate: '2023-06-01',
+            endDate: '2025-12-31',
+          },
+        ])
+        .mockResolvedValueOnce([
+          { id: 2, name: 'Koen Voorend', role: null },
+          { id: 12, name: 'Maria Perez', role: 'Co-investigadora' },
+        ])
+        .mockResolvedValueOnce([{ description: 'Ciencias Sociales' }])
+        .mockResolvedValueOnce([{ description: 'economia social' }]);
+
+      const result = await repository.findById('1');
+
+      expect(result?.associatedProfiles).toEqual([
+        { id: 2, name: 'Koen Voorend' },
+        { id: 12, name: 'Maria Perez', role: 'Co-investigadora' },
+      ]);
+    });
+
     it('should return null when the id is invalid', async () => {
       const result = await repository.findById('invalid-id');
 
@@ -562,6 +597,43 @@ describe('ProjectsRepository', () => {
         'basica',
         '%clima%',
       ]);
+    });
+  });
+
+  describe('internal helper coverage', () => {
+    it('should return empty keywords map when private helper receives no project ids', async () => {
+      const findKeywordsByProjectIds = (
+        repository as unknown as {
+          findKeywordsByProjectIds: (
+            projectIds: number[],
+          ) => Promise<Map<number, string[]>>;
+        }
+      ).findKeywordsByProjectIds.bind(repository);
+
+      const result = await findKeywordsByProjectIds([]);
+
+      expect(result).toEqual(new Map<number, string[]>());
+      expect(mockDb.query).not.toHaveBeenCalled();
+    });
+
+    it('should use default empty params in distinct options helper', async () => {
+      const findDistinctFilterOptions = (
+        repository as unknown as {
+          findDistinctFilterOptions: (
+            query: string,
+            params?: string[],
+          ) => Promise<Array<{ label: string; value: string; count: number }>>;
+        }
+      ).findDistinctFilterOptions.bind(repository);
+
+      mockDb.query.mockResolvedValueOnce([
+        { label: 'Basica', optionValue: 'basica', optionCount: 2 },
+      ]);
+
+      const result = await findDistinctFilterOptions('SELECT 1');
+
+      expect(result).toEqual([{ label: 'Basica', value: 'basica', count: 2 }]);
+      expect(mockDb.query).toHaveBeenCalledWith('SELECT 1', []);
     });
   });
 });

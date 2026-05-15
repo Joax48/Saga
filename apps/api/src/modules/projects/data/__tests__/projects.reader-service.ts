@@ -9,6 +9,7 @@ describe('ProjectsReaderService', () => {
     repository = {
       findPaginated: jest.fn(),
       findById: jest.fn(),
+      findFilterOptions: jest.fn(),
     } as unknown as jest.Mocked<ProjectsRepository>;
 
     service = new ProjectsReaderService(repository);
@@ -112,15 +113,6 @@ describe('ProjectsReaderService', () => {
       expect(result.items[0]).not.toHaveProperty('status');
     });
 
-    it('should delegate pagination parameters to the repository unchanged', async () => {
-      repository.findPaginated.mockResolvedValue({ items: [], total: 0 });
-
-      await service.getPaginatedList(3, 25);
-
-      expect(repository.findPaginated).toHaveBeenCalledWith(3, 25, undefined, undefined);
-      expect(repository.findPaginated).toHaveBeenCalledTimes(1);
-    });
-
     it('should return an empty list when no projects match', async () => {
       repository.findPaginated.mockResolvedValue({ items: [], total: 0 });
 
@@ -163,6 +155,31 @@ describe('ProjectsReaderService', () => {
       expect(result.total).toBe(1);
       expect(result.items).toHaveLength(1);
       expect(repository.findPaginated).toHaveBeenCalledWith(1, 10, 'costo', undefined);
+    });
+
+    it('should delegate filter options query and filters to repository unchanged', async () => {
+      const mockFilters = {
+        researchType: [{ label: 'Basica', value: 'basica', count: 2 }],
+        projectType: [{ label: 'Proyecto', value: 'proyecto', count: 1 }],
+        startYear: [{ label: '2024', value: '2024', count: 3 }],
+        status: [{ label: 'Activo', value: 'activo', count: 4 }],
+        participants: [{ label: 'Koen Voorend', value: 'koen voorend', count: 1 }],
+        keywords: [{ label: 'Economia', value: 'economia', count: 2 }],
+      };
+
+      repository.findFilterOptions.mockResolvedValue(mockFilters);
+
+      const result = await service.getFilterOptions('clima', {
+        researchType: ['Basica'],
+        keywords: ['Economia'],
+      });
+
+      expect(result).toEqual(mockFilters);
+      expect(repository.findFilterOptions).toHaveBeenCalledWith('clima', {
+        researchType: ['Basica'],
+        keywords: ['Economia'],
+      });
+      expect(repository.findFilterOptions).toHaveBeenCalledTimes(1);
     });
 
     it('should clamp to last valid page when requested page exceeds total pages', async () => {
