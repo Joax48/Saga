@@ -34,13 +34,6 @@ export class OracleDatabaseProvider
     const connection = await this.pool.getConnection();
 
     try {
-      const schema = this.configService.get<string>('DB_SCHEMA');
-      if (schema) {
-        await connection.execute(`ALTER SESSION SET CURRENT_SCHEMA = ${schema}`);
-      }
-      await connection.execute(`ALTER SESSION SET NLS_COMP=LINGUISTIC;`);
-      await connection.execute(`ALTER SESSION SET NLS_SORT=SPANISH;`);
-
       const result = await connection.execute(statement, params as BindParameters);
       return this.extractRows(result);
     } finally {

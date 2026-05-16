@@ -146,6 +146,7 @@
   --color-bg-neutral-inverse-primary: var(--color-gray-900);
   --color-bg-neutral-inverse-secondary: var(--color-gray-800);
   --color-bg-brand-primary: var(--color-azul-600);
+  --color-bg-brand-primary-hover: var(--color-azul-700);
   --color-bg-brand-secondary: var(--color-gray-0);
   --color-bg-success-subtle: var(--color-verde-300);
   --color-bg-success-bold: var(--color-verde-700);

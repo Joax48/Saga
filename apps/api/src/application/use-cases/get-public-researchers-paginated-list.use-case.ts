@@ -6,6 +6,7 @@ import { ResearcherSummaryResponseDto } from '../../bff/public/researchers/dtos/
 
 import {
   RESEARCHERS_READER,
+  type ResearchersFiltersRequestDto,
   type ResearchersPaginatedListDto,
   type ResearchersReader,
 } from '../../modules/researchers/researchers.reader.contract';
@@ -20,10 +21,15 @@ export class GetResearchersPaginatedListUseCase {
   async execute(
     input: ResearchersListRequestDto,
   ): Promise<PaginatedListResponseDto<ResearcherSummaryResponseDto>> {
+    const filters: ResearchersFiltersRequestDto = {
+      unit: input.unit,
+    };
+
     const researchers = await this.researchersReader.getPaginatedList(
       input.page,
       input.limit,
-      input.name,
+      input.q,
+      filters,
     );
 
     return this.mapToResponseDto(researchers);

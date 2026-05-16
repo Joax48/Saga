@@ -60,7 +60,7 @@ describe('ResearchersReaderService', () => {
       expect(result.limit).toBe(10);
       expect(result.total).toBe(25);
       expect(result.items).toHaveLength(2);
-      expect(repository.findPaginated).toHaveBeenCalledWith(1, 10, undefined);
+      expect(repository.findPaginated).toHaveBeenCalledWith(1, 10, undefined, undefined);
     });
 
     it('should map all researcher fields from the repository to the response', async () => {
@@ -108,16 +108,25 @@ describe('ResearchersReaderService', () => {
 
       await service.getPaginatedList(4, 20);
 
-      expect(repository.findPaginated).toHaveBeenCalledWith(4, 20, undefined);
+      expect(repository.findPaginated).toHaveBeenCalledWith(4, 20, undefined, undefined);
       expect(repository.findPaginated).toHaveBeenCalledTimes(1);
     });
 
-    it('should forward the optional name filter to the repository', async () => {
+    it('should forward the optional q search term to the repository', async () => {
       repository.findPaginated.mockResolvedValue({ items: [], total: 0 });
 
       await service.getPaginatedList(1, 10, 'Luis');
 
-      expect(repository.findPaginated).toHaveBeenCalledWith(1, 10, 'Luis');
+      expect(repository.findPaginated).toHaveBeenCalledWith(1, 10, 'Luis', undefined);
+      expect(repository.findPaginated).toHaveBeenCalledTimes(1);
+    });
+
+    it('should forward the optional unit filter to the repository', async () => {
+      repository.findPaginated.mockResolvedValue({ items: [], total: 0 });
+
+      await service.getPaginatedList(1, 10, undefined, { unit: ['CIMPA'] });
+
+      expect(repository.findPaginated).toHaveBeenCalledWith(1, 10, undefined, { unit: ['CIMPA'] });
       expect(repository.findPaginated).toHaveBeenCalledTimes(1);
     });
 

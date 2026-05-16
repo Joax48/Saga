@@ -38,10 +38,8 @@ export interface FacetOption {
 
 export interface ResearcherFilters {
   baseUnit: FacetOption[];
-  ceaCategory: FacetOption[];
 }
 
 export interface ResearcherQueryFilters {
   baseUnit?: string[];
-  ceaCategory?: string[];
 }

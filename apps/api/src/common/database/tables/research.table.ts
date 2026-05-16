@@ -5,6 +5,7 @@ const insertResearcherSql = `
     id,
     id_ucr_profile,
     base_unit,
+    base_unit_id,
     name,
     first_surname,
     second_surname,
@@ -14,13 +15,14 @@ const insertResearcherSql = `
     research_gate,
     scopus,
     photo_url
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 
 type ResearcherSeedRow = {
   id: number;
   idUcrProfile: string;
   baseUnit: string;
+  baseUnitId: number;
   name: string;
   firstSurname: string;
   secondSurname: string;
@@ -37,6 +39,7 @@ const researcherRows: ResearcherSeedRow[] = [
     id: 1,
     idUcrProfile: '1',
     baseUnit: 'Escuela de Estadística',
+    baseUnitId: 1,
     name: 'Alejandra',
     firstSurname: 'Arias',
     secondSurname: 'Salazar',
@@ -51,6 +54,7 @@ const researcherRows: ResearcherSeedRow[] = [
     id: 2,
     idUcrProfile: '2',
     baseUnit: 'Escuela de Ciencias de la Comunicación Colectiva',
+    baseUnitId: 2,
     name: 'Koen',
     firstSurname: 'Voorend',
     secondSurname: '',
@@ -65,6 +69,7 @@ const researcherRows: ResearcherSeedRow[] = [
     id: 3,
     idUcrProfile: '3',
     baseUnit: 'Escuela de Estadística',
+    baseUnitId: 3,
     name: 'Shu Wei',
     firstSurname: 'Chou',
     secondSurname: 'Chen',
@@ -79,6 +84,7 @@ const researcherRows: ResearcherSeedRow[] = [
     id: 4,
     idUcrProfile: '4',
     baseUnit: 'Escuela de Ciencias Políticas',
+    baseUnitId: 4,
     name: 'Daniel José',
     firstSurname: 'Alvarado',
     secondSurname: 'Abarca',
@@ -93,6 +99,7 @@ const researcherRows: ResearcherSeedRow[] = [
     id: 5,
     idUcrProfile: '5',
     baseUnit: 'Escuela de Matemática',
+    baseUnitId: 5,
     name: 'Fabio Ariel',
     firstSurname: 'Sánchez',
     secondSurname: 'Peña',
@@ -107,6 +114,7 @@ const researcherRows: ResearcherSeedRow[] = [
     id: 6,
     idUcrProfile: '6',
     baseUnit: 'Escuela de Matemática',
+    baseUnitId: 6,
     name: 'Luis Alberto',
     firstSurname: 'Barboza',
     secondSurname: 'Chinchilla',
@@ -121,6 +129,7 @@ const researcherRows: ResearcherSeedRow[] = [
     id: 7,
     idUcrProfile: '7',
     baseUnit: 'Escuela de Biología',
+    baseUnitId: 7,
     name: 'María Fernanda',
     firstSurname: 'Rojas',
     secondSurname: 'Pérez',
@@ -135,6 +144,7 @@ const researcherRows: ResearcherSeedRow[] = [
     id: 8,
     idUcrProfile: '8',
     baseUnit: 'Escuela de Ingeniería Eléctrica',
+    baseUnitId: 8,
     name: 'Carlos Andrés',
     firstSurname: 'Gómez',
     secondSurname: 'Vargas',
@@ -149,6 +159,7 @@ const researcherRows: ResearcherSeedRow[] = [
     id: 9,
     idUcrProfile: '9',
     baseUnit: 'Escuela de Química',
+    baseUnitId: 9,
     name: 'Laura',
     firstSurname: 'Chaves',
     secondSurname: 'Morales',
@@ -163,6 +174,7 @@ const researcherRows: ResearcherSeedRow[] = [
     id: 10,
     idUcrProfile: '10',
     baseUnit: 'Escuela de Informática',
+    baseUnitId: 10,
     name: 'Andrés Felipe',
     firstSurname: 'Ramírez',
     secondSurname: 'Solano',
@@ -177,6 +189,7 @@ const researcherRows: ResearcherSeedRow[] = [
     id: 11,
     idUcrProfile: '11',
     baseUnit: 'Escuela de Psicología',
+    baseUnitId: 11,
     name: 'Valeria',
     firstSurname: 'Mora',
     secondSurname: 'Jiménez',
@@ -191,6 +204,7 @@ const researcherRows: ResearcherSeedRow[] = [
     id: 12,
     idUcrProfile: '12',
     baseUnit: 'Instituto de Investigaciones Sociales',
+    baseUnitId: 12,
     name: 'Maria',
     firstSurname: 'Perez',
     secondSurname: 'Sanchez',
@@ -211,6 +225,7 @@ export const researcherTable: DatabaseTableDefinition = {
       id INT,
       id_ucr_profile STRING,
       base_unit STRING,
+      base_unit_id INT,
       name STRING,
       first_surname STRING,
       second_surname STRING,
@@ -228,6 +243,7 @@ export const researcherTable: DatabaseTableDefinition = {
       researcher.id,
       researcher.idUcrProfile,
       researcher.baseUnit,
+      researcher.baseUnitId,
       researcher.name,
       researcher.firstSurname,
       researcher.secondSurname,

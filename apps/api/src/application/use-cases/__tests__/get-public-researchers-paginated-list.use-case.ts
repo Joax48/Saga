@@ -62,7 +62,9 @@ describe('GetResearchersPaginatedListUseCase', () => {
       expect(result.page).toBe(1);
       expect(result.limit).toBe(10);
       expect(result.total).toBe(2);
-      expect(researchersReader.getPaginatedList).toHaveBeenCalledWith(1, 10, undefined);
+      expect(researchersReader.getPaginatedList).toHaveBeenCalledWith(1, 10, undefined, {
+        unit: undefined,
+      });
     });
 
     it('should map each item to the ResearcherSummaryResponseDto format', async () => {
@@ -117,11 +119,13 @@ describe('GetResearchersPaginatedListUseCase', () => {
 
       await useCase.execute({ page: 3, limit: 5 });
 
-      expect(researchersReader.getPaginatedList).toHaveBeenCalledWith(3, 5, undefined);
+      expect(researchersReader.getPaginatedList).toHaveBeenCalledWith(3, 5, undefined, {
+        unit: undefined,
+      });
       expect(researchersReader.getPaginatedList).toHaveBeenCalledTimes(1);
     });
 
-    it('should forward optional name filter to the researchers reader', async () => {
+    it('should forward optional q search term to the researchers reader', async () => {
       researchersReader.getPaginatedList.mockResolvedValue({
         items: [],
         page: 1,
@@ -129,9 +133,26 @@ describe('GetResearchersPaginatedListUseCase', () => {
         total: 0,
       });
 
-      await useCase.execute({ page: 1, limit: 10, name: 'Juan' });
+      await useCase.execute({ page: 1, limit: 10, q: 'Juan' });
 
-      expect(researchersReader.getPaginatedList).toHaveBeenCalledWith(1, 10, 'Juan');
+      expect(researchersReader.getPaginatedList).toHaveBeenCalledWith(1, 10, 'Juan', {
+        unit: undefined,
+      });
+    });
+
+    it('should forward optional unit filter to the researchers reader', async () => {
+      researchersReader.getPaginatedList.mockResolvedValue({
+        items: [],
+        page: 1,
+        limit: 10,
+        total: 0,
+      });
+
+      await useCase.execute({ page: 1, limit: 10, unit: ['CIMPA'] });
+
+      expect(researchersReader.getPaginatedList).toHaveBeenCalledWith(1, 10, undefined, {
+        unit: ['CIMPA'],
+      });
     });
 
     it('should return an empty list when no researchers are available', async () => {

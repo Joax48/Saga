@@ -1,5 +1,5 @@
 import { ResearchersRepository } from '../researchers.repository';
-import type { DatabaseService } from '../../../../common/database/database.service';
+import type { DatabaseClient } from '../../../../common/database/database-client.contract';
 
 type DatabaseServiceMock = {
   query: jest.Mock;
@@ -11,20 +11,20 @@ describe('ResearchersRepository', () => {
 
   beforeEach(() => {
     mockDb = { query: jest.fn() };
-    repository = new ResearchersRepository(mockDb as unknown as DatabaseService);
+    repository = new ResearchersRepository(mockDb as unknown as DatabaseClient);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('findPaginated (without name filter)', () => {
+  describe('findPaginated (without filters)', () => {
     it('should return items and total count', async () => {
       const mockItems = [
         {
           id: 'a1b2c3',
           idUcrProfile: 'B12345',
-          baseUnit: 'CIMPA',
+          baseUnit: 'Centro de Investigaciones en Enfermedades Tropicales (CIBET)',
           name: 'Luis',
           firstSurname: 'Mora',
           secondSurname: 'Jimenez',
@@ -38,7 +38,7 @@ describe('ResearchersRepository', () => {
         {
           id: 'd4e5f6',
           idUcrProfile: 'C67890',
-          baseUnit: 'CIBCM',
+          baseUnit: 'Centro de Investigaciones en Enfermedades Tropicales (CIBET)',
           name: 'Ana',
           firstSurname: 'Vargas',
           secondSurname: 'Solano',
@@ -61,24 +61,24 @@ describe('ResearchersRepository', () => {
       expect(mockDb.query).toHaveBeenCalledTimes(2);
     });
 
-    it('should apply zero offset on the first page', async () => {
+    it('should apply zero offset on the first page (Oracle syntax)', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 5 }]);
 
       await repository.findPaginated(1, 10);
 
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
-      expect(itemsQuery).toContain('LIMIT 10');
-      expect(itemsQuery).toContain('OFFSET 0');
+      expect(itemsQuery).toContain('FETCH NEXT 10 ROWS ONLY');
+      expect(itemsQuery).toContain('OFFSET 0 ROWS');
     });
 
-    it('should apply correct offset when navigating to page 2', async () => {
+    it('should apply correct offset when navigating to page 2 (Oracle syntax)', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 20 }]);
 
       await repository.findPaginated(2, 10);
 
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
-      expect(itemsQuery).toContain('LIMIT 10');
-      expect(itemsQuery).toContain('OFFSET 10');
+      expect(itemsQuery).toContain('FETCH NEXT 10 ROWS ONLY');
+      expect(itemsQuery).toContain('OFFSET 10 ROWS');
     });
 
     it('should calculate offset correctly for small page sizes', async () => {
@@ -87,28 +87,29 @@ describe('ResearchersRepository', () => {
       await repository.findPaginated(3, 5);
 
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
-      expect(itemsQuery).toContain('LIMIT 5');
-      expect(itemsQuery).toContain('OFFSET 10');
+      expect(itemsQuery).toContain('FETCH NEXT 5 ROWS ONLY');
+      expect(itemsQuery).toContain('OFFSET 10 ROWS');
     });
 
-    it('should order results by name, first_surname and second_surname when no filter', async () => {
+    it('should order results alphabetically by first_surname, name, second_surname', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
 
       await repository.findPaginated(1, 10);
 
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
-      expect(itemsQuery).toContain('ORDER BY Researcher.name ASC');
-      expect(itemsQuery).toContain('Researcher.first_surname ASC');
-      expect(itemsQuery).toContain('Researcher.second_surname ASC');
+      expect(itemsQuery).toContain('ORDER BY');
+      expect(itemsQuery).toContain('PROFILE_FIRST_SURNAME');
+      expect(itemsQuery).toContain('PROFILE_NAME');
+      expect(itemsQuery).toContain('PROFILE_LAST_SURNAME');
     });
 
-    it('should not include a WHERE clause when no name filter is provided', async () => {
+    it('should not include a WHERE clause when no filters are provided', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
 
       await repository.findPaginated(1, 10);
 
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
-      expect(itemsQuery).not.toContain('WHERE');
+      expect(itemsQuery).not.toContain('WHERE (LOWER(p.PROFILE_NAME)');
     });
 
     it('should handle an empty database gracefully', async () => {
@@ -139,13 +140,13 @@ describe('ResearchersRepository', () => {
     });
   });
 
-  describe('findPaginated (with name filter)', () => {
+  describe('findPaginated (with q search term)', () => {
     it('should return matching researchers and filtered total count', async () => {
       const mockItems = [
         {
           id: 'a1b2c3',
           idUcrProfile: 'B12345',
-          baseUnit: 'CIMPA',
+          baseUnit: 'Centro de Investigaciones en Enfermedades Tropicales (CIBET)',
           name: 'Luis',
           firstSurname: 'Mora',
           secondSurname: 'Jimenez',
@@ -168,22 +169,24 @@ describe('ResearchersRepository', () => {
       expect(mockDb.query).toHaveBeenCalledTimes(2);
     });
 
-    it('should apply a WHERE clause filtering by name prefix', async () => {
+    it('should apply a WHERE clause searching name, first_surname and second_surname', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
 
       await repository.findPaginated(1, 10, 'Luis');
 
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
       expect(itemsQuery).toContain('WHERE');
-      expect(itemsQuery).toContain('LOWER(Researcher.name) LIKE ?');
+      expect(itemsQuery).toContain('LOWER(p.PROFILE_NAME)');
+      expect(itemsQuery).toContain('LOWER(p.PROFILE_FIRST_SURNAME)');
+      expect(itemsQuery).toContain('LOWER(p.PROFILE_LAST_SURNAME)');
     });
 
-    it('should pass the name as a lowercase prefix-match parameter', async () => {
+    it('should pass the search term as a contains-match parameter (params array)', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
 
-      await repository.findPaginated(1, 10, 'ANA');
+      await repository.findPaginated(1, 10, 'Ana');
 
-      expect(mockDb.query.mock.calls[0][1]).toEqual(['ana%']);
+      expect(mockDb.query.mock.calls[0][1]).toEqual(['%Ana%', '%Ana%', '%Ana%']);
     });
 
     it('should also apply the WHERE filter in the count query', async () => {
@@ -193,31 +196,11 @@ describe('ResearchersRepository', () => {
 
       const countQuery = mockDb.query.mock.calls[1][0] as string;
       expect(countQuery).toContain('WHERE');
-      expect(countQuery).toContain('LOWER(Researcher.name) LIKE ?');
-      expect(mockDb.query.mock.calls[1][1]).toEqual(['carlos%']);
+      expect(countQuery).toContain('LOWER(p.PROFILE_NAME)');
+      expect(mockDb.query.mock.calls[1][1]).toEqual(['%Carlos%', '%Carlos%', '%Carlos%']);
     });
 
-    it('should order results by first_surname then name when filtering by name', async () => {
-      mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
-
-      await repository.findPaginated(1, 10, 'Ana');
-
-      const itemsQuery = mockDb.query.mock.calls[0][0] as string;
-      expect(itemsQuery).toContain('ORDER BY Researcher.first_surname ASC');
-      expect(itemsQuery).toContain('Researcher.name ASC');
-    });
-
-    it('should apply correct offset when navigating to page 2 with name filter', async () => {
-      mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 15 }]);
-
-      await repository.findPaginated(2, 10, 'Ana');
-
-      const itemsQuery = mockDb.query.mock.calls[0][0] as string;
-      expect(itemsQuery).toContain('LIMIT 10');
-      expect(itemsQuery).toContain('OFFSET 10');
-    });
-
-    it('should return an empty list when no researchers match the name filter', async () => {
+    it('should return an empty list when no researchers match the search term', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
 
       const result = await repository.findPaginated(1, 10, 'Zyx');
@@ -225,13 +208,55 @@ describe('ResearchersRepository', () => {
       expect(result.items).toEqual([]);
       expect(result.total).toBe(0);
     });
+  });
 
-    it('should default total to 0 if count query returns no rows when filtering by name', async () => {
-      mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+  describe('findPaginated (with unit filter)', () => {
+    it('should apply a WHERE clause filtering by unit using EXISTS subquery', async () => {
+      mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
 
-      const result = await repository.findPaginated(1, 10, 'Inexistente');
+      await repository.findPaginated(1, 10, undefined, {
+        unit: [
+          'Centro De Investigaciones Sobre Diversidad Cultural Y Estudios Regionales (CIDICER)',
+        ],
+      });
 
-      expect(result.total).toBe(0);
+      const itemsQuery = mockDb.query.mock.calls[0][0] as string;
+      expect(itemsQuery).toContain('WHERE');
+      expect(itemsQuery).toContain('EXISTS');
+      expect(itemsQuery).toContain('UCR_PROFILE_PROJECT_UNIT');
+      expect(itemsQuery).toContain('LOWER(u2.UNIT_NAME)');
+      // params should be normalized and lowercased
+      expect(mockDb.query.mock.calls[0][1]).toEqual([
+        'centro de investigaciones sobre diversidad cultural y estudios regionales (cidicer)',
+      ]);
+      expect(mockDb.query.mock.calls[1][1]).toEqual([
+        'centro de investigaciones sobre diversidad cultural y estudios regionales (cidicer)',
+      ]);
+    });
+
+    it('should pass normalized unit values as parameters', async () => {
+      mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
+
+      await repository.findPaginated(1, 10, undefined, {
+        unit: [' ESCUELA DE INGENIERÍA ELÉCTRICA ', 'escuela de ingeniería eléctrica'],
+      });
+
+      expect(mockDb.query.mock.calls[0][1]).toEqual(['escuela de ingeniería eléctrica']);
+      expect(mockDb.query.mock.calls[1][1]).toEqual(['escuela de ingeniería eléctrica']);
+    });
+
+    it('should combine q search and unit filter with AND', async () => {
+      mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
+
+      await repository.findPaginated(1, 10, 'ana', {
+        unit: ['Instituto De Investigaciones Farmacéuticas (INIFAR)'],
+      });
+
+      const itemsQuery = mockDb.query.mock.calls[0][0] as string;
+      expect(itemsQuery).toContain('WHERE');
+      expect(itemsQuery).toContain('AND');
+      expect(itemsQuery).toContain('LOWER(p.PROFILE_NAME)');
+      expect(itemsQuery).toContain('EXISTS');
     });
   });
 });

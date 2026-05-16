@@ -1,23 +1,17 @@
 import { Transform } from 'class-transformer';
 import { IsArray, IsOptional, IsString } from 'class-validator';
 
-import { PaginatedListRequestDto } from '../../common/dtos/paginated-list-request.dto';
-
 function normalizeQueryArray(value: unknown): string[] | undefined {
-  if (value === undefined || value === null) {
-    return undefined;
-  }
-
+  if (value === undefined || value === null) return undefined;
   const rawValues = Array.isArray(value) ? value : [value];
   const normalizedValues = rawValues
     .flatMap((item) => String(item).split(','))
     .map((item) => item.trim())
     .filter(Boolean);
-
   return normalizedValues.length > 0 ? normalizedValues : undefined;
 }
 
-export class ResearchersListRequestDto extends PaginatedListRequestDto {
+export class ResearchersSearchFiltersDto {
   @IsOptional()
   @Transform(({ value }) => normalizeQueryArray(value))
   @IsArray()

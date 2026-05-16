@@ -83,11 +83,28 @@ describe('PublicResearchersController', () => {
       expect(useCase.execute).toHaveBeenCalledWith(mockQuery);
     });
 
-    it('should forward the name filter parameter to the use case', async () => {
+    it('should forward the unit filter parameter to the use case', async () => {
       const mockQuery = new ResearchersListRequestDto();
       mockQuery.page = 1;
       mockQuery.limit = 10;
-      mockQuery.name = 'Luis';
+      mockQuery.unit = ['CIMPA'];
+      useCase.execute.mockResolvedValue({
+        items: [],
+        page: 1,
+        limit: 10,
+        total: 0,
+      });
+
+      await controller.getResearchersPaginatedList(mockQuery);
+
+      expect(useCase.execute).toHaveBeenCalledWith(mockQuery);
+    });
+
+    it('should forward the q search parameter to the use case', async () => {
+      const mockQuery = new ResearchersListRequestDto();
+      mockQuery.page = 1;
+      mockQuery.limit = 10;
+      mockQuery.q = 'Luis';
       useCase.execute.mockResolvedValue({
         items: [],
         page: 1,

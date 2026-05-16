@@ -19,6 +19,8 @@ import { PublicResearchersController } from './bff/public/researchers/public-res
 import { GetResearchersPaginatedListUseCase } from './application/use-cases/get-public-researchers-paginated-list.use-case';
 import { GetScientificProductionPaginatedListUseCase } from './application/use-cases/get-public-scientific-productions-paginated-list.use-case';
 import { GetScientificProductionDetailUseCase } from './application/use-cases/get-public-scientific-production-detail.use-case';
+import { GetResearcherDetailUseCase } from './application/use-cases/get-public-researcher-detail.use-case';
+import { GetResearchersFiltersUseCase } from './application/use-cases/get-public-researchers-filters.use-case';
 import { GetProjectDetailUseCase } from './application/use-cases/get-public-project-detail.use-case';
 
 // Root application module.
@@ -28,7 +30,9 @@ import { GetProjectDetailUseCase } from './application/use-cases/get-public-proj
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      envFilePath: ['.env', '../../.env'],
+    }),
     SearchModule,
     CacheModule,
     DatabaseModule,
@@ -50,8 +54,10 @@ import { GetProjectDetailUseCase } from './application/use-cases/get-public-proj
     GetScientificProductionPaginatedListUseCase,
     GetScientificProductionDetailUseCase,
     GetResearchersPaginatedListUseCase,
+    GetResearcherDetailUseCase,
     GetUnitsPaginatedListUseCase,
     GetPublicUnitDetailUseCase,
+    GetResearchersFiltersUseCase,
   ],
 })
 export class AppModule {}
