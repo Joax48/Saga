@@ -1,7 +1,38 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
+
+/**
+ * Hook that detects if text in a DOM element is truncated.
+ * Returns true if the element's scrollWidth > clientWidth.
+ */
+function useIsTruncated(text: string): [boolean, React.RefObject<HTMLSpanElement>] {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useEffect(() => {
+    if (!ref.current) return;
+
+    // Use ResizeObserver to detect when the element size changes
+    const observer = new ResizeObserver(() => {
+      if (ref.current) {
+        setIsTruncated(ref.current.scrollWidth > ref.current.clientWidth);
+      }
+    });
+
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Also check on text change
+  useEffect(() => {
+    if (!ref.current) return;
+    setIsTruncated(ref.current.scrollWidth > ref.current.clientWidth);
+  }, [text]);
+
+  return [isTruncated, ref];
+}
 
 const INITIAL_VISIBLE_COUNT = 5;
 const POPUP_THRESHOLD = 10;
@@ -46,6 +77,14 @@ export interface FilterSidebarProps {
   hasActiveFilters?: boolean;
   /** Called when the user clicks "Limpiar". */
   onClearAll?: () => void;
+  /** Enables the drag handle so the user can resize the sidebar. */
+  resizable?: boolean;
+  /** Initial sidebar width in pixels when resizable. */
+  defaultWidthPx?: number;
+  /** Minimum sidebar width in pixels when resizable. */
+  minWidthPx?: number;
+  /** Maximum sidebar width in pixels when resizable. */
+  maxWidthPx?: number;
 }
 
 /* ─── Internal sub-components ────────────────────────────────────────── */
@@ -60,7 +99,7 @@ function FilterGroupShell({ title, children }: FilterGroupShellProps) {
 
   return (
     <section className="py-4">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-2 pr-3">
         <h3 className="text-base font-bold" style={{ color: 'var(--color-gray-700)' }}>
           {title}
         </h3>
@@ -92,9 +131,21 @@ interface CheckboxOptionProps {
   onChange: () => void;
 }
 
-function CheckboxOption({ id, label, count, checked, onChange }: CheckboxOptionProps) {
+function CheckboxOption({
+  id,
+  label,
+  count,
+  checked,
+  onChange,
+  truncate = true,
+}: CheckboxOptionProps & { truncate?: boolean }) {
+  const [isTruncated, labelRef] = useIsTruncated(label);
+
   return (
-    <label htmlFor={id} className="flex items-center gap-2 py-0.5 cursor-pointer group">
+    <label
+      htmlFor={id}
+      className="flex items-center gap-2 py-0.5 pr-3 cursor-pointer group"
+    >
       <input
         id={id}
         type="checkbox"
@@ -104,8 +155,10 @@ function CheckboxOption({ id, label, count, checked, onChange }: CheckboxOptionP
         onChange={onChange}
       />
       <span
-        className="flex-1 text-sm font-normal group-hover:underline truncate"
+        ref={labelRef}
+        className={`flex-1 text-sm font-normal group-hover:underline ${truncate ? 'truncate' : ''}`}
         style={{ color: 'var(--color-gray-600)' }}
+        title={isTruncated ? label : undefined}
       >
         {label}
       </span>
@@ -121,6 +174,10 @@ function CheckboxOption({ id, label, count, checked, onChange }: CheckboxOptionP
   );
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
 /* ─── Options popup ──────────────────────────────────────────────────── */
 
 interface OptionsPopupProps {
@@ -129,6 +186,7 @@ interface OptionsPopupProps {
   selectedValues: string[];
   groupKey: string;
   onToggle: (value: string) => void;
+  onClear: () => void;
   onClose: () => void;
 }
 
@@ -138,6 +196,7 @@ function OptionsPopup({
   selectedValues,
   groupKey,
   onToggle,
+  onClear,
   onClose,
 }: OptionsPopupProps) {
   useEffect(() => {
@@ -160,8 +219,12 @@ function OptionsPopup({
       aria-label={title}
     >
       <div
-        className="flex flex-col w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden"
-        style={{ backgroundColor: 'var(--color-bg-neutral-primary)', maxHeight: '70vh' }}
+        className="flex flex-col w-full max-w-5xl rounded-xl shadow-2xl overflow-hidden"
+        style={{
+          backgroundColor: 'var(--color-bg-neutral-primary)',
+          maxHeight: '80vh',
+          width: 'min(96vw, 1180px)',
+        }}
       >
         {/* Header */}
         <div
@@ -171,20 +234,32 @@ function OptionsPopup({
           <h3 className="text-sm font-bold" style={{ color: 'var(--color-gray-700)' }}>
             {title}
           </h3>
-          <button
-            onClick={onClose}
-            className="flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase transition-opacity hover:opacity-70"
-            style={{ color: 'var(--color-gray-500)' }}
-            aria-label="Cerrar"
-          >
-            Cerrar
-            <X size={14} strokeWidth={2.5} />
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                onClear();
+              }}
+              className="text-xs transition-opacity hover:opacity-80"
+              style={{ color: 'var(--color-text-brand-primary)' }}
+            >
+              Limpiar
+            </button>
+
+            <button
+              onClick={onClose}
+              className="flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase transition-opacity hover:opacity-70"
+              style={{ color: 'var(--color-danger, #d9534f)' }}
+              aria-label="Cerrar"
+            >
+              Cerrar
+              <X size={14} strokeWidth={2.5} />
+            </button>
+          </div>
         </div>
 
         {/* Options grid */}
         <div className="overflow-y-auto px-5 py-4">
-          <div className="grid grid-cols-3 gap-x-6 gap-y-0.5">
+          <div className="grid grid-cols-3 gap-x-8 gap-y-1">
             {options.map((opt) => (
               <CheckboxOption
                 key={opt.value}
@@ -193,21 +268,25 @@ function OptionsPopup({
                 count={opt.count}
                 checked={selectedValues.includes(opt.value)}
                 onChange={() => onToggle(opt.value)}
+                truncate={false}
               />
             ))}
           </div>
         </div>
 
-        {/* Footer — selected count */}
+        {/* Footer — selected count (left-aligned) */}
         {selectedValues.length > 0 && (
           <div
-            className="px-5 py-3 shrink-0 text-xs"
+            className="px-5 py-3 shrink-0 text-xs flex justify-start"
             style={{
               borderTop: '1px solid var(--color-gray-200)',
               color: 'var(--color-text-brand-primary)',
             }}
           >
-            {selectedValues.length} seleccionado{selectedValues.length !== 1 ? 's' : ''}
+            <span>
+              {selectedValues.length} {title.toLowerCase()} seleccionada
+              {selectedValues.length !== 1 ? 's' : ''}
+            </span>
           </div>
         )}
       </div>
@@ -294,6 +373,10 @@ function ExpandableOptions({
           selectedValues={selectedValues}
           groupKey={groupKey}
           onToggle={onToggle}
+          onClear={() => {
+            // unselect all currently selected values
+            selectedValues.forEach((v) => onToggle(v));
+          }}
           onClose={() => setPopupOpen(false)}
         />
       )}
@@ -321,11 +404,62 @@ export function FilterSidebar({
   groups,
   hasActiveFilters,
   onClearAll,
+  resizable = true,
+  defaultWidthPx = 288,
+  minWidthPx = 240,
+  maxWidthPx = 440,
 }: FilterSidebarProps) {
+  const [sidebarWidth, setSidebarWidth] = useState(defaultWidthPx);
+  const resizeStartRef = useRef<{ startX: number; startWidth: number } | null>(null);
+
+  useEffect(() => {
+    if (!resizable) return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!resizeStartRef.current) return;
+
+      const delta = event.clientX - resizeStartRef.current.startX;
+      const nextWidth = clamp(
+        resizeStartRef.current.startWidth + delta,
+        minWidthPx,
+        maxWidthPx,
+      );
+      setSidebarWidth(nextWidth);
+    };
+
+    const handlePointerUp = () => {
+      resizeStartRef.current = null;
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [maxWidthPx, minWidthPx, resizable]);
+
+  useEffect(() => {
+    if (resizable) {
+      setSidebarWidth((current) => clamp(current, minWidthPx, maxWidthPx));
+    }
+  }, [maxWidthPx, minWidthPx, resizable]);
+
+  const sidebarStyle = useMemo<React.CSSProperties>(() => {
+    if (!resizable) return {};
+    return { width: `${sidebarWidth}px`, minWidth: `${sidebarWidth}px` };
+  }, [resizable, sidebarWidth]);
+
   return (
-    <aside className="w-full shrink-0 lg:w-56" aria-label="Filtros">
+    <aside
+      className="relative w-full shrink-0 lg:flex-none"
+      style={sidebarStyle}
+      aria-label="Filtros"
+    >
       {/* Header */}
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center justify-between mb-1 pr-3">
         <h2 className="text-base font-bold" style={{ color: 'var(--color-gray-600)' }}>
           Filtros
         </h2>{' '}
@@ -362,6 +496,26 @@ export function FilterSidebar({
           )}
         </FilterGroupShell>
       ))}
+
+      {resizable && (
+        <button
+          type="button"
+          aria-label="Redimensionar filtros"
+          onPointerDown={(event) => {
+            resizeStartRef.current = {
+              startX: event.clientX,
+              startWidth: sidebarWidth,
+            };
+            document.body.style.userSelect = 'none';
+            document.body.style.cursor = 'col-resize';
+            (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+          }}
+          className="absolute top-0 right-0 hidden h-full w-px cursor-col-resize touch-none lg:block"
+          style={{
+            backgroundColor: 'var(--color-gray-200)',
+          }}
+        />
+      )}
     </aside>
   );
 }
