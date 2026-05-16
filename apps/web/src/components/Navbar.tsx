@@ -1,23 +1,47 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50); // umbral
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const setHeaderHeight = () => {
+      try {
+        const h = headerRef.current?.offsetHeight ?? 0;
+        document.documentElement.style.setProperty('--site-header-height', `${h}px`);
+      } catch (e) {
+        /* ignore */
+      }
+    };
+
+    // run synchronously before paint to avoid visual flash
+    handleScroll();
+    setHeaderHeight();
+    // mark initialized so we can safely show the header without transition flash
+    setInitialized(true);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', setHeaderHeight);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', setHeaderHeight);
+    };
   }, []);
 
   return (
     // It need to be fixed isntead of sticky but it will be over all so the space need to be in the PageHero
     <header
+      ref={headerRef}
+      style={initialized ? undefined : { transition: 'none' }}
       className={`fixed top-0 z-50 w-full transition-colors duration-300 group ${scrolled ? 'scrolled' : ''}`}
     >
       <div className="flex justify-start h-3 bg-[#00c0f3] transition-all duration-300 group-[.scrolled]:h-0"></div>
