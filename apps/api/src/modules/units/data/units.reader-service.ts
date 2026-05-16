@@ -6,17 +6,14 @@ import type {
   UnitsReader,
 } from '../units.reader.contract';
 import { UnitsRepository } from './units.repository';
+import { UnitSearchDTO } from '../../../bff/public/units/dtos/unit-search-dto';
 
 @Injectable()
 export class UnitsReaderService implements UnitsReader {
   constructor(private readonly unitsRepository: UnitsRepository) {}
 
-  async getPaginatedList(
-    page: number,
-    limit: number,
-    search?: string,
-  ): Promise<UnitsPaginatedListDto> {
-    const unitsPage = await this.unitsRepository.findPaginated(page, limit, search);
+  async getPaginatedList(searchDTO: UnitSearchDTO): Promise<UnitsPaginatedListDto> {
+    const unitsPage = await this.unitsRepository.findPaginated(searchDTO);
 
     return {
       items: unitsPage.items.map(
@@ -26,8 +23,8 @@ export class UnitsReaderService implements UnitsReader {
           imageUrl: unit.imageUrl,
         }),
       ),
-      page,
-      limit,
+      page: searchDTO.page,
+      limit: searchDTO.limit,
       total: unitsPage.total,
     };
   }

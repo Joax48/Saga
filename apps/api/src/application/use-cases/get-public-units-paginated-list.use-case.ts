@@ -9,6 +9,7 @@ import {
   type UnitsPaginatedListDto,
   type UnitsReader,
 } from '../../modules/units/units.reader.contract';
+import { UnitSearchDTO } from '../../bff/public/units/dtos/unit-search-dto';
 
 @Injectable()
 export class GetUnitsPaginatedListUseCase {
@@ -18,13 +19,9 @@ export class GetUnitsPaginatedListUseCase {
   ) {}
 
   async execute(
-    input: PaginatedListRequestDto,
+    input: UnitSearchDTO,
   ): Promise<PaginatedListResponseDto<UnitSummaryResponseDto>> {
-    const units = await this.unitsReader.getPaginatedList(
-      input.page,
-      input.limit,
-      input.q,
-    );
+    const units = await this.unitsReader.getPaginatedList(input);
 
     return this.mapToResponseDto(units);
   }

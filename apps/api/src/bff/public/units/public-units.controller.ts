@@ -7,6 +7,9 @@ import { UnitDetailResponseDto } from './dtos/unit-detail-response.dto';
 
 import { GetUnitsPaginatedListUseCase } from '../../../application/use-cases/get-public-units-paginated-list.use-case';
 import { GetPublicUnitDetailUseCase } from '../../../application/use-cases/get-public-unit-detail.use-case';
+import { UnitSearchFiltersDTO } from './dtos/unit-search-filters-dto';
+import { UnitSearchSortDTO } from './dtos/unit-search-sort-dto';
+import { UnitSearchDTO } from './dtos/unit-search-dto';
 
 @Controller('units')
 export class PublicUnitsController {
@@ -17,11 +20,9 @@ export class PublicUnitsController {
 
   @Get()
   async getUnitsPaginatedList(
-    @Query() query: PaginatedListRequestDto,
+    @Query() query: UnitSearchDTO,
   ): Promise<PaginatedListResponseDto<UnitSummaryResponseDto>> {
-    const units = await this.getUnitsPaginatedListUseCase.execute(query);
-
-    return units;
+    return this.getUnitsPaginatedListUseCase.execute(query);
   }
 
   @Get(':id')

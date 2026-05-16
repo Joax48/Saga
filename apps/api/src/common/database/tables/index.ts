@@ -12,6 +12,7 @@ import { projectTypeTable } from './project-type.table';
 import { researchTypeTable } from './research-type.table';
 import { unitTable } from './unit.table';
 import { scientificProductionTable } from './scientific-production.table';
+import { profileAssociatedWithUnitTable } from './profile-associated-with-unit.table';
 
 export const databaseTables: DatabaseTableDefinition[] = [
   projectDisciplineTable,
@@ -27,4 +28,5 @@ export const databaseTables: DatabaseTableDefinition[] = [
   projectResearcherTable,
   unitTable,
   scientificProductionTable,
+  profileAssociatedWithUnitTable,
 ];

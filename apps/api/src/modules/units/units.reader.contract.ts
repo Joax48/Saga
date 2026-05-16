@@ -1,3 +1,7 @@
+import { UnitSearchDTO } from '../../bff/public/units/dtos/unit-search-dto';
+import { UnitSearchFiltersDTO } from '../../bff/public/units/dtos/unit-search-filters-dto';
+import { UnitSearchSortDTO } from '../../bff/public/units/dtos/unit-search-sort-dto';
+
 export const UNITS_READER = Symbol('UNITS_READER');
 
 export interface UnitListItemDto {
@@ -23,10 +27,6 @@ export interface UnitsPaginatedListDto {
 }
 
 export interface UnitsReader {
-  getPaginatedList(
-    page: number,
-    limit: number,
-    search?: string,
-  ): Promise<UnitsPaginatedListDto>;
+  getPaginatedList(searchDTO: UnitSearchDTO): Promise<UnitsPaginatedListDto>;
   getById(id: number): Promise<UnitDetailDto | null>;
 }
