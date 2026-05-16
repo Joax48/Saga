@@ -4,17 +4,21 @@
 
 /* ─── Scientific Productions ─────────────────────────────────────────── */
 
-export interface ScientificProductionType {
-  category: string;
-  subcategory: string;
-  review_type?: string;
+interface AuthorReference {
+  id: number;
+  name: string;
+}
+
+export interface KeywordReference {
+  id: number;
+  value: string;
 }
 
 export interface SummaryScientificProduction {
   id: string;
   title: string;
-  authors: string[];
-  type: ScientificProductionType;
+  authors: AuthorReference[];
+  type: string;
   open_access: boolean;
   publication_year: number;
   doi: string;
@@ -22,7 +26,7 @@ export interface SummaryScientificProduction {
   volume?: number;
   issue?: number;
   pages?: string;
-  keywords: string[];
+  keywords: KeywordReference[];
 }
 export interface ScientificProduction {
   id: string;
@@ -31,7 +35,7 @@ export interface ScientificProduction {
   principalAuthor: string;
   unit: string;
   affiliations: string[];
-  type: ScientificProductionType;
+  type: string;
   open_access: boolean;
   publication_year: number;
   abstract: string;

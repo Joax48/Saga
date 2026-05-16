@@ -3,8 +3,13 @@ import type {
   ScientificProductionsListItemDto,
   ScientificProductionsPaginatedListDto,
   ScientificProductionsDetailItemDto,
-  ScientificProductionsFiltersDto,
+  ScientificProductionsFiltersRequestDto,
+  ScientificProductionsFiltersResponseDto,
   ScientificProductionsReader,
+  AuthorReference,
+  KeywordReference,
+  UnitReference,
+  AffiliationReference,
 } from '../scientific-productions.reader.contract';
 import { ScientificProductionRepository } from './scientific-productions.repository';
 
@@ -17,31 +22,66 @@ export class ScientificProductionsService implements ScientificProductionsReader
   async getPaginatedList(
     page: number,
     limit: number,
-    filters?: ScientificProductionsFiltersDto,
+    filters?: ScientificProductionsFiltersRequestDto,
   ): Promise<ScientificProductionsPaginatedListDto> {
     const scientificProductionsPage =
       await this.scientificProductionsRepository.findPaginated(page, limit, filters);
 
+    let effectivePage = page;
+    let effectiveItems = scientificProductionsPage.items;
+    const totalPages = Math.max(1, Math.ceil(scientificProductionsPage.total / limit));
+
+    if (scientificProductionsPage.total > 0 && page > totalPages) {
+      effectivePage = totalPages;
+      const lastPage = await this.scientificProductionsRepository.findPaginated(
+        effectivePage,
+        limit,
+        filters,
+      );
+      effectiveItems = lastPage.items;
+    }
+
     return {
-      items: scientificProductionsPage.items.map(
+      items: effectiveItems.map(
         (scientificProduction): ScientificProductionsListItemDto => ({
           id: scientificProduction.id,
           title: scientificProduction.title,
-          authors: scientificProduction.authors,
+          authors: this.parseJsonSafely<AuthorReference[]>(
+            scientificProduction.authors,
+            [],
+          ),
           type: scientificProduction.type,
-          openAccess: scientificProduction.openAccess,
+          openAccess:
+            scientificProduction.openAccess !== null
+              ? scientificProduction.openAccess === 1
+              : null,
           publicationYear: scientificProduction.publicationYear,
           doi: scientificProduction.doi,
           journal: scientificProduction.journal,
           volume: scientificProduction.volume,
           issue: scientificProduction.issue,
           pages: scientificProduction.pages,
-          keywords: scientificProduction.keywords,
+          keywords: this.parseJsonSafely<KeywordReference[]>(
+            scientificProduction.keywords,
+            [],
+          ),
         }),
       ),
-      page,
+      page: effectivePage,
       limit,
       total: scientificProductionsPage.total,
+    };
+  }
+
+  async getFilters(
+    filters?: ScientificProductionsFiltersRequestDto,
+  ): Promise<ScientificProductionsFiltersResponseDto> {
+    const facets = await this.scientificProductionsRepository.findFilters(filters);
+    return {
+      types: facets.types,
+      years: facets.years,
+      keywords: facets.keywords,
+      openAccessCount: facets.openAccessCount,
     };
   }
 
@@ -52,12 +92,12 @@ export class ScientificProductionsService implements ScientificProductionsReader
     return {
       id: row.id,
       title: row.title,
-      authors: row.authors,
-      principalAuthor: row.principalAuthor,
-      unit: row.unit,
-      affiliations: row.affiliations,
+      ucrAuthors: this.parseJsonSafely<AuthorReference[]>(row.ucrAuthors, []),
+      externalAuthors: this.parseJsonSafely<AuthorReference[]>(row.externalAuthors, []),
+      unit: this.parseJsonSafely<UnitReference[]>(row.unit, []),
+      affiliations: this.parseJsonSafely<AffiliationReference[]>(row.affiliations, []),
       type: row.type,
-      openAccess: row.openAccess,
+      openAccess: row.openAccess !== null ? row.openAccess === 1 : null,
       publicationYear: row.publicationYear,
       abstract: row.abstract,
       doi: row.doi,
@@ -66,7 +106,17 @@ export class ScientificProductionsService implements ScientificProductionsReader
       issue: row.issue,
       pages: row.pages,
       citationCount: row.citationCount,
-      keywords: row.keywords,
+      keywords: this.parseJsonSafely<KeywordReference[]>(row.keywords, []),
     };
+  }
+
+  parseJsonSafely<T>(value: unknown, fallback: T): T {
+    if (value === null || value === undefined || value === '') return fallback;
+    if (typeof value !== 'string') return value as T;
+    try {
+      return JSON.parse(value) as T;
+    } catch {
+      return fallback;
+    }
   }
 }

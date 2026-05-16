@@ -1,38 +1,58 @@
 export const SCIENTIFIC_PRODUCTIONS_READER = Symbol('SCIENTIFIC_PRODUCTIONS_READER');
 
+export interface AuthorReference {
+  id: number;
+  name: string;
+}
+
+export interface UnitReference {
+  id: number;
+  unit: string;
+}
+
+export interface AffiliationReference {
+  id: number;
+  affiliation: string;
+}
+
+export interface KeywordReference {
+  id: number;
+  value: string;
+}
+
 export interface ScientificProductionsListItemDto {
   id: string;
   title: string;
-  authors: string;
-  type: string;
-  openAccess: boolean;
+  authors: AuthorReference[] | null;
+  type: string | null;
+  openAccess: boolean | null;
   publicationYear: number;
-  doi: string;
-  journal: string;
-  volume: number;
-  issue: number;
-  pages: string;
-  keywords: string;
+  doi: string | null;
+  journal: string | null;
+  volume: string | null;
+  issue: string | null;
+  pages: string | null;
+  keywords: KeywordReference[] | null;
 }
 
 export interface ScientificProductionsDetailItemDto {
   id: string;
   title: string;
-  authors: string;
-  principalAuthor: string;
-  unit: string;
-  affiliations: string;
-  type: string;
-  openAccess: boolean;
+  ucrAuthors: AuthorReference[] | null;
+  externalAuthors: AuthorReference[] | null;
+  unit: UnitReference[] | null;
+  affiliations: AffiliationReference[] | null;
+  type: string | null;
+  openAccess: boolean | null; // ← 0/1 de Oracle
   publicationYear: number;
-  abstract: string;
-  doi: string;
-  journal: string;
-  volume: number;
-  issue: number;
-  pages: string;
-  citationCount: number;
-  keywords: string;
+  abstract: string | null;
+  doi: string | null;
+  journal: string | null;
+  volume: string | null;
+  issue: string | null;
+  pages: string | null;
+  citationCount: number | null;
+  keywords: KeywordReference[] | null;
 }
 
 export interface ScientificProductionsPaginatedListDto {
@@ -42,18 +62,35 @@ export interface ScientificProductionsPaginatedListDto {
   total: number;
 }
 
-export interface ScientificProductionsFiltersDto {
+class FilterOptionDto {
+  value!: string;
+  label!: string;
+  count!: number;
+}
+
+export interface ScientificProductionsFiltersResponseDto {
+  types?: FilterOptionDto[];
+  years?: FilterOptionDto[];
+  keywords?: FilterOptionDto[];
+  openAccessCount?: number;
+}
+
+export interface ScientificProductionsFiltersRequestDto {
   q?: string;
-  type?: string;
+  type?: string[];
   openAccess?: boolean;
-  year?: number;
+  year?: string[];
   keywords?: string[];
 }
+
 export interface ScientificProductionsReader {
   getPaginatedList(
     page: number,
     limit: number,
-    filters?: ScientificProductionsFiltersDto,
+    filters?: ScientificProductionsFiltersRequestDto,
   ): Promise<ScientificProductionsPaginatedListDto>;
   getById(id: string): Promise<ScientificProductionsDetailItemDto | null>;
+  getFilters(
+    filters?: ScientificProductionsFiltersRequestDto,
+  ): Promise<ScientificProductionsFiltersResponseDto>;
 }

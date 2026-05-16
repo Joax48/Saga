@@ -60,20 +60,22 @@ export function ProductionCard({ production }: ProductionCardProps) {
     .filter(Boolean)
     .join(', ');
 
-  const allTags = open_access ? ['Acceso abierto', ...keywords] : keywords;
+  // keywords ahora son KeywordReference[] — usar .value para el tag label
+  const keywordTags = Array.from(keywords).map((kw) => kw.value);
+  const allTags = open_access ? ['Acceso abierto', ...keywordTags] : keywordTags;
 
   /* Authors (blue links) + year/journal meta (grey) on the same line */
   const authorsNode = (
     <p className="leading-relaxed">
-      {authors.map((author, index) => (
-        <span key={author}>
+      {Array.from(authors).map((author, index) => (
+        <span key={author.id}>
           {/* TODO: replace href with /researchers/[id] once author IDs are available */}
           <Link
-            href={`/researchers?q=${encodeURIComponent(author)}`}
+            href={`/researchers/${author.id}`}
             className="hover:underline"
             style={{ color: 'var(--color-text-brand-primary)' }}
           >
-            {abbreviateAuthor(author)}
+            {author.name}
           </Link>
           {index < authors.length - 1 && (
             <span style={{ color: 'var(--color-text-brand-primary)' }}>{', '}</span>
@@ -94,7 +96,7 @@ export function ProductionCard({ production }: ProductionCardProps) {
       title={title}
       href={`/scientific-productions/${id}`}
       description={authorsNode}
-      excerpt={`Producción científica: ${type.category} › ${type.subcategory}`}
+      excerpt={type ? `Producción científica: ${type}` : 'Producción científica'}
       tags={allTags}
       hideImage
       chromeless

@@ -161,7 +161,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
               )}
 
               <p className="text-[16px] text-(--color-text-neutral-secondary)">
-                Tipo: {production.type.subcategory}
+                Tipo: {production.type}
               </p>
             </div>
 

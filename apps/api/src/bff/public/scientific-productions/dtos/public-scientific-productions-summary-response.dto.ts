@@ -1,14 +1,19 @@
+import {
+  AuthorReference,
+  KeywordReference,
+} from '../../../../modules/scientific-productions/scientific-productions.reader.contract';
+
 export class ScientificProductioSummaryResponseDto {
   id!: string;
   title!: string;
-  authors!: string;
-  type!: string;
-  openAccess!: boolean;
+  authors!: AuthorReference[] | null;
+  type!: string | null;
+  openAccess!: boolean | null;
   publicationYear!: number;
-  doi!: string;
-  journal!: string;
-  volume!: number;
-  issue!: number;
-  pages!: string;
-  keywords!: string;
+  doi!: string | null;
+  journal!: string | null;
+  volume!: string | null;
+  issue!: string | null;
+  pages!: string | null;
+  keywords!: KeywordReference[] | null;
 }

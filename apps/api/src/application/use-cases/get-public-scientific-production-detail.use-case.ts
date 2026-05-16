@@ -24,8 +24,8 @@ export class GetScientificProductionDetailUseCase {
     return {
       id: item.id,
       title: item.title,
-      authors: item.authors,
-      principalAuthor: item.principalAuthor,
+      ucrAuthors: item.ucrAuthors,
+      externalAuthors: item.externalAuthors,
       unit: item.unit,
       affiliations: item.affiliations,
       type: item.type,

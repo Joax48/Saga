@@ -22,6 +22,7 @@ import { GetScientificProductionDetailUseCase } from './application/use-cases/ge
 import { GetResearcherDetailUseCase } from './application/use-cases/get-public-researcher-detail.use-case';
 import { GetResearchersFiltersUseCase } from './application/use-cases/get-public-researchers-filters.use-case';
 import { GetProjectDetailUseCase } from './application/use-cases/get-public-project-detail.use-case';
+import { GetScientificProductionsFiltersUseCase } from './application/use-cases/get-public-scientific-production-filters.use-case';
 
 // Root application module.
 // When domain modules (ResearchersModule, UnitsModule, ProjectsModule,
@@ -53,6 +54,7 @@ import { GetProjectDetailUseCase } from './application/use-cases/get-public-proj
     GetProjectDetailUseCase,
     GetScientificProductionPaginatedListUseCase,
     GetScientificProductionDetailUseCase,
+    GetScientificProductionsFiltersUseCase,
     GetResearchersPaginatedListUseCase,
     GetResearcherDetailUseCase,
     GetUnitsPaginatedListUseCase,

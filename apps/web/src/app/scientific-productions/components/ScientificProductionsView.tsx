@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useCallback, useTransition, useState, useEffect } from 'react';
+import { useMemo, useCallback, useTransition, useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import PageHeroSearch from '@/components/PageHeroSearch';
 import Pagination from '@/components/Pagination';
@@ -9,6 +9,7 @@ import { FilterSidebar } from '../../../components/FilterSidebar';
 import { ProductionCard } from './ProductionCard';
 import type { FilterGroupConfig } from '../../../components/FilterSidebar';
 import type { SummaryScientificProduction } from '@/types';
+import type { FiltersApiResponse } from '@/services/scientific-productions';
 
 /* ─── Constants ──────────────────────────────────────────────────────── */
 
@@ -16,9 +17,9 @@ const BREADCRUMB_ITEMS = [{ label: 'Producción científica' }];
 
 interface ActiveFilters {
   q?: string;
-  type?: string;
+  type?: string[];
   openAccess?: boolean;
-  year?: number;
+  year?: string[];
   keywords?: string[];
 }
 
@@ -28,6 +29,7 @@ interface ScientificProductionsViewProps {
   currentPage: number;
   limit: number;
   activeFilters: ActiveFilters;
+  filterOptions: FiltersApiResponse;
 }
 
 export function ScientificProductionsView({
@@ -36,6 +38,7 @@ export function ScientificProductionsView({
   currentPage,
   limit,
   activeFilters,
+  filterOptions,
 }: ScientificProductionsViewProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -64,7 +67,9 @@ export function ScientificProductionsView({
 
       startTransition(() => {
         const url = `${pathname}?${params.toString()}`;
-        mode === 'replace' ? router.replace(url) : router.push(url);
+        mode === 'replace'
+          ? router.replace(url, { scroll: false })
+          : router.push(url, { scroll: false });
       });
     },
     [router, pathname, searchParams],
@@ -95,106 +100,86 @@ export function ScientificProductionsView({
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
-  // los filterGroups ahora leen activeFilters en lugar del estado local
   const filterGroups = useMemo<FilterGroupConfig[]>(() => {
-    // los conteos vienen de los items de la página actual
-    // cuando tengas el endpoint de facets del servidor los reemplazás
-    const yearCounts = productions.reduce<Record<number, number>>((acc, p) => {
-      acc[p.publication_year] = (acc[p.publication_year] ?? 0) + 1;
-      return acc;
-    }, {});
-
-    const keywordCounts = productions.reduce<Record<string, number>>((acc, p) => {
-      p.keywords.forEach((kw) => {
-        acc[kw] = (acc[kw] ?? 0) + 1;
-      });
-      return acc;
-    }, {});
-
-    const typeCounts = productions.reduce<Record<string, number>>((acc, p) => {
-      acc[p.type.subcategory] = (acc[p.type.subcategory] ?? 0) + 1;
-      return acc;
-    }, {});
-
     return [
       {
         kind: 'options',
         title: 'Tipo',
         groupKey: 'type',
-        options: Object.entries(typeCounts)
-          .sort((a, b) => b[1] - a[1])
-          .map(([value, count]) => ({ value, label: value, count })),
-        selectedValues: activeFilters.type ? [activeFilters.type] : [],
-        onToggle: (v) =>
-          updateParams({
-            type: activeFilters.type === v ? null : v,
-          }),
+        options: filterOptions.types ?? [],
+        selectedValues: activeFilters.type ?? [],
+        onToggle: (v) => {
+          const current = activeFilters.type ?? [];
+          const updated = current.includes(v)
+            ? current.filter((t) => t !== v)
+            : [...current, v];
+          updateParams({ type: updated.length > 0 ? updated.join(',') : null });
+          scrollToResults();
+        },
       },
       {
         kind: 'boolean',
         title: 'Acceso abierto',
         id: 'filter-open-access',
         label: 'Contenido abierto',
-        count: productions.filter((p) => p.open_access).length,
+        count: filterOptions.openAccessCount ?? 0,
         checked: activeFilters.openAccess ?? false,
-        onChange: () =>
-          updateParams({
-            openAccess: activeFilters.openAccess ? null : 'true',
-          }),
+        onChange: () => {
+          updateParams({ openAccess: activeFilters.openAccess ? null : 'true' });
+          scrollToResults();
+        },
       },
       {
         kind: 'options',
         title: 'Año de publicación',
         groupKey: 'year',
-        options: Object.entries(yearCounts)
-          .sort((a, b) => Number(b[0]) - Number(a[0]))
-          .map(([value, count]) => ({ value, label: value, count })),
-        selectedValues: activeFilters.year ? [String(activeFilters.year)] : [],
-        onToggle: (v) =>
-          updateParams({
-            year: activeFilters.year === Number(v) ? null : v,
-          }),
+        options: filterOptions.years ?? [],
+        selectedValues: activeFilters.year ?? [],
+        onToggle: (v) => {
+          const current = activeFilters.year ?? [];
+          const updated = current.includes(v)
+            ? current.filter((y) => y !== v)
+            : [...current, v];
+          updateParams({ year: updated.length > 0 ? updated.join(',') : null });
+          scrollToResults();
+        },
       },
       {
         kind: 'options',
         title: 'Palabras clave',
         groupKey: 'keyword',
-        options: Object.entries(keywordCounts)
-          .sort((a, b) => b[1] - a[1])
-          .map(([value, count]) => ({ value, label: value, count })),
+        options: filterOptions.keywords ?? [],
         selectedValues: activeFilters.keywords ?? [],
         onToggle: (v) => {
           const current = activeFilters.keywords ?? [];
           const updated = current.includes(v)
             ? current.filter((kw) => kw !== v)
             : [...current, v];
-          updateParams({
-            keywords: updated.length > 0 ? updated.join(',') : null,
-          });
+          updateParams({ keywords: updated.length > 0 ? updated.join(',') : null });
+          scrollToResults();
         },
       },
     ];
-  }, [
-    productions,
-    activeFilters.type,
-    activeFilters.openAccess,
-    activeFilters.year,
-    activeFilters.keywords,
-    updateParams,
-  ]);
+  }, [filterOptions, activeFilters, updateParams]);
+
+  const resultsRef = useRef<HTMLElement>(null);
+
+  const scrollToResults = useCallback(() => {
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
 
   const [filtersVisible, setFiltersVisible] = useState(false);
 
   const hasActiveFilters =
     !!activeFilters.q ||
-    !!activeFilters.type ||
+    !!activeFilters.type?.length ||
     !!activeFilters.openAccess ||
-    !!activeFilters.year ||
+    !!activeFilters.year?.length ||
     (activeFilters.keywords?.length ?? 0) > 0;
 
   const handleClearAll = useCallback(() => {
     startTransition(() => {
-      router.push(pathname); // URL sin params = sin filtros
+      router.push(pathname);
     });
   }, [router, pathname]);
 
@@ -207,7 +192,7 @@ export function ScientificProductionsView({
         onSearch={handleSearch}
       />
 
-      <section className="bg-(--color-bg-neutral-primary) px-6 lg:px-10 py-14">
+      <section ref={resultsRef} className="bg-(--color-bg-neutral-primary) px-6 lg:px-10 py-14 scroll-mt-10">
         <div className="max-w-6xl mx-auto">
           <div className="mb-4 lg:hidden">
             <Button
