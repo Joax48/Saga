@@ -98,6 +98,12 @@ export class ProjectsReaderService implements ProjectsReader {
           id: String(profile.id),
           name: profile.name,
           ...(profile.role ? { role: profile.role } : {}),
+          ...(profile.participationStartDate
+            ? { participationStartDate: profile.participationStartDate }
+            : {}),
+          ...(profile.participationEndDate
+            ? { participationEndDate: profile.participationEndDate }
+            : {}),
         }),
       ),
     };

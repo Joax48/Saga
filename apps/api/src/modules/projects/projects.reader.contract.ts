@@ -3,6 +3,8 @@ export const PROJECTS_READER = Symbol('PROJECTS_READER');
 export interface ManagerReferenceDto {
   id: number;
   name: string;
+  participationStartDate?: string;
+  participationEndDate?: string;
 }
 
 export interface UnitReferenceDto {
@@ -14,6 +16,8 @@ export interface ProjectAssociatedProfileDto {
   id: string;
   name: string;
   role?: string;
+  participationStartDate?: string;
+  participationEndDate?: string;
 }
 
 export interface ProjectListItemDto {

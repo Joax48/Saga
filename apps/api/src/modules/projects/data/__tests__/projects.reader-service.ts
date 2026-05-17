@@ -258,8 +258,13 @@ describe('ProjectsReaderService', () => {
 
     it('should map the project detail to the frontend-friendly shape', async () => {
       repository.findById.mockResolvedValue({
-        id: 1,
-        projectManager: { id: 2, name: 'Koen Voorend' },
+        id: '1',
+        projectManager: {
+          id: 2,
+          name: 'Koen Voorend',
+          participationStartDate: '2023-01-01',
+          participationEndDate: '2024-12-31',
+        },
         code: 'C3992',
         name: 'El costo de una vida digna en Costa Rica',
         description: 'Descripcion del proyecto',
@@ -285,7 +290,12 @@ describe('ProjectsReaderService', () => {
         code: 'C3992',
         title: 'El costo de una vida digna en Costa Rica',
         description: 'Descripcion del proyecto',
-        manager: { id: 2, name: 'Koen Voorend' },
+        manager: {
+          id: 2,
+          name: 'Koen Voorend',
+          participationStartDate: '2023-01-01',
+          participationEndDate: '2024-12-31',
+        },
         unit: { id: 15, name: 'Instituto de Investigaciones Sociales' },
         disciplines: ['Ciencias Sociales', 'Estadistica'],
         researchType: 'Basica',

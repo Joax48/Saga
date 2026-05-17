@@ -2,11 +2,15 @@ export class ProjectAssociatedProfileResponseDto {
   id!: string;
   name!: string;
   role?: string;
+  participationStartDate?: string;
+  participationEndDate?: string;
 }
 
 export class ManagerReferenceResponseDto {
   id!: number;
   name!: string;
+  participationStartDate?: string;
+  participationEndDate?: string;
 }
 
 export class UnitReferenceResponseDto {

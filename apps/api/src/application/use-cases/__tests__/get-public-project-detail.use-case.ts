@@ -26,7 +26,12 @@ describe('GetProjectDetailUseCase', () => {
       code: 'C3992',
       title: 'El costo de una vida digna en Costa Rica',
       description: 'Descripcion del proyecto',
-      manager: { id: 2, name: 'Koen Voorend' },
+      manager: {
+        id: 2,
+        name: 'Koen Voorend',
+        participationStartDate: '2023-06-01',
+        participationEndDate: '2025-12-31',
+      },
       unit: { id: 15, name: 'Instituto de Investigaciones Sociales' },
       disciplines: ['Ciencias Sociales', 'Estadistica'],
       researchType: 'Basica',

@@ -7,6 +7,8 @@ export interface ProjectAssociatedProfile {
   id: number;
   name: string;
   role?: string;
+  participationStartDate?: string;
+  participationEndDate?: string;
 }
 
 export interface Project {
@@ -23,7 +25,12 @@ export interface Project {
   endDate: string;
 }
 
-export interface ProjectDetail extends Project {
+export interface ProjectDetail extends Omit<Project, 'id' | 'projectManager'> {
+  id: string;
+  projectManager: NamedExternalReference & {
+    participationStartDate?: string;
+    participationEndDate?: string;
+  };
   description: string;
   unit: NamedExternalReference;
   disciplines: string[];
