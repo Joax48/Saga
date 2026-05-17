@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   RESEARCHERS_READER,
   ResearchersReader,
+  ResearchersFiltersRequestDto,
 } from '../../modules/researchers/researchers.reader.contract';
 
 @Injectable()
@@ -12,7 +13,7 @@ export class GetResearchersFiltersUseCase {
     private readonly reader: ResearchersReader,
   ) {}
 
-  execute() {
-    return this.reader.getFilters();
+  execute(query?: string, filters?: ResearchersFiltersRequestDto) {
+    return this.reader.getFilters(query, filters);
   }
 }

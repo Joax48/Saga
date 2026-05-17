@@ -1,3 +1,8 @@
+export interface ResearcherListLinkedUnit {
+  id: string;
+  name: string;
+}
+
 export interface Researcher {
   id: string;
   idUcrProfile: string;
@@ -11,6 +16,7 @@ export interface Researcher {
   researchGate: string | null;
   scopus: string | null;
   photoUrl: string | null;
+  linkedUnits: ResearcherListLinkedUnit[];
   position?: string;
   altNames?: string[];
   profileLinks?: { label: string; href: string; icon: any }[];

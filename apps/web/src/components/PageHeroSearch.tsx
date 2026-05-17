@@ -23,6 +23,9 @@ type PageHeroSearchProps = {
 
   /** Callback fired when the user submits a search query */
   onSearch: (query: string) => void;
+
+  /** Pre-fills the search bar on mount (e.g. when restoring from URL params) */
+  initialSearchValue?: string;
 };
 
 /**
@@ -50,6 +53,7 @@ export default function PageHeroSearch({
   title,
   searchPlaceholder,
   onSearch,
+  initialSearchValue,
 }: PageHeroSearchProps) {
   return (
     <section className="px-6 lg:px-10 pt-4 pb-20 bg-[url('/ucr_hero_image.png')] bg-cover bg-center">
@@ -61,7 +65,7 @@ export default function PageHeroSearch({
         <div className="flex justify-start h-10"></div>
         <h1 className="mb-6 text-h1 text-center font-bold text-white">{title}</h1>
 
-        <SearchBar placeholder={searchPlaceholder} onSearch={onSearch} />
+        <SearchBar placeholder={searchPlaceholder} onSearch={onSearch} initialValue={initialSearchValue} />
       </div>
       <div className="flex justify-start h-30"></div>
     </section>

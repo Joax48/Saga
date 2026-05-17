@@ -20,6 +20,7 @@ import { GetResearchersPaginatedListUseCase } from './application/use-cases/get-
 import { GetScientificProductionPaginatedListUseCase } from './application/use-cases/get-public-scientific-productions-paginated-list.use-case';
 import { GetScientificProductionDetailUseCase } from './application/use-cases/get-public-scientific-production-detail.use-case';
 import { GetResearcherDetailUseCase } from './application/use-cases/get-public-researcher-detail.use-case';
+import { GetResearcherProfileUseCase } from './application/use-cases/get-public-researcher-profile.use-case';
 import { GetResearchersFiltersUseCase } from './application/use-cases/get-public-researchers-filters.use-case';
 import { GetProjectDetailUseCase } from './application/use-cases/get-public-project-detail.use-case';
 import { GetScientificProductionsFiltersUseCase } from './application/use-cases/get-public-scientific-production-filters.use-case';
@@ -57,6 +58,7 @@ import { GetScientificProductionsFiltersUseCase } from './application/use-cases/
     GetScientificProductionsFiltersUseCase,
     GetResearchersPaginatedListUseCase,
     GetResearcherDetailUseCase,
+    GetResearcherProfileUseCase,
     GetUnitsPaginatedListUseCase,
     GetPublicUnitDetailUseCase,
     GetResearchersFiltersUseCase,

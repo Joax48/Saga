@@ -19,7 +19,7 @@ export default function Footer() {
         <ul className="flex flex-col gap-2 pt-4 text-white text-xs">
           <li>
             <Link href="/researchers" className="hover:underline">
-              Investigadores
+              Perfiles
             </Link>
           </li>
           <li>

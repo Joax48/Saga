@@ -1,3 +1,8 @@
+export class ResearcherLinkedUnitSummaryDto {
+  id!: string;
+  name!: string;
+}
+
 export class ResearcherSummaryResponseDto {
   id!: string;
   idUcrProfile!: string;
@@ -11,4 +16,5 @@ export class ResearcherSummaryResponseDto {
   researchGate!: string | null;
   scopus!: string | null;
   photoUrl!: string | null;
+  linkedUnits!: ResearcherLinkedUnitSummaryDto[];
 }

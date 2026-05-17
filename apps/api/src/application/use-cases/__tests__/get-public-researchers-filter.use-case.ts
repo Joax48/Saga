@@ -17,52 +17,167 @@ describe('GetResearchersFiltersUseCase', () => {
     jest.clearAllMocks();
   });
 
-  test.each([
-    ['two baseUnits', ['Escuela de Matemática', 'Escuela de Biología']],
-    ['empty baseUnits', []],
-    [
-      'four baseUnits',
+  describe('execute without filters', () => {
+    test.each([
       [
-        'Escuela de Matemática',
-        'Escuela de Biología',
-        'Escuela de Física',
-        'Escuela de Química',
+        'two baseUnits with counts',
+        [
+          { value: 'Escuela de Matemática', count: 15 },
+          { value: 'Escuela de Biología', count: 8 },
+        ],
       ],
-    ],
-  ])('returns %s from reader', async (_label, baseUnit) => {
-    const mockFilters = { baseUnit };
+      ['empty baseUnits', []],
+      [
+        'four baseUnits with different counts',
+        [
+          { value: 'Escuela de Matemática', count: 15 },
+          { value: 'Escuela de Biología', count: 8 },
+          { value: 'Escuela de Física', count: 12 },
+          { value: 'Escuela de Química', count: 6 },
+        ],
+      ],
+    ])('returns %s from reader', async (_label, baseUnit) => {
+      const mockFilters = { baseUnit };
 
-    researchersReader.getFilters.mockResolvedValue(mockFilters);
+      researchersReader.getFilters.mockResolvedValue(mockFilters);
 
-    const result = await useCase.execute();
+      const result = await useCase.execute();
 
-    expect(researchersReader.getFilters).toHaveBeenCalledTimes(1);
-    expect(result.baseUnit).toHaveLength(baseUnit.length);
-    expect(result.baseUnit).toEqual(baseUnit);
+      expect(researchersReader.getFilters).toHaveBeenCalledWith(undefined, undefined);
+      expect(researchersReader.getFilters).toHaveBeenCalledTimes(1);
+      expect(result.baseUnit).toHaveLength(baseUnit.length);
+      expect(result.baseUnit).toEqual(baseUnit);
+    });
+
+    it('includes count for each baseUnit in the response', async () => {
+      const mockFilters = {
+        baseUnit: [
+          { value: 'Escuela de Informática', count: 25 },
+          { value: 'Escuela de Ingeniería', count: 18 },
+        ],
+      };
+
+      researchersReader.getFilters.mockResolvedValue(mockFilters);
+
+      const result = await useCase.execute();
+
+      expect(result.baseUnit).toHaveLength(2);
+      expect(result.baseUnit[0]).toHaveProperty('value');
+      expect(result.baseUnit[0]).toHaveProperty('count');
+      expect(result.baseUnit[0].count).toBe(25);
+      expect(result.baseUnit[1].count).toBe(18);
+    });
   });
 
-  it('handles undefined response from reader', async () => {
-    researchersReader.getFilters.mockResolvedValue(undefined as never);
+  describe('execute with query parameter', () => {
+    it('forwards query to the reader', async () => {
+      const mockFilters = {
+        baseUnit: [{ value: 'Escuela de Informática', count: 10 }],
+      };
 
-    await expect(useCase.execute()).resolves.toBeUndefined();
-    expect(researchersReader.getFilters).toHaveBeenCalledTimes(1);
+      researchersReader.getFilters.mockResolvedValue(mockFilters);
+
+      await useCase.execute('machine learning');
+
+      expect(researchersReader.getFilters).toHaveBeenCalledWith(
+        'machine learning',
+        undefined,
+      );
+    });
+
+    it('returns filtered results when query is provided', async () => {
+      const mockFilters = {
+        baseUnit: [
+          { value: 'Escuela de Informática', count: 8 },
+          { value: 'Escuela de Ingeniería', count: 5 },
+        ],
+      };
+
+      researchersReader.getFilters.mockResolvedValue(mockFilters);
+
+      const result = await useCase.execute('AI');
+
+      expect(result.baseUnit).toHaveLength(2);
+      expect(researchersReader.getFilters).toHaveBeenCalledWith('AI', undefined);
+    });
   });
 
-  it('does not mutate reader result', async () => {
-    const filters = { baseUnit: ['Escuela de Informática'] };
+  describe('execute with filter parameters', () => {
+    it('forwards filters to the reader', async () => {
+      const mockFilters = {
+        baseUnit: [{ value: 'Escuela de Informática', count: 12 }],
+      };
+      const requestFilters = { unit: ['Escuela de Informática'] };
 
-    researchersReader.getFilters.mockResolvedValue(filters);
+      researchersReader.getFilters.mockResolvedValue(mockFilters);
 
-    const result = await useCase.execute();
+      await useCase.execute(undefined, requestFilters);
 
-    expect(result).toBe(filters);
-    expect(researchersReader.getFilters).toHaveBeenCalledTimes(1);
+      expect(researchersReader.getFilters).toHaveBeenCalledWith(
+        undefined,
+        requestFilters,
+      );
+    });
+
+    it('returns results filtered by unit when filters are provided', async () => {
+      const mockFilters = {
+        baseUnit: [{ value: 'CIMPA', count: 10 }],
+      };
+      const requestFilters = { unit: ['CIMPA'] };
+
+      researchersReader.getFilters.mockResolvedValue(mockFilters);
+
+      const result = await useCase.execute(undefined, requestFilters);
+
+      expect(result.baseUnit).toHaveLength(1);
+      expect(result.baseUnit[0].value).toBe('CIMPA');
+    });
   });
 
-  it('propagates errors thrown by the reader', async () => {
-    researchersReader.getFilters.mockRejectedValue(new Error('DataBase error'));
+  describe('execute with both query and filters', () => {
+    it('forwards both query and filters to the reader', async () => {
+      const mockFilters = {
+        baseUnit: [{ value: 'Escuela de Informática', count: 5 }],
+      };
+      const requestFilters = { unit: ['Escuela de Informática'] };
 
-    await expect(useCase.execute()).rejects.toThrow('DataBase error');
-    expect(researchersReader.getFilters).toHaveBeenCalledTimes(1);
+      researchersReader.getFilters.mockResolvedValue(mockFilters);
+
+      await useCase.execute('data science', requestFilters);
+
+      expect(researchersReader.getFilters).toHaveBeenCalledWith(
+        'data science',
+        requestFilters,
+      );
+    });
+  });
+
+  describe('error handling', () => {
+    it('handles undefined response from reader', async () => {
+      researchersReader.getFilters.mockResolvedValue(undefined as never);
+
+      await expect(useCase.execute()).resolves.toBeUndefined();
+      expect(researchersReader.getFilters).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not mutate reader result', async () => {
+      const filters = {
+        baseUnit: [{ value: 'Escuela de Informática', count: 10 }],
+      };
+
+      researchersReader.getFilters.mockResolvedValue(filters);
+
+      const result = await useCase.execute();
+
+      expect(result).toBe(filters);
+      expect(researchersReader.getFilters).toHaveBeenCalledTimes(1);
+    });
+
+    it('propagates errors thrown by the reader', async () => {
+      researchersReader.getFilters.mockRejectedValue(new Error('DataBase error'));
+
+      await expect(useCase.execute()).rejects.toThrow('DataBase error');
+      expect(researchersReader.getFilters).toHaveBeenCalledTimes(1);
+    });
   });
 });

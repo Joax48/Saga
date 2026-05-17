@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Breadcrumb from '../../../components/Breadcrumb';
 import DetailNavbar from '../../../components/DetailNavbar';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import {
   ExternalLink,
@@ -13,17 +14,15 @@ import {
   Tag,
   BookOpen,
   Briefcase,
-  Layers,
 } from 'lucide-react';
-import { getResearcherById } from '../../../services/researchers';
-import { getScientificProductions } from '../../../services/scientific-productions';
-import { getProjects } from '../../../services/projects';
+import { getResearcherProfile } from '../../../services/researchers';
 import { ProductionCard } from '../../scientific-productions/components';
 import ProjectListItem from '../../projects/components/ProjectListItem';
-import CollaborationMapPreview from '../../../components/CollaborationMapPreview';
 import type { SummaryScientificProduction } from '../../../types';
-import type { ProjectSummaryItem } from '../../../types/projects.types';
-import type { Researcher } from '../../../types/researcher-data';
+import type {
+  ResearcherProfile,
+  ResearcherScientificOutput,
+} from '../../../types/researcher-profile';
 
 interface ResearchersDetailPageProps {
   params: { id: string };
@@ -32,15 +31,13 @@ interface ResearchersDetailPageProps {
 const profileSections = [
   { id: 'personal', name: 'Perfil Personal', icon: <Users size={18} /> },
   { id: 'keywords', name: 'Palabras clave', icon: <Tag size={18} /> },
-  { id: 'collaboration', name: 'Redes de colaboración', icon: <Layers size={18} /> },
   { id: 'production', name: 'Producción científica', icon: <BookOpen size={18} /> },
   { id: 'projects', name: 'Proyectos', icon: <Briefcase size={18} /> },
-  { id: 'other', name: 'Otras producciones', icon: <Globe size={18} /> },
 ];
 
 // Builds the profile links array from the researcher's real data,
 // only including links that are not null.
-function buildProfileLinks(researcher: Researcher) {
+function buildProfileLinks(researcher: ResearcherProfile) {
   const links = [];
 
   if (researcher.orcidId) {
@@ -85,27 +82,61 @@ function getAvatarUrl(...nameParts: (string | null)[]): string {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0D8ABC&color=fff&size=200`;
 }
 
+function formatAlternativeName(altName: {
+  name: string;
+  firstSurname: string;
+  lastSurname: string | null;
+}): string {
+  return [altName.name, altName.firstSurname, altName.lastSurname]
+    .filter(Boolean)
+    .join(' ');
+}
+
+// Adapts a backend ResearcherScientificOutput to the SummaryScientificProduction
+// shape consumed by the existing ProductionCard component, preserving the visual
+// design without forking the component.
+function toSummaryScientificProduction(
+  output: ResearcherScientificOutput,
+): SummaryScientificProduction {
+  return {
+    id: output.id,
+    title: output.title,
+    authors: output.authors,
+    type: {
+      category: output.type.category,
+      subcategory: output.type.subcategory,
+    },
+    open_access: output.openAccess,
+    publication_year: output.publicationYear,
+    doi: output.doi ?? '',
+    journal: output.journal ?? undefined,
+    volume: output.volume != null ? Number(output.volume) : undefined,
+    issue: output.issue != null ? Number(output.issue) : undefined,
+    pages: output.pages ?? undefined,
+    keywords: output.keywords,
+  };
+}
+
+function formatDateOnly(value: string | null): string {
+  if (!value) return '';
+  // Strip the time portion; the backend returns ISO timestamps from Oracle.
+  return value.slice(0, 10);
+}
+
 export default function ResearchersDetailPage({ params }: ResearchersDetailPageProps) {
   const [activeSection, setActiveSection] = useState('personal');
-  const [researcher, setResearcher] = useState<Researcher | null>(null);
+  const [profile, setProfile] = useState<ResearcherProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [productions, setProductions] = useState<SummaryScientificProduction[]>([]);
-  const [projects, setProjects] = useState<ProjectSummaryItem[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch the specific researcher by ID instead of loading a list and searching
-        const found = await getResearcherById(params.id);
-        setResearcher(found);
-
-        const productionsResponse = await getScientificProductions({ page: 1, limit: 10 });
-        setProductions(productionsResponse.items);
-
-        const projectsResponse = await getProjects(1, 10);
-        setProjects(projectsResponse.data);
+        const data = await getResearcherProfile(params.id);
+        setProfile(data);
       } catch (error) {
         console.error(error);
+        setLoadError('No se pudo cargar el perfil.');
       } finally {
         setLoading(false);
       }
@@ -118,29 +149,33 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
     return <div className="p-6">Cargando...</div>;
   }
 
-  if (!researcher) {
-    return <div className="p-6">Investigador no encontrado.</div>;
+  if (loadError) {
+    return <div className="p-6">{loadError}</div>;
   }
 
-  const fullName = [researcher.name, researcher.firstSurname, researcher.secondSurname]
+  if (!profile) {
+    return <div className="p-6">Perfil no encontrado.</div>;
+  }
+
+  const fullName = [profile.name, profile.firstSurname, profile.secondSurname]
     .filter(Boolean)
     .join(' ');
 
-  const profileLinks = buildProfileLinks(researcher);
+  const profileLinks = buildProfileLinks(profile);
 
   const photo =
-    researcher.photoUrl ||
-    getAvatarUrl(researcher.name, researcher.firstSurname, researcher.secondSurname);
+    profile.photoUrl ||
+    getAvatarUrl(profile.name, profile.firstSurname, profile.secondSurname);
+
+  const productions = profile.scientificOutputs.map(toSummaryScientificProduction);
+  const projects = profile.projects;
 
   return (
     <main className="min-h-screen bg-[var(--color-bg-neutral-primary)]">
       <div className="bg-white">
-        <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto px-6 py-8">
           <Breadcrumb
-            items={[
-              { label: 'Perfiles', href: '/researchers' },
-              { label: fullName },
-            ]}
+            items={[{ label: 'Perfiles', href: '/researchers' }, { label: fullName }]}
           />
 
           <div className="mt-8 flex flex-col md:flex-row gap-6 md:gap-8 items-start">
@@ -156,29 +191,89 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
 
             <div className="flex-1 min-w-0 space-y-1">
               <div className="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
-                <h1 className="text-2xl font-semibold text-[var(--color-text-neutral-primary)] truncate">
+                <h1 className="text-[32px] font-normal text-[var(--color-text-neutral-primary)] truncate">
                   {fullName}
                 </h1>
               </div>
 
-              {researcher.ceaCategory && (
-                <p className="text-sm text-[var(--color-text-neutral-secondary)]">
-                  {researcher.ceaCategory}
+              {profile.alternativeNames.length > 0 && (
+                <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                  También conocido como:{' '}
+                  {profile.alternativeNames.map(formatAlternativeName).join(' · ')}
                 </p>
               )}
 
-              {researcher.baseUnit && (
-                <p className="text-sm text-[var(--color-text-brand-primary)]">
-                  {researcher.baseUnit}
+              {profile.ceaCategory && (
+                <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                  {profile.ceaCategory}
                 </p>
               )}
 
-              {profileLinks.length > 0 && (
-                <div className="pt-6 space-y-3">
-                  <h2 className="text-base font-semibold text-[var(--color-text-neutral-primary)]">
-                    Enlaces de interés
-                  </h2>
-                  <div className="flex items-center gap-3">
+              <div className="space-y-1">
+                <p
+                  className="text-[16px] font-semibold"
+                  style={{ color: 'var(--color-text-neutral-secondary)' }}
+                >
+                  Unidad base
+                </p>
+                {profile.baseUnit ? (
+                  <p
+                    className="text-[16px]"
+                    style={{ color: 'var(--color-text-brand-primary)' }}
+                  >
+                    {profile.baseUnit}
+                  </p>
+                ) : (
+                  <p
+                    className="text-[16px]"
+                    style={{ color: 'var(--color-text-neutral-secondary)' }}
+                  >
+                    Sin unidad base registrada
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <p
+                  className="text-[16px] font-semibold"
+                  style={{ color: 'var(--color-text-neutral-secondary)' }}
+                >
+                  Unidades asociadas
+                </p>
+                {profile.linkedUnits.length > 0 ? (
+                  <p className="text-[16px]">
+                    {profile.linkedUnits.map((unit, idx) => (
+                      <span key={unit.id}>
+                        {idx > 0 && ', '}
+                        <Link
+                          href={`/units/${unit.id}`}
+                          className="hover:underline"
+                          style={{ color: 'var(--color-text-brand-primary)' }}
+                        >
+                          {unit.name}
+                        </Link>
+                      </span>
+                    ))}
+                  </p>
+                ) : (
+                  <p
+                    className="text-[16px]"
+                    style={{ color: 'var(--color-text-neutral-secondary)' }}
+                  >
+                    Sin unidades asociadas registradas
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-1 pt-4">
+                <p
+                  className="text-[16px] font-semibold"
+                  style={{ color: 'var(--color-text-neutral-secondary)' }}
+                >
+                  Enlaces de interés
+                </p>
+                {profileLinks.length > 0 ? (
+                  <div className="flex items-center gap-3 pt-1">
                     {profileLinks.map((link) => (
                       <a
                         key={link.label}
@@ -192,8 +287,15 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                       </a>
                     ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <p
+                    className="text-[16px]"
+                    style={{ color: 'var(--color-text-neutral-secondary)' }}
+                  >
+                    Sin enlaces de interés asociados
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -204,32 +306,151 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
           categories={profileSections}
           defaultActive="personal"
           onCategoryChange={setActiveSection}
-          containerClassName="max-w-6xl mx-auto flex items-center px-6 h-16"
-          itemClassName="flex items-center gap-2 px-4 h-full border-b-2 border-transparent text-sm text-[var(--color-text-neutral-secondary)] transition cursor-pointer hover:text-[var(--color-text-neutral-primary)]"
+          containerClassName="max-w-7xl mx-auto flex items-center px-6 h-16"
+          itemClassName="flex items-center gap-2 px-4 h-full border-b-2 border-transparent text-[16px] text-[var(--color-text-neutral-secondary)] transition cursor-pointer hover:text-[var(--color-text-neutral-primary)]"
           activeItemClassName="border-b-2 border-[var(--color-text-brand-primary)] text-[var(--color-text-brand-primary)] font-medium"
+          hideSectionTitle
         />
 
-        <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto px-6 py-8">
           {activeSection === 'personal' && (
             <section className="space-y-8">
               <div>
-                <h3 className="text-base font-semibold text-[var(--color-text-neutral-primary)] mb-3">
+                <h3 className="text-[22px] font-normal text-[var(--color-text-neutral-primary)] mb-4">
                   Información
                 </h3>
-                <ul className="space-y-2 text-sm text-[var(--color-text-neutral-primary)]">
-                  {researcher.baseUnit && (
-                    <li><span className="font-medium">Unidad base:</span> {researcher.baseUnit}</li>
-                  )}
-                  {researcher.ceaCategory && (
-                    <li><span className="font-medium">Categoría:</span> {researcher.ceaCategory}</li>
-                  )}
-                  {researcher.orcidId && (
-                    <li><span className="font-medium">ORCID:</span> {researcher.orcidId}</li>
-                  )}
-                </ul>
-                {!researcher.baseUnit && !researcher.ceaCategory && !researcher.orcidId && (
-                  <p className="text-sm text-[var(--color-text-neutral-secondary)]">
-                    No hay información adicional disponible.
+                <div className="space-y-4 text-[16px]">
+                  <div>
+                    <p
+                      className="text-[16px] font-semibold mb-1"
+                      style={{ color: 'var(--color-text-neutral-secondary)' }}
+                    >
+                      Unidad base
+                    </p>
+                    {profile.baseUnit ? (
+                      <p style={{ color: 'var(--color-text-brand-primary)' }}>
+                        {profile.baseUnit}
+                      </p>
+                    ) : (
+                      <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                        Sin unidad base registrada
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <p
+                      className="text-[16px] font-semibold mb-1"
+                      style={{ color: 'var(--color-text-neutral-secondary)' }}
+                    >
+                      Unidades asociadas
+                    </p>
+                    {profile.linkedUnits.length > 0 ? (
+                      <p className="text-[var(--color-text-neutral-primary)]">
+                        {profile.linkedUnits.map((unit, idx) => (
+                          <span key={unit.id}>
+                            {idx > 0 && ', '}
+                            <Link
+                              href={`/units/${unit.id}`}
+                              className="hover:underline"
+                              style={{ color: 'var(--color-text-brand-primary)' }}
+                            >
+                              {unit.name}
+                            </Link>
+                          </span>
+                        ))}
+                      </p>
+                    ) : (
+                      <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                        Sin unidades asociadas registradas
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <p
+                      className="text-[16px] font-semibold mb-1"
+                      style={{ color: 'var(--color-text-neutral-secondary)' }}
+                    >
+                      Categoría
+                    </p>
+                    <p className="text-[var(--color-text-neutral-primary)]">
+                      {profile.ceaCategory ?? (
+                        <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                          No disponible
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p
+                      className="text-[16px] font-semibold mb-1"
+                      style={{ color: 'var(--color-text-neutral-secondary)' }}
+                    >
+                      ORCID
+                    </p>
+                    <p className="text-[var(--color-text-neutral-primary)]">
+                      {profile.orcidId ?? (
+                        <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                          No disponible
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-[22px] font-normal text-[var(--color-text-neutral-primary)] mb-4">
+                  Formación académica
+                </h3>
+                {profile.education.length > 0 ? (
+                  <ul className="space-y-3 text-[16px] text-[var(--color-text-neutral-primary)]">
+                    {profile.education.map((edu, idx) => (
+                      <li key={`${edu.degree}-${edu.institution}-${idx}`}>
+                        <span className="font-bold">
+                          {edu.degree}
+                          {edu.fieldOfStudy ? ` en ${edu.fieldOfStudy}` : ''}
+                        </span>
+                        {edu.institution ? ` — ${edu.institution}` : ''}
+                        {edu.country ? `, ${edu.country}` : ''}
+                        {edu.graduationYear ? ` (${edu.graduationYear})` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                    No hay formación académica registrada para este perfil.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <h3 className="text-[22px] font-normal text-[var(--color-text-neutral-primary)] mb-4">
+                  Experiencia laboral relevante
+                </h3>
+                {profile.experience.length > 0 ? (
+                  <ul className="space-y-3 text-[16px] text-[var(--color-text-neutral-primary)]">
+                    {profile.experience.map((exp, idx) => (
+                      <li key={`${exp.position}-${exp.organization}-${idx}`}>
+                        <span className="font-bold">{exp.position}</span>
+                        {exp.organization ? ` — ${exp.organization}` : ''}
+                        {exp.startDate || exp.endDate ? (
+                          <span className="text-[var(--color-text-neutral-secondary)]">
+                            {' ('}
+                            {formatDateOnly(exp.startDate)}
+                            {' → '}
+                            {formatDateOnly(exp.endDate) || 'Actual'}
+                            {')'}
+                          </span>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                    No hay experiencia laboral registrada para este perfil.
                   </p>
                 )}
               </div>
@@ -238,18 +459,22 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
 
           {activeSection === 'keywords' && (
             <section className="space-y-4">
-              <h2 className="text-xl font-semibold text-[var(--color-text-neutral-primary)]">
-                Palabras clave
-              </h2>
-              <p className="text-sm text-[var(--color-text-neutral-secondary)]">
-                No hay palabras clave registradas para este investigador.
-              </p>
-            </section>
-          )}
-
-          {activeSection === 'collaboration' && (
-            <section className="space-y-4">
-              <CollaborationMapPreview />
+              {profile.keywords.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {profile.keywords.map((keyword) => (
+                    <span
+                      key={keyword}
+                      className="px-3 py-1 rounded-full bg-[var(--color-bg-brand-primary)]/10 text-[var(--color-text-brand-primary)] text-[16px]"
+                    >
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                  No hay palabras clave registradas para este perfil.
+                </p>
+              )}
             </section>
           )}
 
@@ -257,12 +482,12 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
             <section className="space-y-4">
               {productions.length > 0 ? (
                 <div className="space-y-4">
-                  {productions.slice(0, 5).map((production) => (
+                  {productions.map((production) => (
                     <ProductionCard key={production.id} production={production} />
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-[var(--color-text-neutral-secondary)]">
+                <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
                   No hay producción científica registrada.
                 </p>
               )}
@@ -273,35 +498,31 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
             <section className="space-y-4">
               {projects.length > 0 ? (
                 <div className="space-y-4">
-                  {projects.slice(0, 5).map((project) => (
+                  {projects.map((project) => (
                     <ProjectListItem
                       key={project.id}
                       code={project.code}
-                      title={project.title}
+                      title={project.name}
                       href={`/projects/${project.id}`}
-                      manager={project.manager}
-                      managerHref={`/researchers?q=${encodeURIComponent(project.manager)}`}
-                      startDate={project.startDate}
-                      endDate={project.endDate}
-                      researchType={project.researchType}
-                      actionType={project.projectType}
+                      manager={project.manager || 'Sin asignar'}
+                      managerHref={
+                        project.manager
+                          ? `/researchers?q=${encodeURIComponent(project.manager)}`
+                          : undefined
+                      }
+                      startDate={formatDateOnly(project.startDate)}
+                      endDate={formatDateOnly(project.endDate)}
+                      researchType={project.researchType ?? '—'}
+                      actionType={project.projectType ?? '—'}
                       keywords={project.keywords}
                     />
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-[var(--color-text-neutral-secondary)]">
+                <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
                   No hay proyectos registrados.
                 </p>
               )}
-            </section>
-          )}
-
-          {activeSection === 'other' && (
-            <section className="space-y-4">
-              <p className="text-sm text-[var(--color-text-neutral-secondary)]">
-                No hay otras producciones registradas.
-              </p>
             </section>
           )}
         </div>

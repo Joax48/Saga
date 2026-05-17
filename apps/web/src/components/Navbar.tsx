@@ -117,7 +117,7 @@ export default function Navbar() {
                 href="/researchers"
                 className="px-3 py-2 rounded-md hover:text-[#00c0f3] transition"
               >
-                Investigadores
+                Perfiles
               </Link>
               <Link
                 href="/units"
@@ -173,7 +173,7 @@ export default function Navbar() {
                     href="/researchers"
                     className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition active:bg-[#D9D9D9] focus:bg-[#D9D9D9]"
                   >
-                    Investigadores
+                    Perfiles
                   </Link>
                 </li>
                 <li>

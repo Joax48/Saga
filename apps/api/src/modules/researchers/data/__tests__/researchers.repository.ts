@@ -169,7 +169,7 @@ describe('ResearchersRepository', () => {
       expect(mockDb.query).toHaveBeenCalledTimes(2);
     });
 
-    it('should apply a WHERE clause searching name, first_surname and second_surname', async () => {
+    it('should apply a WHERE clause searching profile name', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
 
       await repository.findPaginated(1, 10, 'Luis');
@@ -177,16 +177,14 @@ describe('ResearchersRepository', () => {
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
       expect(itemsQuery).toContain('WHERE');
       expect(itemsQuery).toContain('LOWER(p.PROFILE_NAME)');
-      expect(itemsQuery).toContain('LOWER(p.PROFILE_FIRST_SURNAME)');
-      expect(itemsQuery).toContain('LOWER(p.PROFILE_LAST_SURNAME)');
     });
 
-    it('should pass the search term as a contains-match parameter (params array)', async () => {
+    it('should pass the search term as a starts-with parameter (params array)', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
 
       await repository.findPaginated(1, 10, 'Ana');
 
-      expect(mockDb.query.mock.calls[0][1]).toEqual(['%Ana%', '%Ana%', '%Ana%']);
+      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%']);
     });
 
     it('should also apply the WHERE filter in the count query', async () => {
@@ -197,7 +195,7 @@ describe('ResearchersRepository', () => {
       const countQuery = mockDb.query.mock.calls[1][0] as string;
       expect(countQuery).toContain('WHERE');
       expect(countQuery).toContain('LOWER(p.PROFILE_NAME)');
-      expect(mockDb.query.mock.calls[1][1]).toEqual(['%Carlos%', '%Carlos%', '%Carlos%']);
+      expect(mockDb.query.mock.calls[1][1]).toEqual(['Carlos%']);
     });
 
     it('should return an empty list when no researchers match the search term', async () => {
@@ -207,6 +205,24 @@ describe('ResearchersRepository', () => {
 
       expect(result.items).toEqual([]);
       expect(result.total).toBe(0);
+    });
+
+    it('should not apply a WHERE clause when the search term is only whitespace', async () => {
+      mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
+
+      await repository.findPaginated(1, 10, '   ');
+
+      const itemsQuery = mockDb.query.mock.calls[0][0] as string;
+      expect(itemsQuery).not.toContain('WHERE');
+      expect(mockDb.query.mock.calls[0][1]).toEqual([]);
+    });
+
+    it('should trim leading and trailing spaces from the search term', async () => {
+      mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
+
+      await repository.findPaginated(1, 10, '  Ana  ');
+
+      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%']);
     });
   });
 
@@ -257,6 +273,131 @@ describe('ResearchersRepository', () => {
       expect(itemsQuery).toContain('AND');
       expect(itemsQuery).toContain('LOWER(p.PROFILE_NAME)');
       expect(itemsQuery).toContain('EXISTS');
+    });
+  });
+
+  describe('findById', () => {
+    it('should return the researcher when found', async () => {
+      const mockResearcher = {
+        id: 'a1b2c3',
+        idUcrProfile: 'B12345',
+        baseUnit: 'CIMPA',
+        name: 'Luis',
+        firstSurname: 'Mora',
+        secondSurname: 'Jimenez',
+        ceaCategory: null,
+        orcidId: null,
+        linkedin: null,
+        researchGate: null,
+        scopus: null,
+        photoUrl: null,
+      };
+      mockDb.query.mockResolvedValue([mockResearcher]);
+
+      const result = await repository.findById('a1b2c3');
+
+      expect(result).toEqual(mockResearcher);
+      expect(mockDb.query).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return null when the database returns an empty array', async () => {
+      mockDb.query.mockResolvedValue([]);
+
+      const result = await repository.findById('nonexistent-id');
+
+      expect(result).toBeNull();
+    });
+
+    it('should pass the id as the :1 bind variable', async () => {
+      mockDb.query.mockResolvedValue([]);
+
+      await repository.findById('target-id');
+
+      expect(mockDb.query.mock.calls[0][1]).toEqual(['target-id']);
+    });
+
+    it('should include PROFILE_ID = :1 in the WHERE clause', async () => {
+      mockDb.query.mockResolvedValue([]);
+
+      await repository.findById('target-id');
+
+      const query = mockDb.query.mock.calls[0][0] as string;
+      expect(query).toContain('PROFILE_ID = :1');
+    });
+
+    it('should propagate database errors', async () => {
+      mockDb.query.mockRejectedValue(new Error('Connection lost'));
+
+      await expect(repository.findById('1')).rejects.toThrow('Connection lost');
+    });
+  });
+
+  describe('getBaseUnitCounts', () => {
+    it('should return baseUnit and count rows from the database', async () => {
+      const mockRows = [
+        { baseUnit: 'CIMPA', count: 10 },
+        { baseUnit: 'CIGEFI', count: 5 },
+      ];
+      mockDb.query.mockResolvedValue(mockRows);
+
+      const result = await repository.getBaseUnitCounts();
+
+      expect(result).toEqual(mockRows);
+    });
+
+    it('should pass no extra params when called without arguments', async () => {
+      mockDb.query.mockResolvedValue([]);
+
+      await repository.getBaseUnitCounts();
+
+      expect(mockDb.query.mock.calls[0][1]).toEqual([]);
+    });
+
+    it('should apply the search term in the extra conditions', async () => {
+      mockDb.query.mockResolvedValue([]);
+
+      await repository.getBaseUnitCounts('Ana');
+
+      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%']);
+      const query = mockDb.query.mock.calls[0][0] as string;
+      expect(query).toContain('LOWER(p.PROFILE_NAME)');
+    });
+
+    it('should exclude the unit filter from the WHERE clause', async () => {
+      mockDb.query.mockResolvedValue([]);
+
+      await repository.getBaseUnitCounts(undefined, { unit: ['CIMPA'] });
+
+      const query = mockDb.query.mock.calls[0][0] as string;
+      expect(query).not.toContain('EXISTS');
+      expect(mockDb.query.mock.calls[0][1]).toEqual([]);
+    });
+
+    it('should apply search but exclude unit filter when both are provided', async () => {
+      mockDb.query.mockResolvedValue([]);
+
+      await repository.getBaseUnitCounts('Carlos', { unit: ['CIMPA'] });
+
+      expect(mockDb.query.mock.calls[0][1]).toEqual(['Carlos%']);
+      const query = mockDb.query.mock.calls[0][0] as string;
+      expect(query).toContain('LOWER(p.PROFILE_NAME)');
+      expect(query).not.toContain('EXISTS');
+    });
+
+    it('should include GROUP BY UNIT_NAME in the query', async () => {
+      mockDb.query.mockResolvedValue([]);
+
+      await repository.getBaseUnitCounts();
+
+      const query = mockDb.query.mock.calls[0][0] as string;
+      expect(query).toContain('GROUP BY');
+      expect(query).toContain('UNIT_NAME');
+    });
+
+    it('should propagate database errors', async () => {
+      mockDb.query.mockRejectedValue(new Error('DB timeout'));
+
+      await expect(repository.getBaseUnitCounts()).rejects.toThrow('DB timeout');
     });
   });
 });

@@ -3,6 +3,12 @@ export const RESEARCHERS_READER = Symbol('RESEARCHERS_READER');
 
 // ─── Response DTOs ────────────────────────────────────────────────────────────
 
+/** Lightweight unit reference used both in lists and full profiles */
+export interface ResearcherUnitDto {
+  id: string;
+  name: string;
+}
+
 /** Shape of a single researcher in the list and detail responses */
 export interface ResearcherListItemDto {
   id: string;
@@ -17,6 +23,72 @@ export interface ResearcherListItemDto {
   researchGate: string | null;
   scopus: string | null;
   photoUrl: string | null;
+  linkedUnits: ResearcherUnitDto[];
+}
+
+// ─── Profile DTOs (full researcher profile) ───────────────────────────────────
+
+export interface ResearcherAlternativeNameDto {
+  name: string;
+  firstSurname: string;
+  lastSurname: string | null;
+}
+
+export interface ResearcherEducationDto {
+  degree: string;
+  fieldOfStudy: string;
+  institution: string;
+  country: string | null;
+  graduationYear: number | null;
+}
+
+export interface ResearcherExperienceDto {
+  position: string;
+  organization: string;
+  startDate: string | null;
+  endDate: string | null;
+}
+
+export interface ResearcherProjectDto {
+  id: string;
+  code: string;
+  name: string;
+  manager: string;
+  startDate: string | null;
+  endDate: string | null;
+  researchType: string | null;
+  projectType: string | null;
+  status: string | null;
+  keywords: string[];
+}
+
+export interface ResearcherScientificOutputDto {
+  id: string;
+  title: string;
+  authors: string[];
+  type: {
+    category: string;
+    subcategory: string;
+  };
+  openAccess: boolean;
+  publicationYear: number;
+  doi: string | null;
+  journal: string | null;
+  volume: string | null;
+  issue: string | null;
+  pages: string | null;
+  keywords: string[];
+}
+
+/** Full researcher profile aggregating basic info, keywords, education, etc. */
+export interface ResearcherProfileDto extends ResearcherListItemDto {
+  alternativeNames: ResearcherAlternativeNameDto[];
+  linkedUnits: ResearcherUnitDto[];
+  keywords: string[];
+  education: ResearcherEducationDto[];
+  experience: ResearcherExperienceDto[];
+  projects: ResearcherProjectDto[];
+  scientificOutputs: ResearcherScientificOutputDto[];
 }
 
 /** Response shape for the paginated researcher list */
@@ -66,5 +138,9 @@ export interface ResearchersReader {
   ): Promise<ResearchersPaginatedListDto>;
 
   getById(id: string): Promise<ResearcherListItemDto | null>;
-  getFilters(): Promise<ResearchersFiltersDto>;
+  getProfile(id: string): Promise<ResearcherProfileDto | null>;
+  getFilters(
+    query?: string,
+    filters?: ResearchersFiltersRequestDto,
+  ): Promise<ResearchersFiltersDto>;
 }

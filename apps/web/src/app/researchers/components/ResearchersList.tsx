@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import Pagination from '@/components/Pagination';
 import Card from '@/components/Card';
 import {
@@ -10,33 +11,29 @@ import {
 
 import type { Researcher } from '@/types/researcher-data.js';
 
-// Number of researchers displayed per page
-const PAGE_SIZE = 9;
+// Number of profiles displayed per page
+const PAGE_SIZE = 18;
 
 interface ResearchersListProps {
   searchQuery: string;
   filters: ResearcherQueryFilters;
-  /**
-   * Optional callback invoked every time a new server response arrives
-   * with the total result count. Used by the parent component (ResearchersPage)
-   * to display the "X results" counter above the filter sidebar.
-   */
+  currentPage: number;
+  onPageChange: (page: number) => void;
   onTotalChange?: (total: number) => void;
 }
 
 export default function ResearchersList({
   searchQuery,
   filters,
+  currentPage,
+  onPageChange,
   onTotalChange,
 }: ResearchersListProps) {
   const [researchers, setResearchers] = useState<Researcher[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-
-  // Resets to page 1 whenever the search query or filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, filters]);
+  // Saved scroll position at the moment the user clicks a page button.
+  // Restored after the new page content paints so the pagination stays visible.
+  const savedScrollY = useRef<number | null>(null);
 
   // Fetches researchers whenever the page, search query, or filters change.
   // The cleanup function sets `cancelled = true` so that if the effect
@@ -60,6 +57,19 @@ export default function ResearchersList({
         setResearchers(response.data);
         setTotalPages(Math.max(1, Math.ceil(response.total / response.limit)));
         onTotalChange?.(response.total);
+
+        // After React paints the new content, restore the scroll position the
+        // user was at when they clicked the page button so the pagination bar
+        // stays on screen and they can keep navigating without scrolling.
+        if (savedScrollY.current !== null) {
+          const y = savedScrollY.current;
+          savedScrollY.current = null;
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              window.scrollTo({ top: y, behavior: 'instant' });
+            });
+          });
+        }
       } catch (error) {
         if (!cancelled) {
           console.error('Error fetching researchers:', error);
@@ -76,8 +86,8 @@ export default function ResearchersList({
   }, [currentPage, searchQuery, filters]);
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    globalThis.scrollTo({ top: 0, behavior: 'smooth' });
+    savedScrollY.current = window.scrollY;
+    onPageChange(page);
   };
 
   /**
@@ -92,29 +102,111 @@ export default function ResearchersList({
   return (
     <div className="flex flex-col gap-8">
       {/* Grid: 1 column on mobile, 2 on tablet, 3 on desktop */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
-        {researchers.map((researcher) => (
-          <Card
-            key={researcher.id}
-            title={`${researcher.name} ${researcher.firstSurname}`}
-            description={researcher.baseUnit}
-            excerpt={researcher.ceaCategory || 'Investigador'}
-            imageSrc={
-              // Falls back to an initials avatar when no photo is stored in the DB
-              researcher.photoUrl ||
-              getAvatarUrl(researcher.name, researcher.firstSurname)
-            }
-            imageShape="circle"
-            href={`/researchers/${researcher.id}`}
-            chromeless
-            className="flex items-start gap-4"
-          />
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6 items-stretch">
+        {researchers.map((researcher) => {
+          const hasBaseUnit = !!researcher.baseUnit;
+
+          // If the researcher has a base unit, show it under "Unidad base".
+          // Otherwise fall back to linked units under "Unidades asociadas".
+          const linkedUnits = researcher.linkedUnits ?? [];
+          const fallbackUnits = linkedUnits.length > 0 ? linkedUnits : [];
+          const primaryFallback = fallbackUnits[0];
+          const extraFallback = fallbackUnits.slice(1);
+
+          return (
+            <Card
+              key={researcher.id}
+              title={`${researcher.name} ${researcher.firstSurname}`}
+              description={
+                <span className="flex flex-col gap-0.5">
+                  {hasBaseUnit ? (
+                    // ── Has base unit: show it with "Unidad base" label ──────
+                    <>
+                      <span
+                        className="text-xs font-medium uppercase tracking-wide"
+                        style={{ color: 'var(--color-text-neutral-secondary)' }}
+                      >
+                        Unidad base
+                      </span>
+                      <Link
+                        href={`/units?q=${encodeURIComponent(researcher.baseUnit!)}`}
+                        className="hover:underline"
+                        style={{ color: 'var(--color-text-brand-primary)' }}
+                      >
+                        {researcher.baseUnit}
+                      </Link>
+                    </>
+                  ) : (
+                    // ── No base unit: show linked units ──────────────────────
+                    <>
+                      <span
+                        className="text-xs font-medium uppercase tracking-wide"
+                        style={{ color: 'var(--color-text-neutral-secondary)' }}
+                      >
+                        Unidades asociadas
+                      </span>
+                      {primaryFallback ? (
+                        <span className="inline-flex flex-wrap items-center gap-1.5">
+                          <Link
+                            href={`/units?q=${encodeURIComponent(primaryFallback.name)}`}
+                            className="hover:underline"
+                            style={{ color: 'var(--color-text-brand-primary)' }}
+                          >
+                            {primaryFallback.name}
+                          </Link>
+                          {extraFallback.length > 0 && (
+                            <span className="group relative inline-block">
+                              <span
+                                className="inline-flex cursor-help items-center justify-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                                style={{
+                                  backgroundColor: 'var(--color-bg-brand-primary)',
+                                }}
+                              >
+                                +{extraFallback.length}
+                              </span>
+                              <span
+                                className="pointer-events-none absolute left-0 top-full z-50 mt-1 hidden w-max max-w-xs rounded-md bg-gray-900 px-3 py-2 text-xs text-white shadow-lg group-hover:block"
+                                role="tooltip"
+                              >
+                                <span className="mb-1 block font-semibold">
+                                  Todas las unidades asociadas
+                                </span>
+                                <ul className="space-y-0.5">
+                                  {fallbackUnits.map((u) => (
+                                    <li key={u.id}>• {u.name}</li>
+                                  ))}
+                                </ul>
+                              </span>
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                          Sin unidades registradas
+                        </span>
+                      )}
+                    </>
+                  )}
+                </span>
+              }
+              excerpt={researcher.ceaCategory || 'Sin categoría registrada'}
+              imageSrc={
+                // Falls back to an initials avatar when no photo is stored in the DB
+                researcher.photoUrl ||
+                getAvatarUrl(researcher.name, researcher.firstSurname)
+              }
+              imageShape="circle"
+              href={`/researchers/${researcher.id}`}
+              chromeless
+              className="flex items-start gap-4 h-full"
+            />
+          );
+        })}
       </div>
 
       {researchers.length === 0 && searchQuery && (
         <p className="text-center text-gray-500">
-          No se encontraron investigadores para `{searchQuery}`
+          No se encontraron perfiles para `{searchQuery}`
         </p>
       )}
 

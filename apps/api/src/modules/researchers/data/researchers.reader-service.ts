@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type {
   ResearcherListItemDto,
+  ResearcherProfileDto,
+  ResearcherScientificOutputDto,
   ResearchersFiltersRequestDto,
   ResearchersPaginatedListDto,
   ResearchersReader,
@@ -31,6 +33,12 @@ export class ResearchersReaderService implements ResearchersReader {
       filters,
     );
 
+    // Fetch every researcher's linked units in a single batch query so the
+    // card can show all units (with a tooltip when there are more than one).
+    const researcherIds = researchersPage.items.map((r) => r.id);
+    const linkedUnitsByResearcherId =
+      await this.researchersRepository.findLinkedUnitsByResearcherIds(researcherIds);
+
     return {
       // Maps each Researcher entity to the DTO exposed by the API
       items: researchersPage.items.map(
@@ -47,6 +55,7 @@ export class ResearchersReaderService implements ResearchersReader {
           researchGate: researcher.researchGate,
           scopus: researcher.scopus,
           photoUrl: researcher.photoUrl,
+          linkedUnits: linkedUnitsByResearcherId.get(researcher.id) ?? [],
         }),
       ),
       page,
@@ -64,6 +73,8 @@ export class ResearchersReaderService implements ResearchersReader {
       return null;
     }
 
+    const linkedUnits = await this.researchersRepository.findLinkedUnits(id);
+
     return {
       id: researcher.id,
       idUcrProfile: researcher.idUcrProfile,
@@ -77,6 +88,119 @@ export class ResearchersReaderService implements ResearchersReader {
       researchGate: researcher.researchGate,
       scopus: researcher.scopus,
       photoUrl: researcher.photoUrl,
+      linkedUnits: linkedUnits.map((u) => ({ id: String(u.id), name: u.name })),
+    };
+  }
+
+  // ── Full profile ──────────────────────────────────────────────────────────
+
+  /**
+   * Aggregates every section of the public researcher profile into a single DTO.
+   * All sub-queries run in parallel after the main row exists.
+   */
+  async getProfile(id: string): Promise<ResearcherProfileDto | null> {
+    const researcher = await this.researchersRepository.findById(id);
+
+    if (!researcher) {
+      return null;
+    }
+
+    const [
+      alternativeNamesRows,
+      linkedUnitsRows,
+      keywordsRows,
+      educationRows,
+      experienceRows,
+      projectsRows,
+      outputsRows,
+    ] = await Promise.all([
+      this.researchersRepository.findAlternativeNames(id),
+      this.researchersRepository.findLinkedUnits(id),
+      this.researchersRepository.findKeywords(id),
+      this.researchersRepository.findEducation(id),
+      this.researchersRepository.findExperience(id),
+      this.researchersRepository.findProjects(id),
+      this.researchersRepository.findScientificOutputs(id),
+    ]);
+
+    const projectIds = projectsRows.map((row) => row.id);
+    const outputIds = outputsRows.map((row) => row.id);
+
+    const [projectKeywordsByProjectId, authorsByOutputId, keywordsByOutputId] =
+      await Promise.all([
+        this.researchersRepository.findKeywordsByProjectIds(projectIds),
+        this.researchersRepository.findAuthorsByOutputIds(outputIds),
+        this.researchersRepository.findKeywordsByOutputIds(outputIds),
+      ]);
+
+    const scientificOutputs: ResearcherScientificOutputDto[] = outputsRows.map((row) => ({
+      id: String(row.id),
+      title: row.title,
+      authors: authorsByOutputId.get(String(row.id)) ?? [],
+      type: {
+        category: row.typeName ?? 'Producción científica',
+        subcategory: row.typeName ?? '',
+      },
+      // Oracle returns NUMBER(1) — coerce to boolean.
+      openAccess: Number(row.openAccess) === 1,
+      publicationYear: Number(row.publicationYear ?? 0),
+      doi: row.doi,
+      journal: row.journal,
+      volume: row.volume,
+      issue: row.issue,
+      pages: row.pages,
+      keywords: keywordsByOutputId.get(String(row.id)) ?? [],
+    }));
+
+    return {
+      id: researcher.id,
+      idUcrProfile: researcher.idUcrProfile,
+      baseUnit: researcher.baseUnit,
+      name: researcher.name,
+      firstSurname: researcher.firstSurname,
+      secondSurname: researcher.secondSurname,
+      ceaCategory: researcher.ceaCategory,
+      orcidId: researcher.orcidId,
+      linkedin: researcher.linkedin,
+      researchGate: researcher.researchGate,
+      scopus: researcher.scopus,
+      photoUrl: researcher.photoUrl,
+      alternativeNames: alternativeNamesRows.map((row) => ({
+        name: row.name,
+        firstSurname: row.firstSurname,
+        lastSurname: row.lastSurname,
+      })),
+      linkedUnits: linkedUnitsRows.map((row) => ({
+        id: String(row.id),
+        name: row.name,
+      })),
+      keywords: keywordsRows.map((row) => row.keyword),
+      education: educationRows.map((row) => ({
+        degree: row.degree,
+        fieldOfStudy: row.fieldOfStudy,
+        institution: row.institution,
+        country: row.country,
+        graduationYear: row.graduationYear == null ? null : Number(row.graduationYear),
+      })),
+      experience: experienceRows.map((row) => ({
+        position: row.position,
+        organization: row.organization,
+        startDate: row.startDate ? row.startDate.toISOString() : null,
+        endDate: row.endDate ? row.endDate.toISOString() : null,
+      })),
+      projects: projectsRows.map((row) => ({
+        id: String(row.id),
+        code: row.code,
+        name: row.name,
+        manager: row.manager ?? '',
+        startDate: row.startDate ? row.startDate.toISOString() : null,
+        endDate: row.endDate ? row.endDate.toISOString() : null,
+        researchType: row.researchType,
+        projectType: row.projectType,
+        status: row.status,
+        keywords: projectKeywordsByProjectId.get(String(row.id)) ?? [],
+      })),
+      scientificOutputs,
     };
   }
 
@@ -94,8 +218,11 @@ export class ResearchersReaderService implements ResearchersReader {
    *      Number() is used to ensure the count is numeric, since Oracle
    *      may return LOB-type values in certain driver contexts.
    */
-  async getFilters(): Promise<{ baseUnit: { value: string; count: number }[] }> {
-    const units = await this.researchersRepository.getBaseUnitCounts();
+  async getFilters(
+    query?: string,
+    filters?: ResearchersFiltersRequestDto,
+  ): Promise<{ baseUnit: { value: string; count: number }[] }> {
+    const units = await this.researchersRepository.getBaseUnitCounts(query, filters);
 
     return {
       baseUnit: units.map(({ baseUnit, count }) => ({

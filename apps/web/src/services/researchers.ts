@@ -1,6 +1,7 @@
 import { request } from './api';
 
 import type { Researcher } from '@/types/researcher-data';
+import type { ResearcherProfile } from '@/types/researcher-profile';
 
 import type {
   PaginatedResearchers,
@@ -10,6 +11,15 @@ import type {
 
 export type { PaginatedResearchers, ResearcherFilters, ResearcherQueryFilters };
 export type { Researcher } from '@/types/researcher-data';
+export type {
+  ResearcherProfile,
+  ResearcherAlternativeName,
+  ResearcherEducation,
+  ResearcherExperience,
+  ResearcherLinkedUnit,
+  ResearcherProject,
+  ResearcherScientificOutput,
+} from '@/types/researcher-profile';
 
 /**
  * Shape of the researcher returned by the backend API.
@@ -28,6 +38,7 @@ interface ResearcherSummaryApiDto {
   researchGate: string | null;
   scopus: string | null;
   photoUrl: string | null;
+  linkedUnits: { id: string; name: string }[];
 }
 
 /** Generic paginated response shape from the BFF */
@@ -53,6 +64,7 @@ function mapResearcherSummaryToResearcher(item: ResearcherSummaryApiDto): Resear
     researchGate: item.researchGate,
     scopus: item.scopus,
     photoUrl: item.photoUrl,
+    linkedUnits: item.linkedUnits ?? [],
   };
 }
 
@@ -93,24 +105,47 @@ export function getResearcherById(id: string): Promise<Researcher> {
 }
 
 /**
+ * Fetches the full researcher profile: basic info + keywords, education,
+ * experience, linked units, projects and scientific outputs. Each section is
+ * resolved server-side from the corresponding tables in PRODUCCION_CIENTIFICA
+ * for the requested researcher only.
+ */
+export function getResearcherProfile(id: string): Promise<ResearcherProfile> {
+  return request<ResearcherProfile>(`/researchers/${id}/profile`);
+}
+
+/**
  * Fetches the unit filter options with their researcher counts.
  *
- * Before: the API returned string[] and the frontend set count: 0 for all options.
- * Now: the API returns { value, count }[] with real counts from Oracle,
- *      calculated using GROUP BY + COUNT(DISTINCT) in the database.
- *      This allows the sidebar to display how many researchers belong to each unit.
+ * The counts are recalculated server-side based on the active search query
+ * and the rest of the applied filters, so the sidebar always reflects how
+ * many researchers each option would actually return.
+ *
+ * The `unit` filter is intentionally still sent: the backend excludes it from
+ * the WHERE clause when counting the unit facet, so the other unit options do
+ * NOT zero out after the user picks one — they show the count they *would*
+ * have if the user switched selection.
  */
-export async function getResearcherFilters(): Promise<ResearcherFilters> {
-  // The backend now returns objects with value and count, not plain strings
+export async function getResearcherFilters(
+  searchQuery = '',
+  units?: string[],
+): Promise<ResearcherFilters> {
+  const params = new URLSearchParams();
+  if (searchQuery) params.set('q', searchQuery);
+  if (units && units.length > 0) {
+    units.forEach((unit) => params.append('unit', unit));
+  }
+  const qs = params.toString();
+
   const response = await request<{ baseUnit: Array<{ value: string; count: number }> }>(
-    `/researchers/filters`,
+    `/researchers/filters${qs ? `?${qs}` : ''}`,
   );
 
   return {
     baseUnit: response.baseUnit.map(({ value, count }) => ({
       value,
       label: value, // the visible label is the unit name itself
-      count, // real number of researchers in that unit
+      count, // real number of researchers given the current search/filters
     })),
   };
 }

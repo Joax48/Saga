@@ -10,7 +10,7 @@ type TopNavItem = {
 export default function TopNavigation() {
   const items: TopNavItem[] = [
     {
-      label: 'Investigadores',
+      label: 'Perfiles',
       href: '/researchers',
       image: '/icons/icon_researchers_lightblue.png',
     },

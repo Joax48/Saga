@@ -11,6 +11,9 @@ interface SearchBarProps {
 
   /** Callback triggered when a search is submitted */
   onSearch?: (query: string) => void;
+
+  /** Pre-fills the input on mount (e.g. when restoring from URL params) */
+  initialValue?: string;
 }
 
 /**
@@ -25,8 +28,9 @@ interface SearchBarProps {
 export default function SearchBar({
   placeholder = 'Buscar por nombre, unidad, palabras claves',
   onSearch,
+  initialValue = '',
 }: SearchBarProps) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialValue);
 
   /**
    * Handles form submission.

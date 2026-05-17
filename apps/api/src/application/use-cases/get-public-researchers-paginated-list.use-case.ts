@@ -52,6 +52,7 @@ export class GetResearchersPaginatedListUseCase {
         researchGate: researcher.researchGate,
         scopus: researcher.scopus,
         photoUrl: researcher.photoUrl,
+        linkedUnits: researcher.linkedUnits,
       })),
       page: researchers.page,
       limit: researchers.limit,

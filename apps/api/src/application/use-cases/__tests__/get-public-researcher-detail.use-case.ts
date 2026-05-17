@@ -32,6 +32,7 @@ describe('GetResearcherDetailUseCase', () => {
       researchGate: 'https://www.researchgate.net/profile/Juan-Perez-Mora',
       scopus: 'https://www.scopus.com/authid/detail.uri?authorId=12345678900',
       photoUrl: 'https://randomuser.me/api/portraits/men/44.jpg',
+      linkedUnits: [],
     };
     researchersReader.getById.mockResolvedValue(mockResearcher);
 
@@ -51,6 +52,7 @@ describe('GetResearcherDetailUseCase', () => {
       researchGate: 'https://www.researchgate.net/profile/Juan-Perez-Mora',
       scopus: 'https://www.scopus.com/authid/detail.uri?authorId=12345678900',
       photoUrl: 'https://randomuser.me/api/portraits/men/44.jpg',
+      linkedUnits: [],
     });
   });
 

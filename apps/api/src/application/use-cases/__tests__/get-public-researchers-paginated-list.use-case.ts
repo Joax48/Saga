@@ -34,6 +34,7 @@ describe('GetResearchersPaginatedListUseCase', () => {
             researchGate: null,
             scopus: null,
             photoUrl: null,
+            linkedUnits: [],
           },
           {
             id: '2',
@@ -48,6 +49,7 @@ describe('GetResearchersPaginatedListUseCase', () => {
             researchGate: null,
             scopus: null,
             photoUrl: null,
+            linkedUnits: [],
           },
         ],
         page: 1,
@@ -83,6 +85,7 @@ describe('GetResearchersPaginatedListUseCase', () => {
             researchGate: null,
             scopus: null,
             photoUrl: null,
+            linkedUnits: [],
           },
         ],
         page: 1,
@@ -106,6 +109,7 @@ describe('GetResearchersPaginatedListUseCase', () => {
         researchGate: null,
         scopus: null,
         photoUrl: null,
+        linkedUnits: [],
       });
     });
 
