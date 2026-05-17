@@ -9,6 +9,7 @@ import { UnitsModule } from './modules/units/units.module';
 import { PublicUnitsController } from './bff/public/units/public-units.controller';
 import { GetUnitsPaginatedListUseCase } from './application/use-cases/get-public-units-paginated-list.use-case';
 import { GetPublicUnitDetailUseCase } from './application/use-cases/get-public-unit-detail.use-case';
+import { GetUnitsFiltersUseCase } from './application/use-cases/get-public-units-filters.use-case';
 import { GetPublicUnitProfilesUseCase } from './application/use-cases/get-public-unit-profiles.use-case';
 import { GetPublicUnitScientificProductionsUseCase } from './application/use-cases/get-public-unit-scientific-productions.use-case';
 import { GetPublicUnitProjectsUseCase } from './application/use-cases/get-public-unit-projects.use-case';
@@ -18,7 +19,6 @@ import { PublicProjectsController } from './bff/public/projects/public-projects.
 import { PublicScientificProductionsController } from './bff/public/scientific-productions/public-scientific-productions.controller';
 import { GetProjectsPaginatedListUseCase } from './application/use-cases/get-public-projects-paginated-list.use-case';
 import { GetProjectsFiltersUseCase } from './application/use-cases/get-public-projects-filters.use-case';
-
 import { PublicResearchersController } from './bff/public/researchers/public-researchers.controller';
 import { GetResearchersPaginatedListUseCase } from './application/use-cases/get-public-researchers-paginated-list.use-case';
 import { GetScientificProductionPaginatedListUseCase } from './application/use-cases/get-public-scientific-productions-paginated-list.use-case';
@@ -28,11 +28,6 @@ import { GetResearcherProfileUseCase } from './application/use-cases/get-public-
 import { GetResearchersFiltersUseCase } from './application/use-cases/get-public-researchers-filters.use-case';
 import { GetProjectDetailUseCase } from './application/use-cases/get-public-project-detail.use-case';
 import { GetScientificProductionsFiltersUseCase } from './application/use-cases/get-public-scientific-production-filters.use-case';
-
-// Root application module.
-// When domain modules (ResearchersModule, UnitsModule, ProjectsModule,
-// ScientificProductionsModule, AuthModule), BFF controllers, DatabaseModule,
-// and application queries are implemented, import and register them here.
 
 @Module({
   imports: [
@@ -62,12 +57,13 @@ import { GetScientificProductionsFiltersUseCase } from './application/use-cases/
     GetResearchersPaginatedListUseCase,
     GetResearcherDetailUseCase,
     GetResearcherProfileUseCase,
+    GetResearchersFiltersUseCase,
     GetUnitsPaginatedListUseCase,
     GetPublicUnitDetailUseCase,
+    GetUnitsFiltersUseCase,
     GetPublicUnitProfilesUseCase,
     GetPublicUnitScientificProductionsUseCase,
     GetPublicUnitProjectsUseCase,
-    GetResearchersFiltersUseCase,
   ],
 })
 export class AppModule {}

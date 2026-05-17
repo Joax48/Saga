@@ -30,6 +30,16 @@ export interface PaginatedUnitsResponse {
 }
 
 /**
+ * Filters for fetching units. Currently only supports filtering by researchedIds, but can be extended in the future with additional filters and sorting options.
+ */
+export interface GetUnitsFilters {
+  researcherIds?: number[];
+
+  sortBy?: 'name';
+  sortOrder?: 'asc' | 'desc';
+}
+
+/**
  * Fetches a paginated list of units from the backend.
  *
  * Search parameters are currently accepted for API compatibility,
@@ -39,15 +49,37 @@ export function getUnits(
   page = 1,
   limit = 9,
   searchQuery = '',
+  filters: GetUnitsFilters = {},
 ): Promise<PaginatedUnitsResponse> {
-  return request<PaginatedListResponseDto<Unit>>(
-    `/units?page=${page}&limit=${limit}${searchQuery ? `&q=${encodeURIComponent(searchQuery)}` : ''}`,
-  ).then((response) => ({
-    data: response.items,
-    page: response.page,
-    limit: response.limit,
-    total: response.total,
-  }));
+  const params = new URLSearchParams();
+
+  params.append('page', String(page));
+  params.append('limit', String(limit));
+
+  if (searchQuery.trim()) {
+    params.append('q', searchQuery.trim());
+  }
+
+  filters.researcherIds?.forEach((id) => {
+    params.append('researcherIds', String(id));
+  });
+
+  if (filters.sortBy) {
+    params.append('sortBy', filters.sortBy);
+  }
+
+  if (filters.sortOrder) {
+    params.append('sortOrder', filters.sortOrder);
+  }
+
+  return request<PaginatedListResponseDto<Unit>>(`/units?${params.toString()}`).then(
+    (response) => ({
+      data: response.items,
+      page: response.page,
+      limit: response.limit,
+      total: response.total,
+    }),
+  );
 }
 
 /**
@@ -72,6 +104,34 @@ export interface UnitProfile {
 
 export function getUnitById(id: number): Promise<UnitDetail> {
   return request<UnitDetail>(`/units/${id}`);
+}
+
+/**
+ * Option returned by the GET /units/filters endpoint.
+ */
+export interface UnitFilterOption {
+  label: string;
+  value: string;
+  count: number;
+}
+
+/**
+ * Response shape of GET /units/filters.
+ */
+export interface UnitFiltersResponse {
+  researchers: UnitFilterOption[];
+}
+
+/**
+ * Fetches filter options for the units listing (researcher names derived from the units data).
+ */
+export function getUnitFilters(q?: string): Promise<UnitFiltersResponse> {
+  const params = new URLSearchParams();
+  if (q?.trim()) {
+    params.append('q', q.trim());
+  }
+  const qs = params.toString();
+  return request<UnitFiltersResponse>(`/units/filters${qs ? `?${qs}` : ''}`);
 }
 
 export function getUnitProfiles(id: number): Promise<UnitProfile[]> {

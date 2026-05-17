@@ -10,10 +10,11 @@ type PaginatedResult<T> = {
 };
 
 type UnitCountRow = {
-  total: number;
+  totalCount: number;
 };
 
 export type UnitProfile = {
+  id: number;
   baseUnit: string | null;
   name: string;
   ceaCategory: string | null;
@@ -152,7 +153,7 @@ export class UnitsRepository {
       params,
     );
 
-    return totalRows[0]?.total ?? 0;
+    return totalRows[0]?.totalCount ?? 0;
   }
 
   async findById(id: number): Promise<Unit | null> {
@@ -288,5 +289,41 @@ export class UnitsRepository {
 
   private calculateOffset(page: number, limit: number): number {
     return (page - 1) * limit;
+  }
+
+  async findResearchersForUnits(
+    q?: string,
+  ): Promise<{ id: number; name: string; firstSurname: string | null; count: number }[]> {
+    const conditions: string[] = [];
+    const params: Record<string, string> = {};
+
+    if (q) {
+      params.q = `%${q}%`;
+      conditions.push(`u.unit_name LIKE :q`);
+    }
+
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    return this.databaseClient.query<{
+      id: number;
+      name: string;
+      firstSurname: string | null;
+      count: number;
+    }>(
+      `
+      SELECT
+        p.PROFILE_ID          AS "id",
+        p.PROFILE_NAME        AS "name",
+        p.PROFILE_FIRST_SURNAME AS "firstSurname",
+        COUNT(DISTINCT ppu.unit_id) AS "count"
+      FROM ucr_profile_project_unit ppu
+      JOIN profile p ON p.PROFILE_ID = ppu.PROFILE_ID
+      JOIN unit u ON u.unit_id = ppu.unit_id
+      ${whereClause}
+      GROUP BY p.PROFILE_ID, p.PROFILE_NAME, p.PROFILE_FIRST_SURNAME
+      ORDER BY p.PROFILE_NAME
+      `,
+      params,
+    );
   }
 }

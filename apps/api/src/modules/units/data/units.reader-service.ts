@@ -2,14 +2,15 @@ import { Injectable } from '@nestjs/common';
 import type {
   UnitDetailDto,
   UnitListItemDto,
-  UnitProfileDto,
-  UnitProjectDto,
-  UnitScientificProductionDto,
   UnitsPaginatedListDto,
   UnitsReader,
+  UnitProfileDto,
+  UnitScientificProductionDto,
+  UnitProjectDto,
 } from '../units.reader.contract';
 import { UnitsRepository } from './units.repository';
 import { UnitSearchDTO } from '../../../bff/public/units/dtos/unit-search-dto';
+import { UnitFiltersResponseDto } from '../../../bff/public/units/dtos/unit-filters-response.dto';
 
 @Injectable()
 export class UnitsReaderService implements UnitsReader {
@@ -44,6 +45,18 @@ export class UnitsReaderService implements UnitsReader {
       email: unit.email,
       pageUrl: unit.pageUrl,
       phoneNumber: unit.phoneNumber,
+    };
+  }
+
+  async getFilterOptions(q?: string): Promise<UnitFiltersResponseDto> {
+    const researchers = await this.unitsRepository.findResearchersForUnits(q);
+
+    return {
+      researchers: researchers.map((r) => ({
+        value: String(r.id),
+        label: [r.name, r.firstSurname].filter(Boolean).join(' '),
+        count: r.count,
+      })),
     };
   }
 
