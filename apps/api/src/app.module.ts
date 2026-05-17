@@ -33,9 +33,7 @@ import { GetScientificProductionsFiltersUseCase } from './application/use-cases/
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      envFilePath: ['.env', '../../.env'],
-    }),
+    ConfigModule.forRoot(),
     LoggerModule,
     SearchModule,
     CacheModule,
