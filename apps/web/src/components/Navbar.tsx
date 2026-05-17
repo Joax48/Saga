@@ -109,31 +109,91 @@ export default function Navbar() {
             <div className="h-4 hidden sm:flex items-center justify-center gap-2 md:gap-8 whitespace-nowrap">
               <Link
                 href="/"
-                className="px-3 py-2 rounded-md hover:text-[#00c0f3] transition"
+                className="
+                relative inline-block px-3 py-2 rounded-md
+                transition-colors duration-300
+                hover:text-[#00c0f3]
+
+                after:absolute after:left-1/2 after:bottom-1
+                after:h-[2px] after:w-0
+                after:bg-[#00c0f3]
+                after:transition-all after:duration-300
+                after:-translate-x-1/2
+
+                hover:after:w-[calc(100%-1.5rem)]
+                "
               >
                 Inicio
               </Link>
               <Link
                 href="/researchers"
-                className="px-3 py-2 rounded-md hover:text-[#00c0f3] transition"
+                className="
+                relative inline-block px-3 py-2 rounded-md
+                transition-colors duration-300
+                hover:text-[#00c0f3]
+
+                after:absolute after:left-1/2 after:bottom-1
+                after:h-[2px] after:w-0
+                after:bg-[#00c0f3]
+                after:transition-all after:duration-300
+                after:-translate-x-1/2
+
+                hover:after:w-[calc(100%-1.5rem)]
+                "
               >
                 Perfiles
               </Link>
               <Link
                 href="/units"
-                className="px-3 py-2 rounded-md hover:text-[#00c0f3] transition"
+                className="
+                relative inline-block px-3 py-2 rounded-md
+                transition-colors duration-300
+                hover:text-[#00c0f3]
+
+                after:absolute after:left-1/2 after:bottom-1
+                after:h-[2px] after:w-0
+                after:bg-[#00c0f3]
+                after:transition-all after:duration-300
+                after:-translate-x-1/2
+
+                hover:after:w-[calc(100%-1.5rem)]
+                "
               >
                 Unidades
               </Link>
               <Link
                 href="/scientific-productions"
-                className="px-3 py-2 rounded-md hover:text-[#00c0f3] transition"
+                className="
+                relative inline-block px-3 py-2 rounded-md
+                transition-colors duration-300
+                hover:text-[#00c0f3]
+
+                after:absolute after:left-1/2 after:bottom-1
+                after:h-[2px] after:w-0
+                after:bg-[#00c0f3]
+                after:transition-all after:duration-300
+                after:-translate-x-1/2
+
+                hover:after:w-[calc(100%-1.5rem)]
+                "
               >
                 Producción Científica
               </Link>
               <Link
                 href="/projects"
-                className="px-3 py-2 rounded-md hover:text-[#00c0f3] transition"
+                className="
+                relative inline-block px-3 py-2 rounded-md
+                transition-colors duration-300
+                hover:text-[#00c0f3]
+
+                after:absolute after:left-1/2 after:bottom-1
+                after:h-[2px] after:w-0
+                after:bg-[#00c0f3]
+                after:transition-all after:duration-300
+                after:-translate-x-1/2
+
+                hover:after:w-[calc(100%-1.5rem)]
+                "
               >
                 Proyectos
               </Link>

@@ -35,6 +35,42 @@ function getAvatarTone(seed: string): string {
   return tones[hash % tones.length];
 }
 
+function formatDate(date?: string): string | null {
+  if (!date) return null;
+
+  const normalizedDate = `${date}T00:00:00`;
+  const parsedDate = new Date(normalizedDate);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return date;
+  }
+
+  return new Intl.DateTimeFormat('es-CR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(parsedDate);
+}
+
+function formatParticipationPeriod(startDate?: string, endDate?: string): string | null {
+  const formattedStartDate = formatDate(startDate);
+  const formattedEndDate = formatDate(endDate);
+
+  if (formattedStartDate && formattedEndDate) {
+    return `${formattedStartDate} - ${formattedEndDate}`;
+  }
+
+  if (formattedStartDate) {
+    return `Desde ${formattedStartDate}`;
+  }
+
+  if (formattedEndDate) {
+    return `Hasta ${formattedEndDate}`;
+  }
+
+  return null;
+}
+
 export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) {
   const [activeTab, setActiveTab] = useState('general');
   const [project, setProject] = useState<Project | null>(null);
@@ -77,23 +113,32 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
   if (!project) {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        <p className="text-[18px] text-[var(--color-text-neutral-secondary)]">
+        <p className="text-[25px] text-[var(--color-text-neutral-secondary)]">
           Proyecto no encontrado.
         </p>
       </main>
     );
   }
 
-  const managerProfile = project.associatedProfiles.find(
-    (profile) => profile.name === project.manager,
+  const managerHref = project.managerId
+    ? `/researchers/${project.managerId}`
+    : `/researchers?q=${encodeURIComponent(project.manager)}`;
+  const managerParticipationPeriod = formatParticipationPeriod(
+    project.managerParticipationStartDate,
+    project.managerParticipationEndDate,
   );
+
   const disciplinesText =
     project.disciplines.length > 0
       ? project.disciplines.join(', ')
       : 'Sin disciplinas registradas';
+  const associatedProfiles = project.associatedProfiles.map((profile) => ({
+    ...profile,
+    href: `/researchers/${profile.id}`,
+  }));
 
   return (
-    <main className="bg-[var(--color-bg-neutral-secondary)] min-h-screen">
+    <main className="bg-base-100 min-h-screen">
       <section className="px-6 lg:px-10 pt-6 pb-8">
         <div className="max-w-6xl mx-auto space-y-5">
           <Breadcrumb
@@ -105,24 +150,29 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
 
           <div className="w-full px-0 py-1">
             <div className="space-y-5">
-              <h1 className="text-h3 md:text-h2 font-semibold text-[var(--color-text-neutral-primary)]">
+              <h1 className="text-h3">
                 {project.code} | {project.title}
               </h1>
 
               <div className="space-y-3 text-body-lg text-[var(--color-text-neutral-secondary)]">
                 <p>
                   <a
-                    href={
-                      managerProfile
-                        ? `/researchers/${managerProfile.id}`
-                        : `/researchers?q=${encodeURIComponent(project.manager)}`
-                    }
+                    href={managerHref}
                     className="text-[var(--color-text-brand-primary)] hover:underline"
                   >
                     {project.manager}
                   </a>{' '}
-                  <span>(Persona encargada del proyecto).</span>
+                  <span>(Investigador principal).</span>
                 </p>
+
+                {managerParticipationPeriod && (
+                  <p>
+                    <span className="font-medium text-[var(--color-text-neutral-primary)]">
+                      Colaboraci&oacute;n:
+                    </span>{' '}
+                    {managerParticipationPeriod}
+                  </p>
+                )}
 
                 <p className="text-[var(--color-text-brand-primary)]">
                   {project.institute}
@@ -183,40 +233,68 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
 
           {activeTab === 'profiles' && (
             <div className="space-y-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
-                {project.associatedProfiles.map((profile) => (
-                  <div key={profile.id} className="flex items-start gap-4">
-                    <div
-                      className={`h-20 w-20 shrink-0 rounded-full bg-gradient-to-br ${getAvatarTone(
-                        profile.id,
-                      )} flex items-center justify-center text-lg font-semibold`}
-                      aria-hidden="true"
-                    >
-                      {getInitials(profile.name)}
-                    </div>
+              {associatedProfiles.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
+                  {associatedProfiles.map((profile) => {
+                    const participationPeriod = formatParticipationPeriod(
+                      profile.participationStartDate,
+                      profile.participationEndDate,
+                    );
 
-                    <div className="space-y-1.5">
-                      <p className="text-h5 leading-tight text-[var(--color-text-brand-primary)]">
-                        {profile.name}
-                      </p>
+                    return (
+                      <div key={profile.id} className="flex items-start gap-4">
+                        <figure
+                          className="relative shrink-0 overflow-hidden rounded-full"
+                          style={{ width: '3.5rem', height: '3.5rem' }}
+                        >
+                          <img
+                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            profile.name,
+                            )}&background=0D8ABC&color=fff&size=200`}
+                            alt={profile.name}
+                            className="object-cover w-full h-full"
+                          />
+                        </figure>
 
-                      <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
-                        {project.institute}
-                      </p>
+                        <div className="space-y-1.5">
+                          <a
+                            href={profile.href}
+                            className="block text-h5 leading-tight text-[var(--color-text-brand-primary)] hover:underline"
+                          >
+                            {profile.name}
+                          </a>
+                          <p className="text-body-sm text-[var(--color-text-neutral-secondary)]">
+                            UNIDAD BASE
+                          </p>
+                          <p className="text-body text-[var(--color-text-neutral-secondary)]">
+                            {project.institute}
+                          </p>
 
-                      <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
-                        {disciplinesText}
-                      </p>
+                          <p className="text-body text-[var(--color-text-neutral-secondary)]">
+                            {disciplinesText}
+                          </p>
 
-                      {profile.role && (
-                        <p className="text-body-md text-[var(--color-text-neutral-secondary)]">
-                          {profile.role}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                          {profile.role && (
+                            <p className="text-body text-[var(--color-text-neutral-secondary)] italic">
+                              Rol: {profile.role}
+                            </p>
+                          )}
+
+                          {participationPeriod && (
+                            <p className="text-body-md text-[var(--color-text-neutral-secondary)]">
+                              Colaboraci&oacute;n: {participationPeriod}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
+                  No hay perfiles asociados registrados.
+                </p>
+              )}
             </div>
           )}
 

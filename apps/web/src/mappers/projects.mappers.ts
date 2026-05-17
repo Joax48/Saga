@@ -42,6 +42,9 @@ export function mapProjectDetailToProject(item: ProjectDetailApiDto): Project {
     title: item.title,
     description: item.description,
     manager: managerName,
+    managerId: item.manager?.id ? String(item.manager.id) : undefined,
+    managerParticipationStartDate: item.manager?.participationStartDate,
+    managerParticipationEndDate: item.manager?.participationEndDate,
     institute: instituteName,
     disciplines: (item.disciplines ?? []).map((discipline) => discipline.trim()),
     researchType: item.researchType,
@@ -55,6 +58,12 @@ export function mapProjectDetailToProject(item: ProjectDetailApiDto): Project {
       id: profile.id,
       name: profile.name,
       ...(profile.role ? { role: profile.role } : {}),
+      ...(profile.participationStartDate
+        ? { participationStartDate: profile.participationStartDate }
+        : {}),
+      ...(profile.participationEndDate
+        ? { participationEndDate: profile.participationEndDate }
+        : {}),
     })),
   };
 }

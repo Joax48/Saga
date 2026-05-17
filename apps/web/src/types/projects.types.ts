@@ -4,6 +4,9 @@ export interface Project {
   title: string;
   description: string;
   manager: string;
+  managerId?: string;
+  managerParticipationStartDate?: string;
+  managerParticipationEndDate?: string;
   institute: string;
   disciplines: string[];
   researchType: string;
@@ -17,6 +20,8 @@ export interface Project {
     id: string;
     name: string;
     role?: string;
+    participationStartDate?: string;
+    participationEndDate?: string;
   }>;
 }
 
@@ -47,6 +52,8 @@ export interface ProjectQueryFilters {
 export interface ManagerReferenceApiDto {
   id: number;
   name: string;
+  participationStartDate?: string;
+  participationEndDate?: string;
 }
 
 export interface UnitReferenceApiDto {
@@ -58,6 +65,8 @@ export interface ProjectAssociatedProfileApiDto {
   id: string;
   name: string;
   role?: string;
+  participationStartDate?: string;
+  participationEndDate?: string;
 }
 
 export interface ProjectSummaryItem {
@@ -74,6 +83,8 @@ export interface ProjectSummaryItem {
     id: string;
     name: string;
     role?: string;
+    participationStartDate?: string;
+    participationEndDate?: string;
   }>;
 }
 
