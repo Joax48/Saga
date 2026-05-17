@@ -1,12 +1,16 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronUp } from 'lucide-react';
 
 import PageHeroSearch from '@/components/PageHeroSearch';
 import Pagination from '@/components/Pagination';
 import Button from '@/components/Button';
-import { FilterSidebar, type FilterGroupConfig } from '@/components/FilterSidebar';
+import {
+  FacetOption,
+  FilterSidebar,
+  type FilterGroupConfig,
+} from '@/components/FilterSidebar';
 import ProjectListItem from '@/app/projects/components/ProjectListItem';
 
 import {
@@ -36,6 +40,24 @@ function toggleValue(values: string[] | undefined, value: string): string[] {
     : [...currentValues, value];
 }
 
+function keepSelectedOptionsVisible(
+  options: FacetOption[] | undefined,
+  selectedValues: string[] | undefined,
+): FacetOption[] {
+  const currentOptions = options ?? [];
+  const selected = selectedValues ?? [];
+  const existingValues = new Set(currentOptions.map((option) => option.value));
+  const missingSelectedOptions = selected
+    .filter((value) => !existingValues.has(value))
+    .map((value) => ({
+      value,
+      label: value,
+      count: 0,
+    }));
+
+  return [...currentOptions, ...missingSelectedOptions];
+}
+
 interface Props {
   initialProjects: ProjectSummaryItem[];
   initialTotal: number;
@@ -58,16 +80,20 @@ export default function ProjectsViewClient({
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const resultsRef = useRef<HTMLElement>(null);
 
-  const handleSearch = useCallback((query: string) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-    try {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (e) {
-      /* ignore */
-    }
+  const scrollToResults = useCallback(() => {
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
+
+  const handleSearch = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+      setCurrentPage(1);
+      scrollToResults();
+    },
+    [scrollToResults],
+  );
 
   const handleToggleFilter = useCallback(
     (key: keyof ProjectQueryFilters, value: string) => {
@@ -76,18 +102,13 @@ export default function ProjectsViewClient({
         [key]: toggleValue(prev[key], value),
       }));
       setCurrentPage(1);
-      try {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } catch (e) {
-        /* ignore */
-      }
+      scrollToResults();
     },
-    [],
+    [scrollToResults],
   );
 
   const handleClearAll = useCallback(() => {
     setFilters(DEFAULT_FILTERS);
-    setSearchQuery('');
     setCurrentPage(1);
   }, []);
 
@@ -143,7 +164,10 @@ export default function ProjectsViewClient({
         kind: 'options',
         title: 'Tipo de investigación',
         groupKey: 'research-type',
-        options: filterOptions.researchType,
+        options: keepSelectedOptionsVisible(
+          filterOptions.researchType,
+          filters.researchType,
+        ),
         selectedValues: filters.researchType ?? [],
         onToggle: (value) => handleToggleFilter('researchType', value),
       },
@@ -151,7 +175,10 @@ export default function ProjectsViewClient({
         kind: 'options',
         title: 'Tipo de acción',
         groupKey: 'project-type',
-        options: filterOptions.projectType,
+        options: keepSelectedOptionsVisible(
+          filterOptions.projectType,
+          filters.projectType,
+        ),
         selectedValues: filters.projectType ?? [],
         onToggle: (value) => handleToggleFilter('projectType', value),
       },
@@ -159,7 +186,7 @@ export default function ProjectsViewClient({
         kind: 'options',
         title: 'Años de inicio',
         groupKey: 'start-year',
-        options: filterOptions.startYear,
+        options: keepSelectedOptionsVisible(filterOptions.startYear, filters.startYear),
         selectedValues: filters.startYear ?? [],
         onToggle: (value) => handleToggleFilter('startYear', value),
       },
@@ -167,7 +194,7 @@ export default function ProjectsViewClient({
         kind: 'options',
         title: 'Estado',
         groupKey: 'status',
-        options: filterOptions.status,
+        options: keepSelectedOptionsVisible(filterOptions.status, filters.status),
         selectedValues: filters.status ?? [],
         onToggle: (value) => handleToggleFilter('status', value),
       },
@@ -175,7 +202,10 @@ export default function ProjectsViewClient({
         kind: 'options',
         title: 'Participantes',
         groupKey: 'participants',
-        options: filterOptions.participants,
+        options: keepSelectedOptionsVisible(
+          filterOptions.participants,
+          filters.participants,
+        ),
         selectedValues: filters.participants ?? [],
         onToggle: (value) => handleToggleFilter('participants', value),
       },
@@ -183,7 +213,7 @@ export default function ProjectsViewClient({
         kind: 'options',
         title: 'Palabras clave',
         groupKey: 'keywords',
-        options: filterOptions.keywords,
+        options: keepSelectedOptionsVisible(filterOptions.keywords, filters.keywords),
         selectedValues: filters.keywords ?? [],
         onToggle: (value) => handleToggleFilter('keywords', value),
       },
@@ -207,7 +237,10 @@ export default function ProjectsViewClient({
         onSearch={handleSearch}
       />
 
-      <section className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14">
+      <section
+        ref={resultsRef}
+        className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14 scroll-mt-10"
+      >
         <div className="max-w-6xl mx-auto">
           <div className="mb-4 lg:hidden">
             <Button
