@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { House } from 'lucide-react';
+import Image from 'next/image';
 
 /**
  * Represents a single breadcrumb item.
@@ -41,7 +41,7 @@ type BreadcrumbProps = {
 export default function Breadcrumb({ items }: BreadcrumbProps) {
   return (
     <nav aria-label="Breadcrumb">
-      <ol className="flex flex-wrap items-center gap-3 text-[18px]">
+      <ol className="flex flex-wrap items-center gap-3 text-body-sm mt-12">
         {/* Home link */}
         <li>
           <Link
@@ -52,7 +52,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
               hover:text-[var(--color-text-brand-primary)]"
             aria-label="Inicio"
           >
-            <House size={22} strokeWidth={1.8} />
+            <Image src="/home_icon_black.png" alt="Inicio" width={22} height={22} />
           </Link>
         </li>
 
@@ -77,7 +77,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
                 </Link>
               ) : (
                 /* Render as plain text if last item */
-                <span className="text-[var(--color-text-neutral-secondary)]">
+                <span className="text-[var(--color-text-neutral-primary)]">
                   {item.label}
                 </span>
               )}

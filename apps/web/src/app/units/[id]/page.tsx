@@ -166,7 +166,7 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
 
   return (
     /*Show unit detailed information page */
-    <main className="min-h-screen bg-base-100 py-8">
+    <main className="bg-base-100 py-8 pb-0">
       <div className="max-w-7xl mx-auto w-full">
         {/* Breadcrumb Navigation */}
         <Breadcrumb
@@ -247,129 +247,130 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
         </section>
       </div>
 
-      {/* Detail Navigation */}
-      <DetailNavbar
-        categories={categories}
-        defaultActive={activeTab}
-        onCategoryChange={(id) => setActiveTab(id)}
-        backgroundColor="#F2F2F2"
-      />
+      <div className="bg-[var(--color-gray-100)] pb-15">
+        {/* Detail Navigation */}
+        <DetailNavbar
+          categories={categories}
+          defaultActive={activeTab}
+          onCategoryChange={(id) => setActiveTab(id)}
+        />
 
-      {/* Content Section */}
-      <div className="max-w-6xl mx-auto px-6 py-4 pt-0">
-        {activeTab === 'profiles' && (
-          <div className="max-w-8xl px-2 mt-6 mx-2">
-            <ResearchersList
-              searchQuery={''}
-              filters={{
-                baseUnit: [],
-                ceaCategory: [],
-              }}
-            />
-          </div>
-        )}
+        {/* Content Section */}
+        <div className="max-w-6xl mx-auto px-6 py-4 pt-0 bg-[var(--color-gray-100)]">
+          {activeTab === 'profiles' && (
+            <div className="max-w-8xl px-2 mt-6 mx-2">
+              <ResearchersList
+                searchQuery={''}
+                filters={{
+                  baseUnit: [],
+                  ceaCategory: [],
+                }}
+              />
+            </div>
+          )}
 
-        {activeTab === 'networks' && (
-          <div className="max-w-8xl px-2 mx-2">
-            <CollaborationMapPreview />
-          </div>
-        )}
+          {activeTab === 'networks' && (
+            <div className="max-w-8xl px-2 mx-2">
+              <CollaborationMapPreview />
+            </div>
+          )}
 
-        {activeTab === 'scientific_production' && (
-          <div className="max-w-8xl px-2 mx-2">
-            {paginatedProductions.length > 0 ? (
-              <>
-                <div>
-                  {paginatedProductions.map((production) => (
-                    <ProductionCard key={production.id} production={production} />
-                  ))}
-                </div>
-
-                {totalProductionPages > 1 && (
-                  <div className="mt-8">
-                    <Pagination
-                      currentPage={productionsPage}
-                      totalPages={totalProductionPages}
-                      onPageChange={handleProductionsPageChange}
-                    />
+          {activeTab === 'scientific_production' && (
+            <div className="max-w-8xl px-2 mx-2">
+              {paginatedProductions.length > 0 ? (
+                <>
+                  <div>
+                    {paginatedProductions.map((production) => (
+                      <ProductionCard key={production.id} production={production} />
+                    ))}
                   </div>
-                )}
-              </>
-            ) : (
-              <div
-                className="flex flex-col items-center justify-center py-16 text-center"
-                role="status"
-                aria-live="polite"
-              >
-                <p
-                  className="text-base font-medium"
-                  style={{ color: 'var(--color-text-neutral-secondary)' }}
-                >
-                  No se encontraron resultados.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
 
-        {activeTab === 'projects' && (
-          <div className="max-w-8xl px-2 mx-2 mt-6">
-            {projects.length > 0 ? (
-              <>
-                <div className="space-y-8">
-                  {projects.map((project) => {
-                    const managerProfile = project.associatedProfiles.find(
-                      (profile) => profile.name === project.manager,
-                    );
-
-                    return (
-                      <ProjectListItem
-                        key={project.id}
-                        code={project.code}
-                        title={project.title}
-                        href={`/projects/${project.id}`}
-                        manager={project.manager}
-                        managerHref={
-                          managerProfile
-                            ? `/researchers/${managerProfile.id}`
-                            : `/researchers?q=${encodeURIComponent(project.manager)}`
-                        }
-                        startDate={project.startDate}
-                        endDate={project.endDate}
-                        researchType={project.researchType}
-                        actionType={project.projectType}
-                        keywords={project.keywords}
+                  {totalProductionPages > 1 && (
+                    <div className="mt-8">
+                      <Pagination
+                        currentPage={productionsPage}
+                        totalPages={totalProductionPages}
+                        onPageChange={handleProductionsPageChange}
                       />
-                    );
-                  })}
-                </div>
-
-                {projectTotalPages > 1 && (
-                  <div className="mt-8">
-                    <Pagination
-                      currentPage={projectPage}
-                      totalPages={projectTotalPages}
-                      onPageChange={handleProjectPageChange}
-                    />
-                  </div>
-                )}
-              </>
-            ) : (
-              <div
-                className="flex flex-col items-center justify-center py-16 text-center"
-                role="status"
-                aria-live="polite"
-              >
-                <p
-                  className="text-base font-medium"
-                  style={{ color: 'var(--color-text-neutral-secondary)' }}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div
+                  className="flex flex-col items-center justify-center py-16 text-center"
+                  role="status"
+                  aria-live="polite"
                 >
-                  No se encontraron resultados.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+                  <p
+                    className="text-base font-medium"
+                    style={{ color: 'var(--color-text-neutral-secondary)' }}
+                  >
+                    No se encontraron resultados.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'projects' && (
+            <div className="max-w-8xl px-2 mx-2 mt-6">
+              {projects.length > 0 ? (
+                <>
+                  <div className="space-y-8">
+                    {projects.map((project) => {
+                      const managerProfile = project.associatedProfiles.find(
+                        (profile) => profile.name === project.manager,
+                      );
+
+                      return (
+                        <ProjectListItem
+                          key={project.id}
+                          code={project.code}
+                          title={project.title}
+                          href={`/projects/${project.id}`}
+                          manager={project.manager}
+                          managerHref={
+                            managerProfile
+                              ? `/researchers/${managerProfile.id}`
+                              : `/researchers?q=${encodeURIComponent(project.manager)}`
+                          }
+                          startDate={project.startDate}
+                          endDate={project.endDate}
+                          researchType={project.researchType}
+                          actionType={project.projectType}
+                          keywords={project.keywords}
+                        />
+                      );
+                    })}
+                  </div>
+
+                  {projectTotalPages > 1 && (
+                    <div className="mt-8">
+                      <Pagination
+                        currentPage={projectPage}
+                        totalPages={projectTotalPages}
+                        onPageChange={handleProjectPageChange}
+                      />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div
+                  className="flex flex-col items-center justify-center py-16 text-center"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <p
+                    className="text-base font-medium"
+                    style={{ color: 'var(--color-text-neutral-secondary)' }}
+                  >
+                    No se encontraron resultados.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
