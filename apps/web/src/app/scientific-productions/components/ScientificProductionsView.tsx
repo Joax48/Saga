@@ -192,7 +192,10 @@ export function ScientificProductionsView({
         onSearch={handleSearch}
       />
 
-      <section ref={resultsRef} className="bg-(--color-bg-neutral-primary) px-6 lg:px-10 py-14 scroll-mt-10">
+      <section
+        ref={resultsRef}
+        className="bg-(--color-bg-neutral-primary) px-6 lg:px-10 py-14 scroll-mt-10"
+      >
         <div className="max-w-6xl mx-auto">
           <div className="mb-4 lg:hidden">
             <Button

@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { FileText, Tag } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
-import { ScientificProductionTabs } from './components/ScientificProductionTabs';
+import CategoriesNavigation from '@/components/DetailNavbar';
+import type { Category } from '@/components/DetailNavbar';
+import DetailNavbar from '@/components/DetailNavbar';
 import { getScientificProductionById } from '@/services/scientific-productions';
 import type { ScientificProduction } from '@/types';
 
@@ -92,9 +94,19 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
       ? production.title.slice(0, 50).trimEnd() + '...'
       : production.title;
 
-  const tabs = [
-    { id: 'general', label: 'Información general', icon: <FileText size={18} /> },
-    { id: 'keywords', label: 'Palabras clave', icon: <Tag size={18} /> },
+  const categories: Category[] = [
+    {
+      id: 'general',
+      name: 'Información general',
+      icon: <FileText size={18} />,
+      sectionTitle: 'Información general',
+    },
+    {
+      id: 'keywords',
+      name: 'Palabras clave',
+      icon: <Tag size={18} />,
+      sectionTitle: 'Palabras claves',
+    },
   ];
 
   return (
@@ -205,128 +217,103 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
         </div>
       </section>
 
-      {/* ── Tabs — bg spans full width, content aligned to max-w ─────── */}
-      <div className="bg-(--color-bg-neutral-tertiary)">
-        <div className="max-w-7xl mx-auto space-y-8">
-          <ScientificProductionTabs
-            tabs={tabs}
-            defaultActive="general"
-            onChange={setActiveTab}
-          />
-        </div>
-      </div>
-
-      {/* ── Tab title strip (gray, full-width) ─────────────────────────── */}
-      {activeTab === 'general' && (
-        <div className="bg-(--color-bg-neutral-secondary) px-6 lg:px-10 py-6">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-[26px] font-normal text-(--color-text-neutral-primary)">
-              Información general
-            </h2>
-          </div>
-        </div>
-      )}
-      {activeTab === 'keywords' && (
-        <div className="bg-(--color-bg-neutral-secondary) px-6 lg:px-10 py-6">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-[26px] font-normal text-(--color-text-neutral-primary)">
-              Palabras claves
-            </h2>
-          </div>
-        </div>
-      )}
-
       {/* ── Tab content ────────────────────────────────────────────────── */}
-      <section className="bg-(--color-bg-neutral-primary) px-6 lg:px-10 pt-12 pb-12">
-        {/* Exact same inner container — aligns with tabs above */}
-        <div className="max-w-7xl mx-auto">
-          {/* ── General Information ──────────────────────────────────── */}
-          {activeTab === 'general' && (
-            <div className="flex flex-col lg:flex-row gap-12">
-              <div className="flex-1 space-y-8">
-                <div className="space-y-3">
-                  <h3 className="text-[22px] font-normal text-(--color-text-neutral-primary)">
-                    Resumen
-                  </h3>
-                  <p className="text-[18px] leading-[1.7] text-(--color-text-neutral-secondary)">
-                    {production.abstract}
-                  </p>
-                </div>
-
-                <div className="space-y-5">
-                  <DetailRow label="Estado:" value="Publicada" />
-                  {production.journal && (
-                    <DetailRow label="Revista:" value={production.journal} />
-                  )}
-                  <DetailRow
-                    label="Año de publicación:"
-                    value={String(production.publication_year)}
-                  />
-                </div>
-              </div>
-
-              {/* Access sidebar */}
-              <div className="lg:w-65 shrink-0 space-y-4">
-                <p className="text-[18px] font-medium text-(--color-text-neutral-primary)">
-                  Acceso
-                </p>
-
-                {production.open_access && (
-                  <div className="flex items-center gap-2">
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="text-green-600 shrink-0"
-                    >
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                      <path d="M7 11V7a5 5 0 0 1 9.9-1" />
-                    </svg>
-                    <span className="text-[16px] text-green-700">Acceso abierto</span>
+      <section>
+        <div className="bg-gray-100 pb-15">
+          <DetailNavbar
+            categories={categories}
+            defaultActive={activeTab}
+            onCategoryChange={(id) => setActiveTab(id)}
+          />
+          <div className="max-w-6xl mx-auto pt-10">
+            {/* ── General Information ──────────────────────────────────── */}
+            {activeTab === 'general' && (
+              <div className="flex flex-col lg:flex-row gap-12">
+                <div className="flex-1 space-y-8">
+                  <div className="space-y-3">
+                    <h3 className="text-[22px] font-normal text-(--color-text-neutral-primary)">
+                      Resumen
+                    </h3>
+                    <p className="text-[18px] leading-[1.7] text-(--color-text-neutral-secondary)">
+                      {production.abstract}
+                    </p>
                   </div>
-                )}
 
-                {production.doi && (
-                  <a
-                    href={`https://doi.org/${production.doi}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-start gap-2 text-[15px] break-all hover:underline"
-                    style={{ color: 'var(--color-text-brand-primary)' }}
-                  >
-                    <DoiBadge />
-                    {production.doi}
-                  </a>
-                )}
-              </div>
-            </div>
-          )}
+                  <div className="space-y-5">
+                    <DetailRow label="Estado:" value="Publicada" />
+                    {production.journal && (
+                      <DetailRow label="Revista:" value={production.journal} />
+                    )}
+                    <DetailRow
+                      label="Año de publicación:"
+                      value={String(production.publication_year)}
+                    />
+                  </div>
+                </div>
 
-          {/* ── Keywords ───────────────────────────────────────── */}
-          {activeTab === 'keywords' && (
-            <div className="space-y-8">
-              <h3
-                className="text-[1.25rem] leading-7 font-normal"
-                style={{ color: '#0F0F0F' }}
-              >
-                Categoría
-              </h3>
-              <div className="flex flex-wrap gap-2 pb-8">
-                {production.keywords.map((keyword) => (
-                  <span
-                    key={keyword}
-                    className="rounded-full px-4 py-1.5 text-xs font-medium text-white"
-                    style={{ backgroundColor: 'var(--color-bg-info-subtle)' }}
-                  >
-                    {keyword}
-                  </span>
-                ))}
+                {/* Access sidebar */}
+                <div className="lg:w-65 shrink-0 space-y-4">
+                  <p className="text-[18px] font-medium text-(--color-text-neutral-primary)">
+                    Acceso
+                  </p>
+
+                  {production.open_access && (
+                    <div className="flex items-center gap-2">
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        className="text-green-600 shrink-0"
+                      >
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+                      </svg>
+                      <span className="text-[16px] text-green-700">Acceso abierto</span>
+                    </div>
+                  )}
+
+                  {production.doi && (
+                    <a
+                      href={`https://doi.org/${production.doi}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-start gap-2 text-[15px] break-all hover:underline"
+                      style={{ color: 'var(--color-text-brand-primary)' }}
+                    >
+                      <DoiBadge />
+                      {production.doi}
+                    </a>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* ── Keywords ───────────────────────────────────────── */}
+            {activeTab === 'keywords' && (
+              <div className="space-y-8">
+                <h3
+                  className="text-[1.25rem] leading-7 font-normal"
+                  style={{ color: '#0F0F0F' }}
+                >
+                  Categoría
+                </h3>
+                <div className="flex flex-wrap gap-2 pb-8">
+                  {production.keywords.map((keyword) => (
+                    <span
+                      key={keyword}
+                      className="rounded-full px-4 py-1.5 text-xs font-medium text-white"
+                      style={{ backgroundColor: 'var(--color-bg-info-subtle)' }}
+                    >
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </main>
