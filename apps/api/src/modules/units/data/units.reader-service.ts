@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 import type {
   UnitDetailDto,
   UnitListItemDto,
+  UnitProfileDto,
+  UnitProjectDto,
+  UnitScientificProductionDto,
   UnitsPaginatedListDto,
   UnitsReader,
 } from '../units.reader.contract';
@@ -42,5 +45,19 @@ export class UnitsReaderService implements UnitsReader {
       pageUrl: unit.pageUrl,
       phoneNumber: unit.phoneNumber,
     };
+  }
+
+  async getProfilesByUnitId(unitId: number): Promise<UnitProfileDto[]> {
+    return this.unitsRepository.findProfilesByUnitId(unitId);
+  }
+
+  async getScientificProductionsByUnitId(
+    unitId: number,
+  ): Promise<UnitScientificProductionDto[]> {
+    return this.unitsRepository.findScientificProductionsByUnitId(unitId);
+  }
+
+  async getProjectsByUnitId(unitId: number): Promise<UnitProjectDto[]> {
+    return this.unitsRepository.findProjectsByUnitId(unitId);
   }
 }

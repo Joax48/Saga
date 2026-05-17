@@ -19,6 +19,41 @@ export interface UnitDetailDto {
   phoneNumber: string;
 }
 
+export interface UnitProfileDto {
+  id: number;
+  baseUnit: string | null;
+  name: string;
+  ceaCategory: string | null;
+  photoUrl: string | null;
+}
+
+export interface UnitScientificProductionDto {
+  id: string;
+  title: string;
+  authors: string;
+  type: string;
+  publicationYear: number;
+  doi: string | null;
+  journal: string | null;
+  volume: number | null;
+  issue: number | null;
+  pages: string | null;
+  keywords: string;
+}
+
+export interface UnitProjectDto {
+  id: string;
+  code: string;
+  name: string;
+  managerName: string;
+  managerId: number;
+  startDate: string;
+  endDate: string;
+  researchType: string;
+  projectType: string;
+  keywords: string | null;
+}
+
 export interface UnitsPaginatedListDto {
   items: UnitListItemDto[];
   page: number;
@@ -29,4 +64,9 @@ export interface UnitsPaginatedListDto {
 export interface UnitsReader {
   getPaginatedList(searchDTO: UnitSearchDTO): Promise<UnitsPaginatedListDto>;
   getById(id: number): Promise<UnitDetailDto | null>;
+  getProfilesByUnitId(unitId: number): Promise<UnitProfileDto[]>;
+  getScientificProductionsByUnitId(
+    unitId: number,
+  ): Promise<UnitScientificProductionDto[]>;
+  getProjectsByUnitId(unitId: number): Promise<UnitProjectDto[]>;
 }

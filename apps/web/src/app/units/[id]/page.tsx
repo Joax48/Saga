@@ -1,24 +1,28 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import Breadcrumb from '@/components/Breadcrumb';
 import DetailNavbar from '@/components/DetailNavbar';
 import { Category } from '@/components/DetailNavbar';
-import Pagination from '@/components/Pagination';
-import { getUnitById } from '@/services/units';
-import type { UnitDetail } from '@/services/units';
-import { getScientificProductions } from '@/services/scientific-productions';
 import {
-  getProjects,
-  type ProjectSummaryItem,
-  type ProjectQueryFilters,
-} from '@/services/projects';
-import ResearchersList from '@/app/researchers/components/ResearchersList';
+  getUnitById,
+  getUnitProfiles,
+  getUnitScientificProductions,
+  getUnitProjects,
+} from '@/services/units';
+import type {
+  UnitDetail,
+  UnitProfile,
+  UnitScientificProduction,
+  UnitProject,
+} from '@/services/units';
 import CollaborationMapPreview from '@/components/CollaborationMapPreview';
-import { ProductionCard } from '@/app/scientific-productions/components';
-import ProjectListItem from '@/app/projects/components/ProjectListItem';
-import type { ScientificProduction } from '@/types';
-import { Globe, Phone, Mail, User, Users, BookOpen, Briefcase } from 'lucide-react';
+import {
+  UnitScientificProductionsTab,
+  UnitProjectsTab,
+  UnitProfilesTab,
+} from '@/app/units/components';
+import Image from 'next/image';
 
 type UnitData = UnitDetail;
 
@@ -26,50 +30,56 @@ interface UnitsDetailPageProps {
   params: { id: string };
 }
 
-const PAGE_SIZE = 5;
-
-const DEFAULT_PROJECT_QUERY_FILTERS: ProjectQueryFilters = {
-  researchType: [],
-  projectType: [],
-  startYear: [],
-  status: [],
-  participants: [],
-  keywords: [],
-};
-
 export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
   const [unit, setUnit] = useState<UnitData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('profiles');
-  const [productions, setProductions] = useState<ScientificProduction[]>([]);
-  const [productionsPage, setProductionsPage] = useState(1);
-  const [projects, setProjects] = useState<ProjectSummaryItem[]>([]);
-  const [projectPage, setProjectPage] = useState(1);
-  const [projectTotalPages, setProjectTotalPages] = useState(1);
+  const [profiles, setProfiles] = useState<UnitProfile[]>([]);
+  const [productions, setProductions] = useState<UnitScientificProduction[]>([]);
+  const [projects, setProjects] = useState<UnitProject[]>([]);
+  const [loadingProfiles, setLoadingProfiles] = useState(true);
+  const [loadingProductions, setLoadingProductions] = useState(true);
+  const [loadingProjects, setLoadingProjects] = useState(true);
 
   const categories: Category[] = [
     {
       id: 'profiles',
       name: 'Perfiles asociados',
-      icon: <User size={18} />,
+      iconSrc: '/profile_icon_black.png',
     },
     {
       id: 'networks',
       name: 'Redes de colaboración',
-      icon: <Users size={18} />,
+      iconSrc: '/colaboration_networks_icon_black.png',
     },
     {
       id: 'scientific_production',
       name: 'Producción científica',
-      icon: <BookOpen size={18} />,
+      iconSrc: '/scientific_production_icon_black.png',
     },
     {
       id: 'projects',
       name: 'Proyectos',
-      icon: <Briefcase size={18} />,
+      iconSrc: '/projects_icon_black.png',
     },
   ];
+
+  /*Fetch associated profiles*/
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      try {
+        setLoadingProfiles(true);
+        const data = await getUnitProfiles(Number(params.id));
+        setProfiles(data);
+      } catch (err) {
+        console.error('Error fetching unit profiles:', err);
+      } finally {
+        setLoadingProfiles(false);
+      }
+    };
+    fetchProfiles();
+  }, [params.id]);
 
   /*Fetch default data*/
   useEffect(() => {
@@ -96,56 +106,45 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
   useEffect(() => {
     const fetchProductions = async () => {
       try {
-        const response = await getScientificProductions(1, 100);
-        setProductions(response.items);
+        setLoadingProductions(true);
+        const data = await getUnitScientificProductions(Number(params.id));
+        setProductions(data);
       } catch (error) {
-        console.error('Error fetching scientific productions:', error);
+        console.error('Error fetching unit scientific productions:', error);
+      } finally {
+        setLoadingProductions(false);
       }
     };
 
     fetchProductions();
-  }, []);
+  }, [params.id]);
 
-  /*Fetch projects for unit detail provisional list*/
+  /*Fetch projects for unit*/
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const projectsResponse = await getProjects(
-          projectPage,
-          PAGE_SIZE,
-          '',
-          DEFAULT_PROJECT_QUERY_FILTERS,
-        );
-        setProjects(projectsResponse.data);
-        setProjectTotalPages(
-          Math.max(1, Math.ceil(projectsResponse.total / projectsResponse.limit)),
-        );
+        setLoadingProjects(true);
+        const data = await getUnitProjects(Number(params.id));
+        setProjects(data);
       } catch (error) {
-        console.error('Error fetching projects:', error);
+        console.error('Error fetching unit projects:', error);
+      } finally {
+        setLoadingProjects(false);
       }
     };
 
     fetchProjects();
-  }, [projectPage]);
+  }, [params.id]);
 
-  const totalProductionPages = useMemo(
-    () => Math.max(1, Math.ceil(productions.length / PAGE_SIZE)),
-    [productions.length],
-  );
-
-  const paginatedProductions = useMemo(
-    () =>
-      productions.slice((productionsPage - 1) * PAGE_SIZE, productionsPage * PAGE_SIZE),
-    [productions, productionsPage],
-  );
-
-  const handleProductionsPageChange = useCallback((page: number) => {
-    setProductionsPage(page);
-  }, []);
-
-  const handleProjectPageChange = useCallback((page: number) => {
-    setProjectPage(page);
-  }, []);
+  function TabLoadingText() {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <p className="text-base" style={{ color: 'var(--color-text-neutral-secondary)' }}>
+          Cargando...
+        </p>
+      </div>
+    );
+  }
 
   /*Show loading page */
   if (loading) {
@@ -198,12 +197,21 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
                   Enlaces
                 </h3>
                 <a
-                  href={unit.pageUrl}
+                  href={
+                    unit.pageUrl.startsWith('http')
+                      ? unit.pageUrl
+                      : `https://${unit.pageUrl}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-neutral-600 hover:text-blue-800 break-all"
                 >
-                  <Globe size={18} style={{ color: 'var(--color-azul-700)' }} />
+                  <Image
+                    src="/colaboration_networks_icon_light_blue.png"
+                    alt=""
+                    width={20}
+                    height={20}
+                  />
                   {unit.pageUrl}
                 </a>
               </div>
@@ -223,7 +231,12 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
                     href={`tel:${unit.phoneNumber}`}
                     className="inline-flex items-center gap-2 text-neutral-600"
                   >
-                    <Phone size={18} style={{ color: 'var(--color-azul-800)' }} />
+                    <Image
+                      src="/phone_icon_light_blue.png"
+                      alt=""
+                      width={20}
+                      height={20}
+                    />
                     {unit.phoneNumber}
                   </a>
                 </div>
@@ -236,7 +249,12 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
                       href={`mailto:${unit.email}`}
                       className="inline-flex items-center gap-2 text-neutral-600 hover:text-blue-800 break-all"
                     >
-                      <Mail size={18} style={{ color: 'var(--color-azul-700)' }} />
+                      <Image
+                        src="/email_icon_light_blue.png"
+                        alt=""
+                        width={20}
+                        height={20}
+                      />
                       {unit.email}
                     </a>
                   </div>
@@ -257,17 +275,12 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
 
         {/* Content Section */}
         <div className="max-w-6xl mx-auto px-6 py-4 pt-0 bg-[var(--color-gray-100)]">
-          {activeTab === 'profiles' && (
-            <div className="max-w-8xl px-2 mt-6 mx-2">
-              <ResearchersList
-                searchQuery={''}
-                filters={{
-                  baseUnit: [],
-                  ceaCategory: [],
-                }}
-              />
-            </div>
-          )}
+          {activeTab === 'profiles' &&
+            (loadingProfiles ? (
+              <TabLoadingText />
+            ) : (
+              <UnitProfilesTab profiles={profiles} />
+            ))}
 
           {activeTab === 'networks' && (
             <div className="max-w-8xl px-2 mx-2">
@@ -275,101 +288,19 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
             </div>
           )}
 
-          {activeTab === 'scientific_production' && (
-            <div className="max-w-8xl px-2 mx-2">
-              {paginatedProductions.length > 0 ? (
-                <>
-                  <div>
-                    {paginatedProductions.map((production) => (
-                      <ProductionCard key={production.id} production={production} />
-                    ))}
-                  </div>
+          {activeTab === 'scientific_production' &&
+            (loadingProductions ? (
+              <TabLoadingText />
+            ) : (
+              <UnitScientificProductionsTab productions={productions} />
+            ))}
 
-                  {totalProductionPages > 1 && (
-                    <div className="mt-8">
-                      <Pagination
-                        currentPage={productionsPage}
-                        totalPages={totalProductionPages}
-                        onPageChange={handleProductionsPageChange}
-                      />
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div
-                  className="flex flex-col items-center justify-center py-16 text-center"
-                  role="status"
-                  aria-live="polite"
-                >
-                  <p
-                    className="text-base font-medium"
-                    style={{ color: 'var(--color-text-neutral-secondary)' }}
-                  >
-                    No se encontraron resultados.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'projects' && (
-            <div className="max-w-8xl px-2 mx-2 mt-6">
-              {projects.length > 0 ? (
-                <>
-                  <div className="space-y-8">
-                    {projects.map((project) => {
-                      const managerProfile = project.associatedProfiles.find(
-                        (profile) => profile.name === project.manager,
-                      );
-
-                      return (
-                        <ProjectListItem
-                          key={project.id}
-                          code={project.code}
-                          title={project.title}
-                          href={`/projects/${project.id}`}
-                          manager={project.manager}
-                          managerHref={
-                            managerProfile
-                              ? `/researchers/${managerProfile.id}`
-                              : `/researchers?q=${encodeURIComponent(project.manager)}`
-                          }
-                          startDate={project.startDate}
-                          endDate={project.endDate}
-                          researchType={project.researchType}
-                          actionType={project.projectType}
-                          keywords={project.keywords}
-                        />
-                      );
-                    })}
-                  </div>
-
-                  {projectTotalPages > 1 && (
-                    <div className="mt-8">
-                      <Pagination
-                        currentPage={projectPage}
-                        totalPages={projectTotalPages}
-                        onPageChange={handleProjectPageChange}
-                      />
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div
-                  className="flex flex-col items-center justify-center py-16 text-center"
-                  role="status"
-                  aria-live="polite"
-                >
-                  <p
-                    className="text-base font-medium"
-                    style={{ color: 'var(--color-text-neutral-secondary)' }}
-                  >
-                    No se encontraron resultados.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
+          {activeTab === 'projects' &&
+            (loadingProjects ? (
+              <TabLoadingText />
+            ) : (
+              <UnitProjectsTab projects={projects} />
+            ))}
         </div>
       </div>
     </main>

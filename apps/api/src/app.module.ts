@@ -9,6 +9,9 @@ import { UnitsModule } from './modules/units/units.module';
 import { PublicUnitsController } from './bff/public/units/public-units.controller';
 import { GetUnitsPaginatedListUseCase } from './application/use-cases/get-public-units-paginated-list.use-case';
 import { GetPublicUnitDetailUseCase } from './application/use-cases/get-public-unit-detail.use-case';
+import { GetPublicUnitProfilesUseCase } from './application/use-cases/get-public-unit-profiles.use-case';
+import { GetPublicUnitScientificProductionsUseCase } from './application/use-cases/get-public-unit-scientific-productions.use-case';
+import { GetPublicUnitProjectsUseCase } from './application/use-cases/get-public-unit-projects.use-case';
 import { ResearchersModule } from './modules/researchers/researchers.module';
 import { ScientificProductionsModule } from './modules/scientific-productions/scientific-productions.module';
 import { PublicProjectsController } from './bff/public/projects/public-projects.controller';
@@ -61,6 +64,9 @@ import { GetScientificProductionsFiltersUseCase } from './application/use-cases/
     GetResearcherProfileUseCase,
     GetUnitsPaginatedListUseCase,
     GetPublicUnitDetailUseCase,
+    GetPublicUnitProfilesUseCase,
+    GetPublicUnitScientificProductionsUseCase,
+    GetPublicUnitProjectsUseCase,
     GetResearchersFiltersUseCase,
   ],
 })

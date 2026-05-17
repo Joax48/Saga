@@ -62,6 +62,55 @@ export interface UnitDetail {
   phoneNumber: string;
 }
 
+export interface UnitProfile {
+  id: number;
+  baseUnit: string | null;
+  name: string;
+  ceaCategory: string | null;
+  photoUrl: string | null;
+}
+
 export function getUnitById(id: number): Promise<UnitDetail> {
   return request<UnitDetail>(`/units/${id}`);
+}
+
+export function getUnitProfiles(id: number): Promise<UnitProfile[]> {
+  return request<UnitProfile[]>(`/units/${id}/profiles`);
+}
+
+export interface UnitScientificProduction {
+  id: string;
+  title: string;
+  authors: string;
+  type: string;
+  publicationYear: number;
+  doi: string | null;
+  journal: string | null;
+  volume: number | null;
+  issue: number | null;
+  pages: string | null;
+  keywords: string;
+}
+
+export function getUnitScientificProductions(
+  id: number,
+): Promise<UnitScientificProduction[]> {
+  return request<UnitScientificProduction[]>(`/units/${id}/scientific-productions`);
+}
+
+export interface UnitProject {
+  id: string;
+  code: string;
+  name: string;
+  managerName: string;
+  managerId: number;
+  startDate: string;
+  endDate: string;
+  researchType: string;
+  projectType: string;
+  keywords: string | null;
+}
+
+export function getUnitProjects(id: number): Promise<UnitProject[]> {
+  return request<UnitProject[]>(`/units/${id}/projects`);
 }

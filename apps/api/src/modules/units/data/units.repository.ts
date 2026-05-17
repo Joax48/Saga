@@ -10,7 +10,41 @@ type PaginatedResult<T> = {
 };
 
 type UnitCountRow = {
-  totalCount: number;
+  total: number;
+};
+
+export type UnitProfile = {
+  baseUnit: string | null;
+  name: string;
+  ceaCategory: string | null;
+  photoUrl: string | null;
+};
+
+export type UnitScientificProduction = {
+  id: string;
+  title: string;
+  authors: string;
+  type: string;
+  publicationYear: number;
+  doi: string | null;
+  journal: string | null;
+  volume: number | null;
+  issue: number | null;
+  pages: string | null;
+  keywords: string;
+};
+
+export type UnitProject = {
+  id: string;
+  code: string;
+  name: string;
+  managerName: string;
+  managerId: number;
+  startDate: string;
+  endDate: string;
+  researchType: string;
+  projectType: string;
+  keywords: string | null;
 };
 
 const BASE_UNITS_SELECT = `
@@ -118,7 +152,7 @@ export class UnitsRepository {
       params,
     );
 
-    return totalRows[0]?.totalCount ?? 0;
+    return totalRows[0]?.total ?? 0;
   }
 
   async findById(id: number): Promise<Unit | null> {
@@ -137,6 +171,119 @@ export class UnitsRepository {
     );
 
     return rows[0] ?? null;
+  }
+
+  async findProfilesByUnitId(unitId: number): Promise<UnitProfile[]> {
+    return this.databaseClient.query<UnitProfile>(
+      `
+        SELECT
+          P.profile_id    AS "id",
+          U.unit_name     AS "baseUnit",
+          INITCAP(TRIM(
+            P.profile_name || ' ' || P.profile_first_surname || ' ' || P.profile_last_surname
+          ))              AS "name",
+          UP.cea_category AS "ceaCategory",
+          UP.profile_image_url AS "photoUrl"
+        FROM UCR_Profile UP
+        JOIN Profile P ON P.profile_id = UP.profile_id
+        LEFT JOIN Unit U ON U.unit_id = UP.base_unit
+        WHERE UP.base_unit = :unitId
+        ORDER BY P.profile_name ASC
+      `,
+      { unitId },
+    );
+  }
+
+  async findScientificProductionsByUnitId(
+    unitId: number,
+  ): Promise<UnitScientificProduction[]> {
+    return this.databaseClient.query<UnitScientificProduction>(
+      `
+        SELECT
+          SO.scientific_output_id AS "id",
+          SO.title                AS "title",
+          (
+            SELECT LISTAGG(
+                     INITCAP(TRIM(P.profile_name || ' ' || P.profile_first_surname)),
+                     ';'
+                   )
+                   WITHIN GROUP (ORDER BY P.profile_name)
+            FROM Scientific_Output_Profile SOP
+            JOIN Profile P ON P.profile_id = SOP.profile_id
+            WHERE SOP.scientific_output_id = SO.scientific_output_id
+          )                       AS "authors",
+          INITCAP(SOT.scientific_output_type_name) AS "type",
+          SO.publication_year     AS "publicationYear",
+          SO.doi                  AS "doi",
+          S.source_name           AS "journal",
+          COALESCE(CSO.volume, SCSO.volume) AS "volume",
+          COALESCE(CSO.issue_identifier, SCSO.issue_identifier) AS "issue",
+          COALESCE(CSO.clarivate_page_range, SCSO.scopus_page_range) AS "pages",
+          (
+            SELECT LISTAGG(K.keyword, ',') WITHIN GROUP (ORDER BY K.keyword)
+            FROM Scientific_Output_Keyword SOK
+            JOIN Keyword K ON K.keyword_id = SOK.keyword_id
+            WHERE SOK.scientific_output_id = SO.scientific_output_id
+          )                       AS "keywords"
+        FROM Scientific_Output_Unit SOU
+        JOIN Scientific_Output SO ON SO.scientific_output_id = SOU.scientific_output_id
+        LEFT JOIN Scientific_Output_Type SOT ON SOT.scientific_output_type_id = SO.type
+        LEFT JOIN Source S ON S.source_id = SO.source
+        LEFT JOIN Clarivate_Scientific_Output CSO ON CSO.scientific_output_id = SO.scientific_output_id
+        LEFT JOIN Scopus_Scientific_Output SCSO ON SCSO.scientific_output_id = SO.scientific_output_id
+        WHERE SOU.unit_id = :unitId
+        ORDER BY SO.publication_year DESC
+      `,
+      { unitId },
+    );
+  }
+
+  async findProjectsByUnitId(unitId: number): Promise<UnitProject[]> {
+    return this.databaseClient.query<UnitProject>(
+      `
+        SELECT
+          P.project_id                            AS "id",
+          P.project_id                            AS "code",
+          P.project_name                          AS "name",
+          (
+            SELECT TRIM(
+              PR.profile_name || ' ' || PR.profile_first_surname || ' ' || PR.profile_last_surname
+            )
+            FROM UCR_PROFILE_PROJECT_UNIT PPPU
+            JOIN Profile PR ON PR.profile_id = PPPU.profile_id
+            WHERE PPPU.project_id = P.project_id
+              AND PPPU.participation IN (4, 5)
+            FETCH FIRST 1 ROWS ONLY
+          )                                       AS "managerName",
+          (
+            SELECT PPPU.profile_id
+            FROM UCR_PROFILE_PROJECT_UNIT PPPU
+            WHERE PPPU.project_id = P.project_id
+              AND PPPU.participation IN (4, 5)
+            FETCH FIRST 1 ROWS ONLY
+          )                                       AS "managerId",
+          TO_CHAR(PP.project_start_date, 'DD/MM/YYYY') AS "startDate",
+          TO_CHAR(PP.project_end_date,   'DD/MM/YYYY') AS "endDate",
+          RT.project_research_type_name           AS "researchType",
+          PT.project_type_name                    AS "projectType",
+          (
+            SELECT LISTAGG(K.keyword, ',') WITHIN GROUP (ORDER BY K.keyword)
+            FROM Project_Keyword PK
+            JOIN Keyword K ON K.keyword_id = PK.keyword_id
+            WHERE PK.project_id = P.project_id
+            ORDER BY K.keyword
+            FETCH FIRST 10 ROWS ONLY
+          )                                       AS "keywords"
+        FROM Project_Unit PU
+        JOIN Project P ON P.project_id = PU.project_id
+        JOIN Project_Period PP ON PP.project_id = P.project_id
+        JOIN Project_Research_Type RT ON RT.project_research_type_id = P.project_research_type
+        JOIN Project_Type PT ON PT.project_type_id = P.project_type
+        WHERE PU.unit_id = :unitId
+        ORDER BY PP.project_start_date DESC
+      `,
+      { unitId },
+    );
   }
 
   private calculateOffset(page: number, limit: number): number {

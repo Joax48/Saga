@@ -75,19 +75,20 @@ export default function ProjectListItem({
       href={href}
       description={
         <>
-          <p>
-            <Link
-              // Prefer the linked researcher profile when available.
-              href={managerHref ?? `/researchers?q=${encodeURIComponent(manager)}`}
-              className="hover:underline"
-              style={{ color: 'var(--color-text-brand-primary)' }}
-            >
-              {manager}
-            </Link>{' '}
-            <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
-              (Persona encargada del proyecto).
-            </span>
-          </p>
+          {manager && (
+            <p>
+              <Link
+                href={managerHref ?? `/researchers?q=${encodeURIComponent(manager)}`}
+                className="hover:underline"
+                style={{ color: 'var(--color-text-brand-primary)' }}
+              >
+                {manager}
+              </Link>{' '}
+              <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                (Persona encargada del proyecto).
+              </span>
+            </p>
+          )}
           <p style={{ color: 'var(--color-text-neutral-secondary)' }}>
             {startDate}
             {' -> '}
