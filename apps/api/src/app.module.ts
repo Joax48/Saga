@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { LoggerModule } from './common/logger/logger.module';
 import { SearchModule } from './modules/search/search.module';
 import { CacheModule } from './modules/cache/cache.module';
 import { DatabaseModule } from './common/database/database.module';
@@ -35,6 +36,7 @@ import { GetScientificProductionsFiltersUseCase } from './application/use-cases/
     ConfigModule.forRoot({
       envFilePath: ['.env', '../../.env'],
     }),
+    LoggerModule,
     SearchModule,
     CacheModule,
     DatabaseModule,
