@@ -196,10 +196,7 @@ export class ResearchersRepository {
    * belongs to any of the selected units. EXISTS is required here because a
    * researcher can belong to multiple units (many-to-many via UCR_PROFILE_PROJECT_UNIT).
    */
-  private shouldSkipFilter(
-    field: FilterField,
-    excludedFilters: FilterField[],
-  ): boolean {
+  private shouldSkipFilter(field: FilterField, excludedFilters: FilterField[]): boolean {
     return excludedFilters.includes(field);
   }
 
@@ -214,10 +211,15 @@ export class ResearchersRepository {
     const normalizedSearchTerm = this.normalizeSearchTerm(searchTerm);
     if (normalizedSearchTerm) {
       const b1 = this.addParam(params, normalizedSearchTerm);
-      // const b2 = this.addParam(params, normalizedSearchTerm);
-      // const b3 = this.addParam(params, normalizedSearchTerm);
-      // `(LOWER(p.PROFILE_NAME) LIKE LOWER(${b1}) OR LOWER(p.PROFILE_FIRST_SURNAME) LIKE LOWER(${b2}) OR LOWER(p.PROFILE_LAST_SURNAME) LIKE LOWER(${b3}))`,
-      clauses.push(`(LOWER(p.PROFILE_NAME) LIKE LOWER(${b1}))`);
+      const b2 = this.addParam(params, normalizedSearchTerm);
+      const b3 = this.addParam(params, normalizedSearchTerm);
+      const b4 = this.addParam(params, normalizedSearchTerm);
+      clauses.push(
+        `(LOWER(p.PROFILE_NAME) LIKE LOWER(${b1}) ` +
+          `OR LOWER(p.PROFILE_FIRST_SURNAME) LIKE LOWER(${b2}) ` +
+          `OR LOWER(p.PROFILE_LAST_SURNAME) LIKE LOWER(${b3}) ` +
+          `OR LOWER(TRIM(p.PROFILE_NAME || ' ' || p.PROFILE_FIRST_SURNAME || ' ' || p.PROFILE_LAST_SURNAME)) LIKE LOWER(${b4}))`,
+      );
     }
 
     const units = this.normalizeFilterValues(filters?.unit);

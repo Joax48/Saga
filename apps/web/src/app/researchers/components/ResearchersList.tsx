@@ -94,15 +94,28 @@ export default function ResearchersList({
    * Generates an avatar URL with initials when the researcher has no photo.
    * Uses the external ui-avatars.com service with a blue background.
    */
-  const getAvatarUrl = (name: string, surname: string): string => {
-    const fullName = `${name} ${surname}`;
+  const getAvatarUrl = (...nameParts: (string | null | undefined)[]): string => {
+    const fullName = nameParts.filter(Boolean).join(' ');
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0D8ABC&color=fff&size=200`;
   };
 
+  const buildFullName = (researcher: Researcher): string =>
+    [researcher.name, researcher.firstSurname, researcher.secondSurname]
+      .filter(Boolean)
+      .join(' ');
+
+  // Adapts the layout so a small result set fills the container width nicely
+  // instead of leaving empty columns on the right.
+  const layoutClass =
+    researchers.length === 1
+      ? 'grid grid-cols-1 gap-x-8 gap-y-6 items-stretch'
+      : researchers.length === 2
+        ? 'grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 items-stretch'
+        : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6 items-stretch';
+
   return (
     <div className="flex flex-col gap-8">
-      {/* Grid: 1 column on mobile, 2 on tablet, 3 on desktop */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6 items-stretch">
+      <div className={layoutClass}>
         {researchers.map((researcher) => {
           const hasBaseUnit = !!researcher.baseUnit;
 
@@ -116,7 +129,8 @@ export default function ResearchersList({
           return (
             <Card
               key={researcher.id}
-              title={`${researcher.name} ${researcher.firstSurname}`}
+              title={buildFullName(researcher)}
+              titleClassName="text-sm font-bold leading-snug"
               description={
                 <span className="flex flex-col gap-0.5">
                   {hasBaseUnit ? (
@@ -193,7 +207,11 @@ export default function ResearchersList({
               imageSrc={
                 // Falls back to an initials avatar when no photo is stored in the DB
                 researcher.photoUrl ||
-                getAvatarUrl(researcher.name, researcher.firstSurname)
+                getAvatarUrl(
+                  researcher.name,
+                  researcher.firstSurname,
+                  researcher.secondSurname,
+                )
               }
               imageShape="circle"
               href={`/researchers/${researcher.id}`}

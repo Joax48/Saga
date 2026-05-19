@@ -184,7 +184,7 @@ describe('ResearchersRepository', () => {
 
       await repository.findPaginated(1, 10, 'Ana');
 
-      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%']);
+      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%', 'Ana%', 'Ana%', 'Ana%']);
     });
 
     it('should also apply the WHERE filter in the count query', async () => {
@@ -195,7 +195,14 @@ describe('ResearchersRepository', () => {
       const countQuery = mockDb.query.mock.calls[1][0] as string;
       expect(countQuery).toContain('WHERE');
       expect(countQuery).toContain('LOWER(p.PROFILE_NAME)');
-      expect(mockDb.query.mock.calls[1][1]).toEqual(['Carlos%']);
+      expect(countQuery).toContain('LOWER(p.PROFILE_FIRST_SURNAME)');
+      expect(countQuery).toContain('LOWER(p.PROFILE_LAST_SURNAME)');
+      expect(mockDb.query.mock.calls[1][1]).toEqual([
+        'Carlos%',
+        'Carlos%',
+        'Carlos%',
+        'Carlos%',
+      ]);
     });
 
     it('should return an empty list when no researchers match the search term', async () => {
@@ -222,7 +229,7 @@ describe('ResearchersRepository', () => {
 
       await repository.findPaginated(1, 10, '  Ana  ');
 
-      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%']);
+      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%', 'Ana%', 'Ana%', 'Ana%']);
     });
   });
 
@@ -358,7 +365,7 @@ describe('ResearchersRepository', () => {
 
       await repository.getBaseUnitCounts('Ana');
 
-      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%']);
+      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%', 'Ana%', 'Ana%', 'Ana%']);
       const query = mockDb.query.mock.calls[0][0] as string;
       expect(query).toContain('LOWER(p.PROFILE_NAME)');
     });
@@ -378,7 +385,12 @@ describe('ResearchersRepository', () => {
 
       await repository.getBaseUnitCounts('Carlos', { unit: ['CIMPA'] });
 
-      expect(mockDb.query.mock.calls[0][1]).toEqual(['Carlos%']);
+      expect(mockDb.query.mock.calls[0][1]).toEqual([
+        'Carlos%',
+        'Carlos%',
+        'Carlos%',
+        'Carlos%',
+      ]);
       const query = mockDb.query.mock.calls[0][0] as string;
       expect(query).toContain('LOWER(p.PROFILE_NAME)');
       expect(query).not.toContain('EXISTS');

@@ -48,6 +48,8 @@ export interface CardProps {
   layout?: CardLayout;
   /** Additional Tailwind / DaisyUI classes for the card root */
   className?: string;
+  /** Additional Tailwind classes for the title element (overrides default size) */
+  titleClassName?: string;
   /**
    * When `true` the card chrome (background, shadow, border-radius) is
    * removed. Useful for list items that need the Card structure but not
@@ -128,6 +130,7 @@ export function Card({
   imageShape = 'square',
   layout = 'horizontal',
   className = '',
+  titleClassName,
   chromeless = false,
   onClick,
 }: CardProps) {
@@ -188,7 +191,10 @@ export function Card({
       {/* ── Content ── */}
       <div className={chromeless ? 'flex flex-col gap-1' : 'card-body gap-2 p-4'}>
         <h4
-          className={[!chromeless && 'card-title', 'text-base font-bold leading-snug']
+          className={[
+            !chromeless && 'card-title',
+            titleClassName ?? 'text-base font-bold leading-snug',
+          ]
             .filter(Boolean)
             .join(' ')}
           style={{ color: 'var(--color-text-brand-primary)' }}

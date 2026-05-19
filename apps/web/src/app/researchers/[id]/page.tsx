@@ -6,15 +6,7 @@ import DetailNavbar from '../../../components/DetailNavbar';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import {
-  ExternalLink,
-  Link2,
-  Globe,
-  Users,
-  Tag,
-  BookOpen,
-  Briefcase,
-} from 'lucide-react';
+import { ExternalLink, Link2, Globe } from 'lucide-react';
 import { getResearcherProfile } from '../../../services/researchers';
 import { ProductionCard } from '../../scientific-productions/components';
 import ProjectListItem from '../../projects/components/ProjectListItem';
@@ -29,10 +21,22 @@ interface ResearchersDetailPageProps {
 }
 
 const profileSections = [
-  { id: 'personal', name: 'Perfil Personal', icon: <Users size={18} /> },
-  { id: 'keywords', name: 'Palabras clave', icon: <Tag size={18} /> },
-  { id: 'production', name: 'Producción científica', icon: <BookOpen size={18} /> },
-  { id: 'projects', name: 'Proyectos', icon: <Briefcase size={18} /> },
+  {
+    id: 'personal',
+    name: 'Perfil Personal',
+  },
+  {
+    id: 'keywords',
+    name: 'Palabras clave',
+  },
+  {
+    id: 'production',
+    name: 'Producción científica',
+  },
+  {
+    id: 'projects',
+    name: 'Proyectos',
+  },
 ];
 
 // Builds the profile links array from the researcher's real data,
@@ -128,6 +132,8 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
   const [profile, setProfile] = useState<ResearcherProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [showAllLinkedUnitsHeader, setShowAllLinkedUnitsHeader] = useState(false);
+  const [showAllLinkedUnitsSection, setShowAllLinkedUnitsSection] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -173,59 +179,69 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
   return (
     <main className="min-h-screen bg-[var(--color-bg-neutral-primary)]">
       <div className="bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
           <Breadcrumb
             items={[{ label: 'Perfiles', href: '/researchers' }, { label: fullName }]}
           />
 
-          <div className="mt-8 flex flex-col md:flex-row gap-6 md:gap-8 items-start">
-            <div className="relative shrink-0 w-20 h-20 md:w-44 md:h-44 overflow-hidden rounded-2xl bg-slate-100">
+          <div className="mt-6 sm:mt-8 flex flex-col md:flex-row gap-4 sm:gap-6 md:gap-8 items-start">
+            <div className="relative shrink-0 w-24 h-24 sm:w-32 sm:h-32 md:w-44 md:h-44 overflow-hidden rounded-2xl bg-slate-100 mx-auto md:mx-0">
               <Image
                 src={photo}
                 alt={fullName}
                 fill
-                sizes="(max-width: 768px) 80px, 176px"
+                sizes="(max-width: 640px) 96px, (max-width: 768px) 128px, 176px"
                 className="object-cover"
               />
             </div>
 
-            <div className="flex-1 min-w-0 space-y-1">
+            <div className="flex-1 min-w-0 w-full space-y-1">
               <div className="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
-                <h1 className="text-[32px] font-normal text-[var(--color-text-neutral-primary)] truncate">
+                <h1 className="text-2xl sm:text-3xl md:text-[32px] font-normal text-[var(--color-text-neutral-primary)] break-words">
                   {fullName}
                 </h1>
               </div>
 
               {profile.alternativeNames.length > 0 && (
-                <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                <p className="text-sm sm:text-[16px] text-[var(--color-text-neutral-secondary)] break-words">
                   También conocido como:{' '}
                   {profile.alternativeNames.map(formatAlternativeName).join(' · ')}
                 </p>
               )}
 
               {profile.ceaCategory && (
-                <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                <p className="text-sm sm:text-[16px] text-[var(--color-text-neutral-secondary)]">
                   {profile.ceaCategory}
                 </p>
               )}
 
               <div className="space-y-1">
                 <p
-                  className="text-[16px] font-semibold"
+                  className="text-sm sm:text-[16px] font-semibold"
                   style={{ color: 'var(--color-text-neutral-secondary)' }}
                 >
                   Unidad base
                 </p>
                 {profile.baseUnit ? (
-                  <p
-                    className="text-[16px]"
-                    style={{ color: 'var(--color-text-brand-primary)' }}
-                  >
-                    {profile.baseUnit}
-                  </p>
+                  (() => {
+                    const baseUnitMatch = profile.linkedUnits.find(
+                      (u) => u.name === profile.baseUnit,
+                    );
+                    return (
+                      <p className="text-sm sm:text-[16px] break-words">
+                        <Link
+                          href={baseUnitMatch ? `/units/${baseUnitMatch.id}` : '/units'}
+                          className="hover:underline"
+                          style={{ color: 'var(--color-text-brand-primary)' }}
+                        >
+                          {profile.baseUnit}
+                        </Link>
+                      </p>
+                    );
+                  })()
                 ) : (
                   <p
-                    className="text-[16px]"
+                    className="text-sm sm:text-[16px]"
                     style={{ color: 'var(--color-text-neutral-secondary)' }}
                   >
                     Sin unidad base registrada
@@ -235,39 +251,55 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
 
               <div className="space-y-1">
                 <p
-                  className="text-[16px] font-semibold"
+                  className="text-sm sm:text-[16px] font-semibold"
                   style={{ color: 'var(--color-text-neutral-secondary)' }}
                 >
-                  Unidades asociadas
+                  Unidades de Colaboración
                 </p>
                 {profile.linkedUnits.length > 0 ? (
-                  <p className="text-[16px]">
-                    {profile.linkedUnits.map((unit, idx) => (
-                      <span key={unit.id}>
-                        {idx > 0 && ', '}
-                        <Link
-                          href={`/units/${unit.id}`}
-                          className="hover:underline"
-                          style={{ color: 'var(--color-text-brand-primary)' }}
-                        >
-                          {unit.name}
-                        </Link>
-                      </span>
-                    ))}
-                  </p>
+                  <>
+                    <ul className="list-disc pl-5 text-sm sm:text-[16px] space-y-1">
+                      {(showAllLinkedUnitsHeader
+                        ? profile.linkedUnits
+                        : profile.linkedUnits.slice(0, 3)
+                      ).map((unit) => (
+                        <li key={unit.id} className="break-words">
+                          <Link
+                            href={`/units/${unit.id}`}
+                            className="hover:underline"
+                            style={{ color: 'var(--color-text-brand-primary)' }}
+                          >
+                            {unit.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                    {profile.linkedUnits.length > 3 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAllLinkedUnitsHeader((prev) => !prev)}
+                        className="text-sm hover:underline cursor-pointer mt-1"
+                        style={{ color: 'var(--color-text-brand-primary)' }}
+                      >
+                        {showAllLinkedUnitsHeader
+                          ? 'Ver menos'
+                          : `Ver todas (${profile.linkedUnits.length})`}
+                      </button>
+                    )}
+                  </>
                 ) : (
                   <p
-                    className="text-[16px]"
+                    className="text-sm sm:text-[16px]"
                     style={{ color: 'var(--color-text-neutral-secondary)' }}
                   >
-                    Sin unidades asociadas registradas
+                    Sin unidades de colaboración registradas
                   </p>
                 )}
               </div>
 
               <div className="space-y-1 pt-4">
                 <p
-                  className="text-[16px] font-semibold"
+                  className="text-sm sm:text-[16px] font-semibold"
                   style={{ color: 'var(--color-text-neutral-secondary)' }}
                 >
                   Enlaces de interés
@@ -289,7 +321,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                   </div>
                 ) : (
                   <p
-                    className="text-[16px]"
+                    className="text-sm sm:text-[16px]"
                     style={{ color: 'var(--color-text-neutral-secondary)' }}
                   >
                     Sin enlaces de interés asociados
@@ -306,31 +338,46 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
           categories={profileSections}
           defaultActive="personal"
           onCategoryChange={setActiveSection}
-          containerClassName="max-w-7xl mx-auto flex items-center px-6 h-16"
+          containerClassName="max-w-7xl mx-auto flex items-center px-4 sm:px-6 h-16"
           itemClassName="flex items-center gap-2 px-4 h-full border-b-2 border-transparent text-[16px] text-[var(--color-text-neutral-secondary)] transition cursor-pointer hover:text-[var(--color-text-neutral-primary)]"
           activeItemClassName="border-b-2 border-[var(--color-text-brand-primary)] text-[var(--color-text-brand-primary)] font-medium"
           hideSectionTitle
         />
 
-        <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
           {activeSection === 'personal' && (
-            <section className="space-y-8">
+            <section className="space-y-6 sm:space-y-8">
               <div>
-                <h3 className="text-[22px] font-normal text-[var(--color-text-neutral-primary)] mb-4">
+                <h3 className="text-xl sm:text-[22px] font-normal text-[var(--color-text-neutral-primary)] mb-4">
                   Información
                 </h3>
-                <div className="space-y-4 text-[16px]">
+                <div className="space-y-4 text-sm sm:text-[16px]">
                   <div>
                     <p
-                      className="text-[16px] font-semibold mb-1"
+                      className="text-sm sm:text-[16px] font-semibold mb-1"
                       style={{ color: 'var(--color-text-neutral-secondary)' }}
                     >
                       Unidad base
                     </p>
                     {profile.baseUnit ? (
-                      <p style={{ color: 'var(--color-text-brand-primary)' }}>
-                        {profile.baseUnit}
-                      </p>
+                      (() => {
+                        const baseUnitMatch = profile.linkedUnits.find(
+                          (u) => u.name === profile.baseUnit,
+                        );
+                        return (
+                          <p>
+                            <Link
+                              href={
+                                baseUnitMatch ? `/units/${baseUnitMatch.id}` : '/units'
+                              }
+                              className="hover:underline"
+                              style={{ color: 'var(--color-text-brand-primary)' }}
+                            >
+                              {profile.baseUnit}
+                            </Link>
+                          </p>
+                        );
+                      })()
                     ) : (
                       <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
                         Sin unidad base registrada
@@ -340,41 +387,57 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
 
                   <div>
                     <p
-                      className="text-[16px] font-semibold mb-1"
+                      className="text-sm sm:text-[16px] font-semibold mb-1"
                       style={{ color: 'var(--color-text-neutral-secondary)' }}
                     >
-                      Unidades asociadas
+                      Unidades de Colaboración
                     </p>
                     {profile.linkedUnits.length > 0 ? (
-                      <p className="text-[var(--color-text-neutral-primary)]">
-                        {profile.linkedUnits.map((unit, idx) => (
-                          <span key={unit.id}>
-                            {idx > 0 && ', '}
-                            <Link
-                              href={`/units/${unit.id}`}
-                              className="hover:underline"
-                              style={{ color: 'var(--color-text-brand-primary)' }}
-                            >
-                              {unit.name}
-                            </Link>
-                          </span>
-                        ))}
-                      </p>
+                      <>
+                        <ul className="list-disc pl-5 space-y-1 text-[var(--color-text-neutral-primary)]">
+                          {(showAllLinkedUnitsSection
+                            ? profile.linkedUnits
+                            : profile.linkedUnits.slice(0, 3)
+                          ).map((unit) => (
+                            <li key={unit.id} className="break-words">
+                              <Link
+                                href={`/units/${unit.id}`}
+                                className="hover:underline"
+                                style={{ color: 'var(--color-text-brand-primary)' }}
+                              >
+                                {unit.name}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                        {profile.linkedUnits.length > 3 && (
+                          <button
+                            type="button"
+                            onClick={() => setShowAllLinkedUnitsSection((prev) => !prev)}
+                            className="text-sm hover:underline cursor-pointer mt-1"
+                            style={{ color: 'var(--color-text-brand-primary)' }}
+                          >
+                            {showAllLinkedUnitsSection
+                              ? 'Ver menos'
+                              : `Ver todas (${profile.linkedUnits.length})`}
+                          </button>
+                        )}
+                      </>
                     ) : (
                       <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
-                        Sin unidades asociadas registradas
+                        Sin unidades de colaboración registradas
                       </span>
                     )}
                   </div>
 
                   <div>
                     <p
-                      className="text-[16px] font-semibold mb-1"
+                      className="text-sm sm:text-[16px] font-semibold mb-1"
                       style={{ color: 'var(--color-text-neutral-secondary)' }}
                     >
                       Categoría
                     </p>
-                    <p className="text-[var(--color-text-neutral-primary)]">
+                    <p className="text-[var(--color-text-neutral-primary)] break-words">
                       {profile.ceaCategory ?? (
                         <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
                           No disponible
@@ -385,12 +448,12 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
 
                   <div>
                     <p
-                      className="text-[16px] font-semibold mb-1"
+                      className="text-sm sm:text-[16px] font-semibold mb-1"
                       style={{ color: 'var(--color-text-neutral-secondary)' }}
                     >
                       ORCID
                     </p>
-                    <p className="text-[var(--color-text-neutral-primary)]">
+                    <p className="text-[var(--color-text-neutral-primary)] break-all">
                       {profile.orcidId ?? (
                         <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
                           No disponible
@@ -402,13 +465,16 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
               </div>
 
               <div>
-                <h3 className="text-[22px] font-normal text-[var(--color-text-neutral-primary)] mb-4">
+                <h3 className="text-xl sm:text-[22px] font-normal text-[var(--color-text-neutral-primary)] mb-4">
                   Formación académica
                 </h3>
                 {profile.education.length > 0 ? (
-                  <ul className="space-y-3 text-[16px] text-[var(--color-text-neutral-primary)]">
+                  <ul className="space-y-3 text-sm sm:text-[16px] text-[var(--color-text-neutral-primary)]">
                     {profile.education.map((edu, idx) => (
-                      <li key={`${edu.degree}-${edu.institution}-${idx}`}>
+                      <li
+                        key={`${edu.degree}-${edu.institution}-${idx}`}
+                        className="break-words"
+                      >
                         <span className="font-bold">
                           {edu.degree}
                           {edu.fieldOfStudy ? ` en ${edu.fieldOfStudy}` : ''}
@@ -420,20 +486,23 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                  <p className="text-sm sm:text-[16px] text-[var(--color-text-neutral-secondary)]">
                     No hay formación académica registrada para este perfil.
                   </p>
                 )}
               </div>
 
               <div>
-                <h3 className="text-[22px] font-normal text-[var(--color-text-neutral-primary)] mb-4">
+                <h3 className="text-xl sm:text-[22px] font-normal text-[var(--color-text-neutral-primary)] mb-4">
                   Experiencia laboral relevante
                 </h3>
                 {profile.experience.length > 0 ? (
-                  <ul className="space-y-3 text-[16px] text-[var(--color-text-neutral-primary)]">
+                  <ul className="space-y-3 text-sm sm:text-[16px] text-[var(--color-text-neutral-primary)]">
                     {profile.experience.map((exp, idx) => (
-                      <li key={`${exp.position}-${exp.organization}-${idx}`}>
+                      <li
+                        key={`${exp.position}-${exp.organization}-${idx}`}
+                        className="break-words"
+                      >
                         <span className="font-bold">{exp.position}</span>
                         {exp.organization ? ` — ${exp.organization}` : ''}
                         {exp.startDate || exp.endDate ? (
@@ -449,7 +518,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                  <p className="text-sm sm:text-[16px] text-[var(--color-text-neutral-secondary)]">
                     No hay experiencia laboral registrada para este perfil.
                   </p>
                 )}
