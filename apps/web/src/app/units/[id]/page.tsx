@@ -46,22 +46,18 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
     {
       id: 'profiles',
       name: 'Perfiles asociados',
-      iconSrc: '/profile_icon_black.png',
     },
     {
       id: 'networks',
       name: 'Redes de colaboración',
-      iconSrc: '/colaboration_networks_icon_black.png',
     },
     {
       id: 'scientific_production',
       name: 'Producción científica',
-      iconSrc: '/scientific_production_icon_black.png',
     },
     {
       id: 'projects',
       name: 'Proyectos',
-      iconSrc: '/projects_icon_black.png',
     },
   ];
 
