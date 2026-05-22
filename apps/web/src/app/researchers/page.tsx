@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ChevronUp } from 'lucide-react';
 
@@ -38,10 +38,28 @@ function ResearchersPageContent() {
     const p = parseInt(searchParams.get('page') ?? '1', 10);
     return isNaN(p) || p < 1 ? 1 : p;
   });
+  const listContainerRef = useRef<HTMLDivElement>(null);
+  const isFirstPageRender = useRef(true);
   const [filterOptions, setFilterOptions] = useState<ResearcherFilters>({ baseUnit: [] });
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
   const [total, setTotal] = useState<number | null>(null);
+
+  // Scroll to the top of the list container whenever the page changes,
+  // skipping the initial render so the page doesn't jump on first load.
+  useEffect(() => {
+    if (isFirstPageRender.current) {
+      isFirstPageRender.current = false;
+      return;
+    }
+    if (listContainerRef.current) {
+      const navbar = document.querySelector('header') ?? document.querySelector('nav');
+      const navbarHeight = navbar ? navbar.getBoundingClientRect().height : 0;
+      const top =
+        listContainerRef.current.getBoundingClientRect().top + window.scrollY - navbarHeight - 16;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  }, [currentPage]);
 
   // Sync state to URL so the back button restores page + filters + search
   useEffect(() => {
@@ -108,7 +126,7 @@ function ResearchersPageContent() {
       <PageHeroSearch
         items={BREADCRUMB_ITEMS}
         title="Perfiles"
-        searchPlaceholder="Buscar por nombre"
+        searchPlaceholder="Buscar perfil por nombre, apellido o nombre completo"
         onSearch={handleSearch}
         initialSearchValue={searchQuery}
       />
@@ -149,7 +167,7 @@ function ResearchersPageContent() {
             />
           </div>
 
-          <div className="flex-1 min-w-0 pb-20">
+          <div ref={listContainerRef} className="flex-1 min-w-0 pb-20">
             <ResearchersList
               searchQuery={searchQuery}
               filters={filters}
@@ -162,13 +180,14 @@ function ResearchersPageContent() {
       </div>
 
       {showScrollTopButton && (
-        <button
+        <Button
+          variant="primary"
+          size="md"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] text-white shadow-lg transition-transform hover:scale-110"
-          aria-label="Volver al inicio"
-        >
-          <ChevronUp size={20} strokeWidth={2} />
-        </button>
+          iconLeft={<ChevronUp size={32} strokeWidth={3.2} />}
+          aria-label="Volver arriba"
+          className="fixed bottom-6 right-6 z-50 h-16 w-16 rounded-full px-0 shadow-lg"
+        />
       )}
     </main>
   );

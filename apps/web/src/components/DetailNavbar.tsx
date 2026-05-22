@@ -54,6 +54,7 @@ export default function CategoriesNavigation({
           return (
             <button
               key={category.id}
+              id={`navbar-tab-${category.id}`}
               onClick={() => handleCategoryClick(category.id)}
               className={[
                 'flex-1 h-full relative flex items-center justify-center gap-2',

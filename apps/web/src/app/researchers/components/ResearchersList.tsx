@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Pagination from '@/components/Pagination';
 import Card from '@/components/Card';
@@ -31,9 +31,6 @@ export default function ResearchersList({
 }: ResearchersListProps) {
   const [researchers, setResearchers] = useState<Researcher[]>([]);
   const [totalPages, setTotalPages] = useState(1);
-  // Saved scroll position at the moment the user clicks a page button.
-  // Restored after the new page content paints so the pagination stays visible.
-  const savedScrollY = useRef<number | null>(null);
 
   // Fetches researchers whenever the page, search query, or filters change.
   // The cleanup function sets `cancelled = true` so that if the effect
@@ -57,19 +54,6 @@ export default function ResearchersList({
         setResearchers(response.data);
         setTotalPages(Math.max(1, Math.ceil(response.total / response.limit)));
         onTotalChange?.(response.total);
-
-        // After React paints the new content, restore the scroll position the
-        // user was at when they clicked the page button so the pagination bar
-        // stays on screen and they can keep navigating without scrolling.
-        if (savedScrollY.current !== null) {
-          const y = savedScrollY.current;
-          savedScrollY.current = null;
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              window.scrollTo({ top: y, behavior: 'instant' });
-            });
-          });
-        }
       } catch (error) {
         if (!cancelled) {
           console.error('Error fetching researchers:', error);
@@ -86,7 +70,6 @@ export default function ResearchersList({
   }, [currentPage, searchQuery, filters]);
 
   const handlePageChange = (page: number) => {
-    savedScrollY.current = window.scrollY;
     onPageChange(page);
   };
 

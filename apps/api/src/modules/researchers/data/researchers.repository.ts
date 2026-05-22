@@ -510,6 +510,7 @@ export class ResearchersRepository {
       volume: string | null;
       issue: string | null;
       pages: string | null;
+      citationCount: number | null;
     }[]
   > {
     return this.databaseClient.query(
@@ -524,7 +525,8 @@ export class ResearchersRepository {
           src.SOURCE_NAME            AS "journal",
           COALESCE(scopus.VOLUME, clar.VOLUME)                       AS "volume",
           COALESCE(scopus.ISSUE_IDENTIFIER, clar.ISSUE_IDENTIFIER)   AS "issue",
-          COALESCE(scopus.SCOPUS_PAGE_RANGE, clar.CLARIVATE_PAGE_RANGE) AS "pages"
+          COALESCE(scopus.SCOPUS_PAGE_RANGE, clar.CLARIVATE_PAGE_RANGE) AS "pages",
+          COALESCE(scopus.SCOPUS_CITATION_COUNT, clar.CLARIVATE_CITATION_COUNT) AS "citationCount"
         FROM PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_PROFILE sop
         JOIN PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT so ON so.SCIENTIFIC_OUTPUT_ID = sop.SCIENTIFIC_OUTPUT_ID
         LEFT JOIN PRODUCCION_CIENTIFICA.SOURCE src ON src.SOURCE_ID = so.SOURCE

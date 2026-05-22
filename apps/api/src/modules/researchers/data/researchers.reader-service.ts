@@ -149,6 +149,7 @@ export class ResearchersReaderService implements ResearchersReader {
       volume: row.volume,
       issue: row.issue,
       pages: row.pages,
+      citationCount: row.citationCount == null ? null : Number(row.citationCount),
       keywords: keywordsByOutputId.get(String(row.id)) ?? [],
     }));
 

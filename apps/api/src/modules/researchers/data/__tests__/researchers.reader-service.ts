@@ -352,6 +352,7 @@ describe('ResearchersReaderService', () => {
       repository.findScientificOutputs.mockResolvedValueOnce([{
         id: 'out-1', title: 'Paper', typeName: null, openAccess: 1,
         publicationYear: 2022, doi: null, journal: null, volume: null, issue: null, pages: null,
+        citationCount: null,
       }]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
       repository.findAuthorsByOutputIds.mockResolvedValueOnce(new Map());
@@ -373,6 +374,7 @@ describe('ResearchersReaderService', () => {
       repository.findScientificOutputs.mockResolvedValueOnce([{
         id: 'out-1', title: 'Paper', typeName: null, openAccess: 0,
         publicationYear: 2022, doi: null, journal: null, volume: null, issue: null, pages: null,
+        citationCount: null,
       }]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
       repository.findAuthorsByOutputIds.mockResolvedValueOnce(new Map());
@@ -394,6 +396,7 @@ describe('ResearchersReaderService', () => {
       repository.findScientificOutputs.mockResolvedValueOnce([{
         id: 'out-1', title: 'Paper', typeName: null, openAccess: null,
         publicationYear: 2022, doi: null, journal: null, volume: null, issue: null, pages: null,
+        citationCount: null,
       }]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
       repository.findAuthorsByOutputIds.mockResolvedValueOnce(new Map());
@@ -504,6 +507,7 @@ describe('ResearchersReaderService', () => {
       repository.findScientificOutputs.mockResolvedValueOnce([{
         id: 'out-1', title: 'A Study', typeName: null, openAccess: 0,
         publicationYear: 2022, doi: null, journal: null, volume: null, issue: null, pages: null,
+        citationCount: null,
       }]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
       repository.findAuthorsByOutputIds.mockResolvedValueOnce(

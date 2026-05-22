@@ -52,6 +52,7 @@ export interface ResearcherScientificOutput {
   volume: string | null;
   issue: string | null;
   pages: string | null;
+  citationCount: number | null;
   keywords: string[];
 }
 
