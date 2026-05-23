@@ -1,6 +1,5 @@
 import { ProjectsRepository } from '../projects.repository';
 import type { DatabaseClient } from '../../../../common/database/database-client.contract';
-import type { DatabaseService } from '../../../../common/database/database.service';
 
 type DatabaseClientMock = {
   query: jest.Mock;
@@ -12,10 +11,7 @@ describe('ProjectsRepository', () => {
 
   beforeEach(() => {
     mockDatabaseClient = { query: jest.fn() };
-    repository = new ProjectsRepository(
-      {} as DatabaseService,
-      mockDatabaseClient as unknown as DatabaseClient,
-    );
+    repository = new ProjectsRepository(mockDatabaseClient as unknown as DatabaseClient);
   });
 
   afterEach(() => {
@@ -99,11 +95,11 @@ describe('ProjectsRepository', () => {
 
       const researchTypeQuery = mockDatabaseClient.query.mock.calls[0][0] as string;
       expect(researchTypeQuery).toContain(
-        'LOWER(PRODUCCION_CIENTIFICA.PROJECT_STATUS.PROJECT_STATUS_NAME) IN (:status',
+        'LOWER(status_lookup.PROJECT_STATUS_NAME) IN (:status',
       );
       expect(researchTypeQuery).toContain('EXISTS');
       expect(researchTypeQuery).not.toContain(
-        'LOWER(PRODUCCION_CIENTIFICA.PROJECT_RESEARCH_TYPE.PROJECT_RESEARCH_TYPE_NAME) IN (:researchType0)',
+        'LOWER(research_type_lookup.PROJECT_RESEARCH_TYPE_NAME) IN (:researchType',
       );
       expect(mockDatabaseClient.query.mock.calls[0][1]).toEqual({
         searchTermCode0: '%clima%',
@@ -114,10 +110,10 @@ describe('ProjectsRepository', () => {
 
       const keywordsQuery = mockDatabaseClient.query.mock.calls[5][0] as string;
       expect(keywordsQuery).toContain(
-        'LOWER(PRODUCCION_CIENTIFICA.PROJECT_RESEARCH_TYPE.PROJECT_RESEARCH_TYPE_NAME) IN (:researchType',
+        'LOWER(research_type_lookup.PROJECT_RESEARCH_TYPE_NAME) IN (:researchType',
       );
       expect(keywordsQuery).toContain(
-        'LOWER(PRODUCCION_CIENTIFICA.PROJECT_STATUS.PROJECT_STATUS_NAME) IN (:status',
+        'LOWER(status_lookup.PROJECT_STATUS_NAME) IN (:status',
       );
       expect(keywordsQuery).not.toContain('EXISTS');
     });
@@ -148,7 +144,7 @@ describe('ProjectsRepository', () => {
 
       const projectTypeQuery = mockDatabaseClient.query.mock.calls[1][0] as string;
       expect(projectTypeQuery).toContain(
-        'LOWER(PRODUCCION_CIENTIFICA.PROJECT_TYPE.PROJECT_TYPE_NAME) IN (:projectType0)',
+        'LOWER(project_type_lookup.PROJECT_TYPE_NAME) IN (:projectType',
       );
     });
   });
@@ -238,8 +234,8 @@ describe('ProjectsRepository', () => {
       expect(mockDatabaseClient.query).toHaveBeenCalledTimes(3);
 
       const keywordsQuery = mockDatabaseClient.query.mock.calls[2][0] as string;
-      expect(keywordsQuery).toContain('FROM PRODUCCION_CIENTIFICA.PROJECT_KEYWORD PK');
-      expect(keywordsQuery).toContain('INNER JOIN PRODUCCION_CIENTIFICA.KEYWORD K');
+      expect(keywordsQuery).toContain('FROM PROJECT_KEYWORD project_keyword_link');
+      expect(keywordsQuery).toContain('INNER JOIN KEYWORD keyword');
       expect(mockDatabaseClient.query.mock.calls[2][1]).toEqual({
         projectId0: 1,
         projectId1: 2,
@@ -313,16 +309,16 @@ describe('ProjectsRepository', () => {
 
       const itemsQuery = mockDatabaseClient.query.mock.calls[0][0] as string;
       expect(itemsQuery).toContain(
-        'LEFT JOIN PRODUCCION_CIENTIFICA.PROJECT_TYPE project_type_lookup',
+        'LEFT JOIN PROJECT_TYPE project_type_lookup',
       );
       expect(itemsQuery).toContain(
-        'LEFT JOIN PRODUCCION_CIENTIFICA.PROJECT_FUNDING_TYPE funding_type_lookup',
+        'LEFT JOIN PROJECT_FUNDING_TYPE funding_type_lookup',
       );
       expect(itemsQuery).toContain(
-        'LEFT JOIN PRODUCCION_CIENTIFICA.PROJECT_RESEARCH_TYPE research_type_lookup',
+        'LEFT JOIN PROJECT_RESEARCH_TYPE research_type_lookup',
       );
       expect(itemsQuery).toContain(
-        'LEFT JOIN PRODUCCION_CIENTIFICA.PROJECT_STATUS status_lookup',
+        'LEFT JOIN PROJECT_STATUS status_lookup',
       );
     });
 
@@ -431,8 +427,8 @@ describe('ProjectsRepository', () => {
 
       const itemsQuery = mockDatabaseClient.query.mock.calls[0][0] as string;
       expect(itemsQuery).toContain('EXISTS');
-      expect(itemsQuery).toContain('FROM PRODUCCION_CIENTIFICA.PROJECT_KEYWORD pk');
-      expect(itemsQuery).toContain('INNER JOIN PRODUCCION_CIENTIFICA.KEYWORD keyword');
+      expect(itemsQuery).toContain('FROM PROJECT_KEYWORD project_keyword_link');
+      expect(itemsQuery).toContain('INNER JOIN KEYWORD keyword');
       expect(itemsQuery).toContain('LOWER(keyword.KEYWORD) LIKE :keyword0');
       expect(mockDatabaseClient.query.mock.calls[0][1]).toEqual({
         keyword0: '%clima%',
@@ -546,9 +542,7 @@ describe('ProjectsRepository', () => {
       expect(mockDatabaseClient.query).toHaveBeenCalledTimes(4);
 
       const detailQuery = mockDatabaseClient.query.mock.calls[0][0] as string;
-      expect(detailQuery).toContain(
-        'FROM PRODUCCION_CIENTIFICA.PROJECT research_project',
-      );
+      expect(detailQuery).toContain('FROM PROJECT research_project');
       expect(detailQuery).toContain('WHERE research_project.PROJECT_ID = :projectId');
       expect(detailQuery).toContain(
         "WHERE responsible_unit_membership.ASSOCIATION_TYPE = 'Unidad Responsable'",
@@ -558,20 +552,16 @@ describe('ProjectsRepository', () => {
 
       const associatedProfilesQuery = mockDatabaseClient.query.mock.calls[1][0] as string;
       expect(associatedProfilesQuery).toContain(
-        'FROM PRODUCCION_CIENTIFICA.UCR_PROFILE_PROJECT_UNIT member_participation',
+        'FROM UCR_PROFILE_PROJECT_UNIT member_participation',
       );
       expect(mockDatabaseClient.query.mock.calls[1][1]).toEqual({ projectId: 'C3992' });
 
       const disciplinesQuery = mockDatabaseClient.query.mock.calls[2][0] as string;
-      expect(disciplinesQuery).toContain(
-        'FROM PRODUCCION_CIENTIFICA.PROJECT_DISCIPLINE project_discipline_link',
-      );
+      expect(disciplinesQuery).toContain('FROM PROJECT_DISCIPLINE project_discipline_link');
       expect(mockDatabaseClient.query.mock.calls[2][1]).toEqual({ projectId: 'C3992' });
 
       const keywordsQuery = mockDatabaseClient.query.mock.calls[3][0] as string;
-      expect(keywordsQuery).toContain(
-        'FROM PRODUCCION_CIENTIFICA.PROJECT_KEYWORD project_keyword_link',
-      );
+      expect(keywordsQuery).toContain('FROM PROJECT_KEYWORD project_keyword_link');
       expect(mockDatabaseClient.query.mock.calls[3][1]).toEqual({ projectId: 'C3992' });
     });
 
@@ -741,6 +731,7 @@ describe('ProjectsRepository', () => {
       const itemsQuery = mockDatabaseClient.query.mock.calls[0][0] as string;
 
       expect(itemsQuery).toContain('LOWER(');
+      expect(itemsQuery).toContain('TRIM(');
       expect(itemsQuery).toContain('profile.PROFILE_NAME');
       expect(itemsQuery).toContain('profile.PROFILE_FIRST_SURNAME');
       expect(itemsQuery).toContain('profile.PROFILE_LAST_SURNAME');
@@ -834,7 +825,7 @@ describe('ProjectsRepository', () => {
       const result = await findKeywordsByProjectIds([]);
 
       expect(result).toEqual(new Map<number, string[]>());
-      expect(mockDb.query).not.toHaveBeenCalled();
+      expect(mockDatabaseClient.query).not.toHaveBeenCalled();
     });
 
     it('should use default empty params in distinct options helper', async () => {
@@ -847,14 +838,14 @@ describe('ProjectsRepository', () => {
         }
       ).findDistinctFilterOptions.bind(repository);
 
-      mockDb.query.mockResolvedValueOnce([
+      mockDatabaseClient.query.mockResolvedValueOnce([
         { label: 'Basica', optionValue: 'basica', optionCount: 2 },
       ]);
 
       const result = await findDistinctFilterOptions('SELECT 1');
 
       expect(result).toEqual([{ label: 'Basica', value: 'basica', count: 2 }]);
-      expect(mockDb.query).toHaveBeenCalledWith('SELECT 1', []);
+      expect(mockDatabaseClient.query).toHaveBeenCalledWith('SELECT 1', {});
     });
   });
 });

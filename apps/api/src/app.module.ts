@@ -29,9 +29,28 @@ import { GetResearchersFiltersUseCase } from './application/use-cases/get-public
 import { GetProjectDetailUseCase } from './application/use-cases/get-public-project-detail.use-case';
 import { GetScientificProductionsFiltersUseCase } from './application/use-cases/get-public-scientific-production-filters.use-case';
 
+const REQUIRED_ENVIRONMENT_VARIABLES = [
+  'DB_USER',
+  'DB_PASSWORD',
+  'DB_CONNECT_STRING',
+  'DB_SCHEMA',
+] as const;
+
+const validateEnvironment = (env: Record<string, string | undefined>) => {
+  for (const key of REQUIRED_ENVIRONMENT_VARIABLES) {
+    if (!env[key]) {
+      throw new Error(`Missing environment variable: ${key}`);
+    }
+  }
+
+  return env;
+};
+
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      validate: validateEnvironment,
+    }),
     LoggerModule,
     SearchModule,
     CacheModule,
