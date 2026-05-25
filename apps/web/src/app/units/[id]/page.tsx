@@ -261,7 +261,7 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
         </section>
       </div>
 
-      <div className="bg-[var(--color-gray-100)] pb-15">
+      <div className="bg-[var(--color-bg-neutral-secondary)] pb-15">
         {/* Detail Navigation */}
         <DetailNavbar
           categories={categories}
@@ -270,7 +270,7 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
         />
 
         {/* Content Section */}
-        <div className="max-w-6xl mx-auto px-6 py-4 pt-0 bg-[var(--color-gray-100)]">
+        <div className="max-w-6xl mx-auto px-6 py-4 pt-0 bg-[var(--color-bg-neutral-secondary)]">
           {activeTab === 'profiles' &&
             (loadingProfiles ? (
               <TabLoadingText />

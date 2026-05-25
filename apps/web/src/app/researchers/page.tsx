@@ -45,22 +45,32 @@ function ResearchersPageContent() {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
   const [total, setTotal] = useState<number | null>(null);
+  const shouldScrollToListRef = useRef(false);
 
-  // Scroll to the top of the list container whenever the page changes,
-  // skipping the initial render so the page doesn't jump on first load.
+  // Scroll to the list only after an explicit user action (page, search, filter).
   useEffect(() => {
     if (isFirstPageRender.current) {
       isFirstPageRender.current = false;
       return;
     }
+
+    if (!shouldScrollToListRef.current) {
+      return;
+    }
+
+    shouldScrollToListRef.current = false;
+
     if (listContainerRef.current) {
       const navbar = document.querySelector('header') ?? document.querySelector('nav');
       const navbarHeight = navbar ? navbar.getBoundingClientRect().height : 0;
       const top =
-        listContainerRef.current.getBoundingClientRect().top + window.scrollY - navbarHeight - 16;
+        listContainerRef.current.getBoundingClientRect().top +
+        window.scrollY -
+        navbarHeight -
+        16;
       window.scrollTo({ top, behavior: 'smooth' });
     }
-  }, [currentPage]);
+  }, [currentPage, searchQuery, filters]);
 
   // Sync state to URL so the back button restores page + filters + search
   useEffect(() => {
@@ -73,12 +83,14 @@ function ResearchersPageContent() {
   }, [searchQuery, filters, currentPage, router]);
 
   const handleSearch = useCallback((query: string) => {
+    shouldScrollToListRef.current = true;
     setSearchQuery(query);
     setCurrentPage(1);
   }, []);
 
   const handleToggleFilter = useCallback(
     (key: keyof ResearcherQueryFilters, value: string) => {
+      shouldScrollToListRef.current = true;
       setFilters((prev) => ({ ...prev, [key]: toggleValue(prev[key], value) }));
       setCurrentPage(1);
     },
@@ -86,12 +98,14 @@ function ResearchersPageContent() {
   );
 
   const handleClearAll = useCallback(() => {
+    shouldScrollToListRef.current = true;
     setFilters(DEFAULT_FILTERS);
     setSearchQuery('');
     setCurrentPage(1);
   }, []);
 
   const handlePageChange = useCallback((page: number) => {
+    shouldScrollToListRef.current = true;
     setCurrentPage(page);
   }, []);
 
@@ -181,14 +195,13 @@ function ResearchersPageContent() {
       </div>
 
       {showScrollTopButton && (
-        <Button
-          variant="primary"
-          size="md"
+        <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          iconLeft={<ChevronUp size={32} strokeWidth={3.2} />}
-          aria-label="Volver arriba"
-          className="fixed bottom-6 right-6 z-50 h-16 w-16 rounded-full px-0 shadow-lg"
-        />
+          className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] text-white shadow-lg transition-transform hover:scale-110"
+          aria-label="Volver al inicio"
+        >
+          <ChevronUp size={20} strokeWidth={2} />
+        </button>
       )}
     </main>
   );
@@ -196,7 +209,10 @@ function ResearchersPageContent() {
 
 function ResearchersPageFallback() {
   return (
-    <main className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-neutral-primary)' }}>
+    <main
+      className="min-h-screen"
+      style={{ backgroundColor: 'var(--color-bg-neutral-primary)' }}
+    >
       <section className="px-6 lg:px-10 pt-4 pb-20 bg-[url('/ucr_hero_image.png')] bg-cover bg-center">
         <div className="flex justify-start h-14" />
         <div className="max-w-6xl mx-auto">

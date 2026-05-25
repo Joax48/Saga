@@ -65,7 +65,11 @@ export default function PageHeroSearch({
         <div className="flex justify-start h-10"></div>
         <h1 className="mb-6 text-h1 text-center font-bold text-white">{title}</h1>
 
-        <SearchBar placeholder={searchPlaceholder} onSearch={onSearch} initialValue={initialSearchValue} />
+        <SearchBar
+          placeholder={searchPlaceholder}
+          onSearch={onSearch}
+          initialValue={initialSearchValue}
+        />
       </div>
       <div className="flex justify-start h-30"></div>
     </section>

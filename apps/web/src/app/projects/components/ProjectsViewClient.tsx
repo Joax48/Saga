@@ -63,24 +63,32 @@ interface Props {
   initialProjects: ProjectSummaryItem[];
   initialTotal: number;
   initialFilterOptions: ProjectFilters | null;
+  initialSearchQuery: string;
+  initialPage: number;
+  initialFilters: ProjectQueryFilters;
 }
 
 export default function ProjectsViewClient({
   initialProjects,
   initialTotal,
   initialFilterOptions,
+  initialSearchQuery,
+  initialPage,
+  initialFilters,
 }: Props) {
   const [projects, setProjects] = useState<ProjectSummaryItem[]>(initialProjects);
   const [totalResults, setTotalResults] = useState(initialTotal);
   const [filterOptions, setFilterOptions] = useState<ProjectFilters | null>(
     initialFilterOptions,
   );
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState<ProjectQueryFilters>(DEFAULT_FILTERS);
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+  const [filters, setFilters] = useState<ProjectQueryFilters>(initialFilters);
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [totalPages, setTotalPages] = useState(
+    Math.max(1, Math.ceil(initialTotal / PAGE_SIZE)),
+  );
   const [isLoading, setIsLoading] = useState(false);
   const resultsRef = useRef<HTMLElement>(null);
 
@@ -113,6 +121,14 @@ export default function ProjectsViewClient({
     setFilters(DEFAULT_FILTERS);
     setCurrentPage(1);
   }, []);
+
+  const handlePageChange = useCallback(
+    (page: number) => {
+      setCurrentPage(page);
+      scrollToResults();
+    },
+    [scrollToResults],
+  );
 
   useEffect(() => {
     const loadFilters = async () => {
@@ -238,8 +254,9 @@ export default function ProjectsViewClient({
       <PageHeroSearch
         items={BREADCRUMB_ITEMS}
         title="Proyectos"
-        searchPlaceholder="Buscar por código, nombre o participante"
+        searchPlaceholder="Buscar por código o nombre del proyecto"
         onSearch={handleSearch}
+        initialSearchValue={initialSearchQuery}
       />
 
       <section
@@ -329,7 +346,7 @@ export default function ProjectsViewClient({
                     <Pagination
                       currentPage={currentPage}
                       totalPages={totalPages}
-                      onPageChange={setCurrentPage}
+                      onPageChange={handlePageChange}
                     />
                   </div>
                 ) : null}
@@ -340,14 +357,13 @@ export default function ProjectsViewClient({
       </section>
 
       {showScrollTopButton && (
-        <Button
-          variant="primary"
-          size="md"
+        <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          iconLeft={<ChevronUp size={32} strokeWidth={3.2} />}
-          aria-label="Volver arriba"
-          className="fixed bottom-6 right-6 z-50 h-16 w-16 rounded-full px-0 shadow-lg"
-        />
+          className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] text-white shadow-lg transition-transform hover:scale-110"
+          aria-label="Volver al inicio"
+        >
+          <ChevronUp size={20} strokeWidth={2} />
+        </button>
       )}
     </main>
   );

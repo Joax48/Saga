@@ -47,7 +47,6 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
           <Link
             href="/"
             className="flex items-center justify-center 
-              text-white 
               transition-colors duration-200 
               hover:text-[var(--color-text-brand-primary)]"
             aria-label="Inicio"
@@ -69,15 +68,15 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
               {!isLast && item.href ? (
                 <Link
                   href={item.href}
-                  className="text-[var(--color-text-neutral-primary)] 
+                  className="text-[var(--color-text-neutral-primary)]
                     transition-colors duration-200 
-                    hover:text-[var(--color-text-brand-primary)]"
+                    hover:underline"
                 >
                   {item.label}
                 </Link>
               ) : (
                 /* Render as plain text if last item */
-                <span className="text-[var(--color-text-neutral-primary)]">
+                <span className="text-[var(--color-text-brand-secondary)]">
                   {item.label}
                 </span>
               )}

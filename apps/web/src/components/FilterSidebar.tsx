@@ -154,13 +154,20 @@ function CheckboxOption({
         checked={checked}
         onChange={onChange}
       />
-      <span
-        ref={labelRef}
-        className={`flex-1 text-sm font-normal group-hover:underline ${truncate ? 'truncate' : ''}`}
-        style={{ color: 'var(--color-gray-600)' }}
-        title={isTruncated ? label : undefined}
-      >
-        {label}
+      <span className="relative flex-1 min-w-0">
+        <span
+          ref={labelRef}
+          className={`block text-sm font-normal group-hover:underline ${truncate ? 'truncate' : ''}`}
+          style={{ color: 'var(--color-gray-600)' }}
+        >
+          {label}
+        </span>
+        {isTruncated && truncate && (
+          <span className="pointer-events-none absolute left-0 top-full z-50 mt-1 hidden w-max max-w-[14rem] rounded-md bg-[var(--color-text-neutral-primary)] px-2.5 py-1.5 text-[11px] leading-snug text-[var(--color-bg-neutral-primary)] shadow-lg group-hover:block">
+            {label}
+            <span className="absolute bottom-full left-2.5 border-4 border-transparent border-b-[var(--color-text-neutral-primary)]" />
+          </span>
+        )}
       </span>
       {typeof count === 'number' ? (
         <span

@@ -48,7 +48,7 @@ export default function CategoriesNavigation({
   return (
     <div className="w-full">
       {/* Desktop tabs */}
-      <nav className="hidden sm:flex w-full h-14 bg-[var(--color-gray-50)] border-y-2 border-[var(--color-gray-300)]">
+      <nav className="hidden sm:flex w-full h-14 bg-[var(--color-gray-200)] border-y-2 border-[var(--color-gray-300)]">
         {categories.map((category) => {
           const isActive = category.id === activeCategory;
           return (
@@ -58,13 +58,11 @@ export default function CategoriesNavigation({
               onClick={() => handleCategoryClick(category.id)}
               className={[
                 'flex-1 h-full relative flex items-center justify-center gap-2',
-                'text-[18px] font-normal transition-colors cursor-pointer',
-                'border-b-2',
+                'text-[18px] font-normal transition-all duration-150 ease-in-out cursor-pointer transform-gpu',
                 isActive
-                  ? 'border-[var(--color-text-brand-primary)]'
-                  : 'border-transparent hover:border-gray-300',
+                  ? 'bg-[var(--color-gray-300)] text-[var(--color-text-neutral-primary)]'
+                  : 'bg-transparent text-[var(--color-text-neutral-primary)] hover:bg-[var(--color-gray-300)] hover:shadow-sm hover:scale-[1.01]',
               ].join(' ')}
-              style={{ color: '#0F0F0F' }}
             >
               {category.iconSrc && (
                 <Image

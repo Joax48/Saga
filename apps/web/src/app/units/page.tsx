@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { ChevronUp } from 'lucide-react';
 import PageHeroSearch from '@/components/PageHeroSearch';
 import Pagination from '@/components/Pagination';
 import Button from '@/components/Button';
@@ -26,6 +27,12 @@ export default function UnitsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [showScrollTopButton, setShowScrollTopButton] = useState(false);
+  const resultsRef = useRef<HTMLElement | null>(null);
+
+  const scrollToResults = useCallback(() => {
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
 
   useEffect(() => {
     const fetchFilters = async () => {
@@ -52,22 +59,52 @@ export default function UnitsPage() {
     fetchFilters();
   }, []);
 
-  const handleSearch = useCallback((query: string) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTopButton(window.scrollY > 400);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
-  const toggleResearcher = useCallback((id: string) => {
-    setCurrentPage(1);
-    setSelectedResearcherIds((prev) =>
-      prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id],
-    );
-  }, []);
+  const handleSearch = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+      setCurrentPage(1);
+      scrollToResults();
+    },
+    [scrollToResults],
+  );
+
+  const toggleResearcher = useCallback(
+    (id: string) => {
+      setCurrentPage(1);
+      setSelectedResearcherIds((prev) =>
+        prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id],
+      );
+      scrollToResults();
+    },
+    [scrollToResults],
+  );
 
   const clearFilters = useCallback(() => {
     setSelectedResearcherIds([]);
     setCurrentPage(1);
-  }, []);
+    scrollToResults();
+  }, [scrollToResults]);
+
+  const handlePageChange = useCallback(
+    (page: number) => {
+      setCurrentPage(page);
+      scrollToResults();
+    },
+    [scrollToResults],
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -113,7 +150,10 @@ export default function UnitsPage() {
         onSearch={handleSearch}
       />
 
-      <section className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14">
+      <section
+        ref={resultsRef}
+        className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14 scroll-mt-10"
+      >
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             {total !== null && (
@@ -162,7 +202,7 @@ export default function UnitsPage() {
                       <Pagination
                         currentPage={currentPage}
                         totalPages={totalPages}
-                        onPageChange={setCurrentPage}
+                        onPageChange={handlePageChange}
                       />
                     </div>
                   </>
@@ -181,6 +221,16 @@ export default function UnitsPage() {
           </div>
         </div>
       </section>
+
+      {showScrollTopButton && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] text-white shadow-lg transition-transform hover:scale-110"
+          aria-label="Volver al inicio"
+        >
+          <ChevronUp size={20} strokeWidth={2} />
+        </button>
+      )}
     </main>
   );
 }

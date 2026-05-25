@@ -1,9 +1,9 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useEffect, useState } from 'react';
 import Breadcrumb from '@/components/Breadcrumb';
 import CategoriesNavigation, { Category } from '@/components/DetailNavbar';
-import { Box, User, Tag } from 'lucide-react';
 import { getProjectById } from '@/services/projects';
 import type { Project } from '@/services/projects';
 import { DetailPageSkeleton } from '@/components/skeletons/DetailPageSkeleton';
@@ -98,19 +98,16 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
     {
       id: 'general',
       name: 'Información general',
-      icon: <Box size={18} />,
       sectionTitle: 'Detalles del proyecto',
     },
     {
       id: 'profiles',
       name: 'Perfiles asociados',
-      icon: <User size={18} />,
       sectionTitle: 'Perfiles',
     },
     {
       id: 'keywords',
       name: 'Palabras claves',
-      icon: <Tag size={18} />,
       sectionTitle: 'Palabras claves',
     },
   ];
@@ -145,7 +142,7 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
   }));
 
   return (
-    <main className="bg-base-100 min-h-screen">
+    <main className="bg-base-100 min-h-screen flex flex-col">
       <section className="px-6 lg:px-10 pt-6 pb-8">
         <div className="max-w-6xl mx-auto space-y-5">
           <Breadcrumb
@@ -197,22 +194,17 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
         </div>
       </section>
 
-      <section className="border-t border-b border-[var(--color-gray-300)] bg-[var(--color-bg-neutral-tertiary)]">
+      <section className="bg-[var(--color-bg-neutral-tertiary)]">
         <CategoriesNavigation
           categories={categories}
           defaultActive="general"
           onCategoryChange={setActiveTab}
-          containerClassName="max-w-6xl mx-auto w-full flex items-center px-0 py-0 h-16 bg-[var(--color-bg-neutral-tertiary)]"
-          itemClassName="flex-1 h-full px-6 transition cursor-pointer text-center flex items-center justify-center border-b-[3px] border-transparent text-[var(--color-text-neutral-primary)]"
-          activeItemClassName="border-b-[3px] border-[var(--color-text-brand-primary)]"
-          backgroundColor="var(--color-bg-neutral-tertiary)"
-          sectionContainerClassName="w-full px-0 py-4"
-          sectionTitleClassName="max-w-6xl mx-auto font-medium text-[var(--color-text-neutral-primary)] text-h3"
+          hideSectionTitle
         />
       </section>
 
-      <section className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-12">
-        <div className="max-w-6xl mx-auto">
+      <section className="bg-[var(--color-bg-neutral-secondary)] px-6 lg:px-10 py-12 flex-1">
+        <div className="max-w-6xl mx-auto h-full">
           {activeTab === 'general' && (
             <div className="space-y-10">
               <div className="space-y-6">
@@ -239,7 +231,7 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
           )}
 
           {activeTab === 'profiles' && (
-            <div className="space-y-10">
+            <div className="flex flex-col items-center justify-center py-16 text-center">
               {associatedProfiles.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
                   {associatedProfiles.map((profile) => {
@@ -256,7 +248,7 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
                         >
                           <img
                             src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-                            profile.name,
+                              profile.name,
                             )}&background=0D8ABC&color=fff&size=200`}
                             alt={profile.name}
                             className="object-cover w-full h-full"
@@ -298,7 +290,10 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
                   })}
                 </div>
               ) : (
-                <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
+                <p
+                  className="text-base font-medium"
+                  style={{ color: 'var(--color-text-neutral-secondary)' }}
+                >
                   No hay perfiles asociados registrados.
                 </p>
               )}

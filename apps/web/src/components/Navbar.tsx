@@ -103,7 +103,7 @@ export default function Navbar() {
         </div>
       </div>
       {/*Second Bar - Intern Links*/}
-      <div className="text-[#005da4] text-xs font-bold bg-transparent px-6 py-2 group-[.scrolled]:bg-white">
+      <div className="text-[#005da4] text-sm font-bold bg-transparent px-6 py-2 group-[.scrolled]:bg-white">
         <div className="mx-auto flex h-full w-full max-w-6xl items-center">
           <div className="grow flex sm:items-center sm:justify-center max-sm:justify-end max-sm:pr-11">
             <div className="h-4 hidden sm:flex items-center justify-center gap-2 md:gap-8 whitespace-nowrap">
@@ -223,7 +223,7 @@ export default function Navbar() {
                 <li>
                   <Link
                     href="/"
-                    className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition active:bg-[#D9D9D9] focus:bg-[#D9D9D9]"
+                    className="px-3 py-2 text-base rounded-md hover:bg-[#D9D9D9] transition active:bg-[#D9D9D9] focus:bg-[#D9D9D9]"
                   >
                     Inicio
                   </Link>
@@ -231,7 +231,7 @@ export default function Navbar() {
                 <li>
                   <Link
                     href="/researchers"
-                    className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition active:bg-[#D9D9D9] focus:bg-[#D9D9D9]"
+                    className="px-3 py-2 text-base rounded-md hover:bg-[#D9D9D9] transition active:bg-[#D9D9D9] focus:bg-[#D9D9D9]"
                   >
                     Perfiles
                   </Link>
@@ -239,7 +239,7 @@ export default function Navbar() {
                 <li>
                   <Link
                     href="/units"
-                    className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition active:bg-[#D9D9D9] focus:bg-[#D9D9D9]"
+                    className="px-3 py-2 text-base rounded-md hover:bg-[#D9D9D9] transition active:bg-[#D9D9D9] focus:bg-[#D9D9D9]"
                   >
                     Unidades
                   </Link>
@@ -247,7 +247,7 @@ export default function Navbar() {
                 <li>
                   <Link
                     href="/scientific-productions"
-                    className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition active:bg-[#D9D9D9] focus:bg-[#D9D9D9]"
+                    className="px-3 py-2 text-base rounded-md hover:bg-[#D9D9D9] transition active:bg-[#D9D9D9] focus:bg-[#D9D9D9]"
                   >
                     Producción Científica
                   </Link>
@@ -255,7 +255,7 @@ export default function Navbar() {
                 <li>
                   <Link
                     href="/projects"
-                    className="px-3 py-2 rounded-md hover:bg-[#D9D9D9] transition active:bg-[#D9D9D9] focus:bg-[#D9D9D9]"
+                    className="px-3 py-2 text-base rounded-md hover:bg-[#D9D9D9] transition active:bg-[#D9D9D9] focus:bg-[#D9D9D9]"
                   >
                     Proyectos
                   </Link>

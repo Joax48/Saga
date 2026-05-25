@@ -38,10 +38,7 @@ export function UnitProfilesTab({ profiles }: UnitProfilesTabProps) {
         role="status"
         aria-live="polite"
       >
-        <p
-          className="text-base font-medium"
-          style={{ color: 'var(--color-text-neutral-secondary)' }}
-        >
+        <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
           No hay perfiles asociados a esta unidad.
         </p>
       </div>

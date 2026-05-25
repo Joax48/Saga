@@ -34,10 +34,7 @@ export function UnitProjectsTab({ projects }: UnitProjectsTabProps) {
         role="status"
         aria-live="polite"
       >
-        <p
-          className="text-base font-medium"
-          style={{ color: 'var(--color-text-neutral-secondary)' }}
-        >
+        <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
           No hay proyectos asociados a esta unidad.
         </p>
       </div>

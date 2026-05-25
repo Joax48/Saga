@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useCallback, useTransition, useState, useEffect, useRef } from 'react';
+import { ChevronUp } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import PageHeroSearch from '@/components/PageHeroSearch';
 import Pagination from '@/components/Pagination';
@@ -45,6 +46,12 @@ export function ScientificProductionsView({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const [showScrollTopButton, setShowScrollTopButton] = useState(false);
+  const resultsRef = useRef<HTMLElement>(null);
+
+  const scrollToResults = useCallback(() => {
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
 
   const updateParams = useCallback(
     (
@@ -84,6 +91,19 @@ export function ScientificProductionsView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTopButton(window.scrollY > 400);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   const handleSearch = useCallback(
     (q: string) => {
       updateParams({ q: q || null });
@@ -94,7 +114,7 @@ export function ScientificProductionsView({
   const handlePageChange = useCallback(
     (page: number) => {
       updateParams({ page: String(page) }, false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     },
     [updateParams],
   );
@@ -162,12 +182,6 @@ export function ScientificProductionsView({
       },
     ];
   }, [filterOptions, activeFilters, updateParams]);
-
-  const resultsRef = useRef<HTMLElement>(null);
-
-  const scrollToResults = useCallback(() => {
-    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, []);
 
   const [filtersVisible, setFiltersVisible] = useState(false);
 
@@ -243,10 +257,16 @@ export function ScientificProductionsView({
                     role="status"
                     aria-live="polite"
                   >
-                    <p className="text-base font-medium text-gray-500">
+                    <p
+                      className="text-base font-medium"
+                      style={{ color: 'var(--color-text-neutral-secondary)' }}
+                    >
                       No se encontraron resultados.
                     </p>
-                    <p className="mt-1 text-sm text-gray-400">
+                    <p
+                      className="mt-1 text-sm"
+                      style={{ color: 'var(--color-text-neutral-tertiary)' }}
+                    >
                       Intenta ajustar los filtros o el término de búsqueda.
                     </p>
                   </div>
@@ -266,6 +286,16 @@ export function ScientificProductionsView({
           </div>
         </div>
       </section>
+
+      {showScrollTopButton && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] text-white shadow-lg transition-transform hover:scale-110"
+          aria-label="Volver al inicio"
+        >
+          <ChevronUp size={20} strokeWidth={2} />
+        </button>
+      )}
     </main>
   );
 }
