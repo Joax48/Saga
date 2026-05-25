@@ -8,6 +8,7 @@ import UnitsList from './components/UnitsList';
 import { getUnits, getUnitFilters } from '@/services/units';
 import type { Unit } from '@/services/units';
 import { FilterSidebar, type FilterGroupConfig } from '@/components/FilterSidebar';
+import { UnitCardSkeleton } from '@/components/skeletons/CardSkeleton';
 
 const PAGE_SIZE = 9;
 
@@ -24,6 +25,7 @@ export default function UnitsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchFilters = async () => {
@@ -69,6 +71,7 @@ export default function UnitsPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         const response = await getUnits(currentPage, PAGE_SIZE, searchQuery, {
           researcherIds: selectedResearcherIds.map(Number),
@@ -78,6 +81,8 @@ export default function UnitsPage() {
         setTotalPages(Math.max(1, Math.ceil(response.total / response.limit)));
       } catch (error) {
         console.error('Error cargando unidades:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchData();
@@ -144,7 +149,13 @@ export default function UnitsPage() {
 
             <div className="flex-1 min-w-0">
               <div className="space-y-8">
-                {units.length > 0 ? (
+                {isLoading ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+                    {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                      <UnitCardSkeleton key={i} />
+                    ))}
+                  </div>
+                ) : units.length > 0 ? (
                   <>
                     <UnitsList units={units} />
                     <div className="pt-8">

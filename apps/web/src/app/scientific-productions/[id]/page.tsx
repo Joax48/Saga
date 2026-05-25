@@ -9,6 +9,7 @@ import type { Category } from '@/components/DetailNavbar';
 import DetailNavbar from '@/components/DetailNavbar';
 import { getScientificProductionById } from '@/services/scientific-productions';
 import type { ScientificProduction } from '@/types';
+import { DetailPageSkeleton } from '@/components/skeletons/DetailPageSkeleton';
 
 interface Props {
   params: { id: string };
@@ -45,11 +46,14 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
   const [activeTab, setActiveTab] = useState('general');
   const [production, setProduction] = useState<ScientificProduction | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsLoading(true);
     getScientificProductionById(params.id)
       .then(setProduction)
-      .catch(() => setNotFound(true));
+      .catch(() => setNotFound(true))
+      .finally(() => setIsLoading(false));
   }, [params.id]);
 
   // Load or re-init PlumX AFTER production data is in the DOM
@@ -71,20 +75,14 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
     document.body.appendChild(script);
   }, [production?.doi]);
 
-  if (notFound) {
+  if (isLoading) return <DetailPageSkeleton />;
+
+  if (notFound || !production) {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <p className="text-[18px] text-(--color-text-neutral-secondary)">
           Producción científica no encontrada.
         </p>
-      </main>
-    );
-  }
-
-  if (!production) {
-    return (
-      <main className="min-h-screen flex items-center justify-center">
-        <p className="text-[18px] text-(--color-text-neutral-secondary)">Cargando...</p>
       </main>
     );
   }

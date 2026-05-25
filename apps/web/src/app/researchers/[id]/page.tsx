@@ -8,6 +8,7 @@ import Link from 'next/link';
 
 import { ExternalLink, Link2, Globe } from 'lucide-react';
 import { getResearcherProfile } from '../../../services/researchers';
+import { ResearcherDetailSkeleton } from '@/components/skeletons/DetailPageSkeleton';
 import { ProductionCard } from '../../scientific-productions/components';
 import ProjectListItem from '../../projects/components/ProjectListItem';
 import MetricsPanel from '../components/MetricsPanel';
@@ -153,9 +154,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
     fetchData();
   }, [params.id]);
 
-  if (loading) {
-    return <div className="p-6">Cargando...</div>;
-  }
+  if (loading) return <ResearcherDetailSkeleton />;
 
   if (loadError) {
     return <div className="p-6">{loadError}</div>;

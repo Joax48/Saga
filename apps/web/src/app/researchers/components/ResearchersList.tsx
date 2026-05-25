@@ -8,6 +8,7 @@ import {
   getResearchers,
   type ResearcherQueryFilters,
 } from '../../../services/researchers';
+import { ResearcherCardSkeleton } from '@/components/skeletons/CardSkeleton';
 
 import type { Researcher } from '@/types/researcher-data.js';
 
@@ -31,6 +32,7 @@ export default function ResearchersList({
 }: ResearchersListProps) {
   const [researchers, setResearchers] = useState<Researcher[]>([]);
   const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetches researchers whenever the page, search query, or filters change.
   // The cleanup function sets `cancelled = true` so that if the effect
@@ -41,6 +43,7 @@ export default function ResearchersList({
     let cancelled = false;
 
     const fetchResearchers = async () => {
+      setIsLoading(true);
       try {
         const response = await getResearchers(
           currentPage,
@@ -58,6 +61,8 @@ export default function ResearchersList({
         if (!cancelled) {
           console.error('Error fetching researchers:', error);
         }
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
     };
 
@@ -99,7 +104,11 @@ export default function ResearchersList({
   return (
     <div className="flex flex-col gap-8">
       <div className={layoutClass}>
-        {researchers.map((researcher) => {
+        {isLoading
+          ? Array.from({ length: PAGE_SIZE }).map((_, i) => (
+              <ResearcherCardSkeleton key={i} />
+            ))
+          : researchers.map((researcher) => {
           const hasBaseUnit = !!researcher.baseUnit;
 
           // If the researcher has a base unit, show it under "Unidad base".
@@ -205,7 +214,7 @@ export default function ResearchersList({
         })}
       </div>
 
-      {researchers.length === 0 && searchQuery && (
+      {!isLoading && researchers.length === 0 && searchQuery && (
         <p className="text-center text-gray-500">
           No se encontraron perfiles para `{searchQuery}`
         </p>

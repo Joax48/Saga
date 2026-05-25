@@ -12,6 +12,7 @@ import {
   type FilterGroupConfig,
 } from '@/components/FilterSidebar';
 import ProjectListItem from '@/app/projects/components/ProjectListItem';
+import { CardSkeleton } from '@/components/skeletons/CardSkeleton';
 
 import {
   getProjectFilters,
@@ -80,6 +81,7 @@ export default function ProjectsViewClient({
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const resultsRef = useRef<HTMLElement>(null);
 
   const scrollToResults = useCallback(() => {
@@ -136,6 +138,7 @@ export default function ProjectsViewClient({
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         const projectsResponse = await getProjects(
           currentPage,
@@ -150,6 +153,8 @@ export default function ProjectsViewClient({
         );
       } catch (error) {
         console.error(error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -275,7 +280,9 @@ export default function ProjectsViewClient({
 
             <div className="flex-1 min-w-0">
               <div className="space-y-12">
-                {projects.length > 0 ? (
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />)
+                ) : projects.length > 0 ? (
                   projects.map((project) => {
                     const managerProfile = project.associatedProfiles.find(
                       (profile: { id: string; name: string; role?: string }) =>
@@ -317,7 +324,7 @@ export default function ProjectsViewClient({
                   </div>
                 )}
 
-                {projects.length > 0 ? (
+                {!isLoading && projects.length > 0 ? (
                   <div className="pt-8">
                     <Pagination
                       currentPage={currentPage}

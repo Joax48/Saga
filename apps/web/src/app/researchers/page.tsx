@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { ResearcherCardSkeleton } from '@/components/skeletons/CardSkeleton';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ChevronUp } from 'lucide-react';
 
@@ -193,11 +194,35 @@ function ResearchersPageContent() {
   );
 }
 
+function ResearchersPageFallback() {
+  return (
+    <main className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-neutral-primary)' }}>
+      <section className="px-6 lg:px-10 pt-4 pb-20 bg-[url('/ucr_hero_image.png')] bg-cover bg-center">
+        <div className="flex justify-start h-14" />
+        <div className="max-w-6xl mx-auto">
+          <div className="pt-2 pb-4">
+            <div className="skeleton h-4 w-20 rounded opacity-40" />
+          </div>
+          <div className="flex justify-start h-10" />
+          <div className="skeleton h-10 w-32 rounded mx-auto opacity-40" />
+          <div className="mt-6 skeleton h-12 w-full max-w-xl mx-auto rounded opacity-40" />
+        </div>
+        <div className="flex justify-start h-30" />
+      </section>
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
+          {Array.from({ length: 18 }).map((_, i) => (
+            <ResearcherCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    </main>
+  );
+}
+
 export default function ResearchersPage() {
   return (
-    <Suspense
-      fallback={<div className="min-h-screen bg-[var(--color-bg-neutral-primary)]" />}
-    >
+    <Suspense fallback={<ResearchersPageFallback />}>
       <ResearchersPageContent />
     </Suspense>
   );

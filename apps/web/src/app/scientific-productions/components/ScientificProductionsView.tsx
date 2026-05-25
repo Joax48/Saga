@@ -7,6 +7,7 @@ import Pagination from '@/components/Pagination';
 import Button from '@/components/Button';
 import { FilterSidebar } from '../../../components/FilterSidebar';
 import { ProductionCard } from './ProductionCard';
+import { CardSkeleton } from '@/components/skeletons/CardSkeleton';
 import type { FilterGroupConfig } from '../../../components/FilterSidebar';
 import type { SummaryScientificProduction } from '@/types';
 import type { FiltersApiResponse } from '@/services/scientific-productions';
@@ -230,7 +231,9 @@ export function ScientificProductionsView({
 
             <div className="flex-1 min-w-0">
               <div className="space-y-8">
-                {productions.length > 0 ? (
+                {isPending ? (
+                  Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />)
+                ) : productions.length > 0 ? (
                   productions.map((production) => (
                     <ProductionCard key={production.id} production={production} />
                   ))
@@ -249,7 +252,7 @@ export function ScientificProductionsView({
                   </div>
                 )}
 
-                {productions.length > 0 && totalPages > 1 && (
+                {!isPending && productions.length > 0 && totalPages > 1 && (
                   <div className="pt-8">
                     <Pagination
                       currentPage={currentPage}

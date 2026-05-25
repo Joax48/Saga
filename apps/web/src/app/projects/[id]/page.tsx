@@ -6,6 +6,7 @@ import CategoriesNavigation, { Category } from '@/components/DetailNavbar';
 import { Box, User, Tag } from 'lucide-react';
 import { getProjectById } from '@/services/projects';
 import type { Project } from '@/services/projects';
+import { DetailPageSkeleton } from '@/components/skeletons/DetailPageSkeleton';
 
 interface ProjectsDetailPageProps {
   params: { id: string };
@@ -74,15 +75,19 @@ function formatParticipationPeriod(startDate?: string, endDate?: string): string
 export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) {
   const [activeTab, setActiveTab] = useState('general');
   const [project, setProject] = useState<Project | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchProject = async () => {
+      setIsLoading(true);
       try {
         const data = await getProjectById(params.id);
         setProject(data);
       } catch (error) {
         console.error(error);
         setProject(null);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -109,6 +114,8 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
       sectionTitle: 'Palabras claves',
     },
   ];
+
+  if (isLoading) return <DetailPageSkeleton />;
 
   if (!project) {
     return (
