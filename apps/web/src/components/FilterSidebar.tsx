@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, ChevronUp, X } from 'lucide-react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Check, ChevronDown, ChevronUp, Search, X } from 'lucide-react';
 
 /**
  * Hook that detects if text in a DOM element is truncated.
@@ -206,6 +206,59 @@ function OptionsPopup({
   onClear,
   onClose,
 }: OptionsPopupProps) {
+  const [search, setSearch] = useState('');
+  const [searchVisible, setSearchVisible] = useState(false);
+  const gridContainerRef = useRef<HTMLDivElement>(null);
+  const prevGridHeightRef = useRef<number | null>(null);
+
+  const filteredOptions = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return options;
+    return options.filter((o) => o.label.toLowerCase().includes(q));
+  }, [options, search]);
+
+  const hasSelection = selectedValues.length > 0;
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setSearchVisible(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  useLayoutEffect(() => {
+    const el = gridContainerRef.current;
+    if (!el) return;
+
+    // Reset to auto first so scrollHeight always reflects real content height,
+    // not a stale explicit value left over from a previous animation.
+    el.style.transition = 'none';
+    el.style.height = 'auto';
+    el.getBoundingClientRect(); // force reflow
+
+    const newHeight = el.scrollHeight;
+    const fromHeight = prevGridHeightRef.current ?? newHeight;
+    prevGridHeightRef.current = newHeight;
+
+    if (Math.abs(fromHeight - newHeight) < 1) return;
+
+    el.style.height = `${fromHeight}px`;
+    el.getBoundingClientRect(); // force reflow
+    el.style.transition = 'height 250ms ease';
+    el.style.height = `${newHeight}px`;
+
+    const onEnd = () => {
+      el.style.height = 'auto';
+      el.style.transition = '';
+    };
+    el.addEventListener('transitionend', onEnd, { once: true });
+    return () => el.removeEventListener('transitionend', onEnd);
+  }, [filteredOptions]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -252,50 +305,108 @@ function OptionsPopup({
               Limpiar
             </button>
 
-            <button
-              onClick={onClose}
-              className="flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase transition-opacity hover:opacity-70"
-              style={{ color: 'var(--color-danger, #d9534f)' }}
-              aria-label="Cerrar"
-            >
-              Cerrar
-              <X size={14} strokeWidth={2.5} />
-            </button>
+            {hasSelection ? (
+              <button
+                onClick={onClose}
+                className="flex items-center justify-center gap-1.5 w-[6.5rem] text-xs font-semibold tracking-wide uppercase transition-opacity hover:opacity-80 px-3 py-1 rounded-full"
+                style={{ backgroundColor: '#16a34a', color: '#fff' }}
+                aria-label="Aplicar filtros"
+              >
+                Aplicar
+                <Check size={14} strokeWidth={2.5} />
+              </button>
+            ) : (
+              <button
+                onClick={onClose}
+                className="flex items-center justify-center gap-1.5 w-[6.5rem] text-xs font-semibold tracking-wide uppercase transition-opacity hover:opacity-70 px-3 py-1 rounded-full"
+                style={{ color: 'var(--color-danger, #d9534f)', backgroundColor: 'transparent' }}
+                aria-label="Cerrar"
+              >
+                Cerrar
+                <X size={14} strokeWidth={2.5} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Search bar */}
+        <div
+          className="px-5 pt-4 pb-2 shrink-0"
+          style={{
+            opacity: searchVisible ? 1 : 0,
+            transform: searchVisible ? 'translateY(0)' : 'translateY(-6px)',
+            transition: 'opacity 280ms ease, transform 280ms ease',
+          }}
+        >
+          <div
+            className="flex items-center gap-2 px-3 py-2 rounded-lg"
+            style={{ backgroundColor: 'var(--color-gray-100)', border: '1px solid var(--color-gray-200)' }}
+          >
+            <Search size={14} style={{ color: 'var(--color-gray-400)' }} className="shrink-0" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={`Buscar en ${title.toLowerCase()}…`}
+              className="flex-1 bg-transparent text-sm outline-none"
+              style={{ color: 'var(--color-gray-700)' }}
+              autoFocus
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="shrink-0 transition-opacity hover:opacity-70"
+                aria-label="Limpiar búsqueda"
+              >
+                <X size={12} style={{ color: 'var(--color-gray-400)' }} />
+              </button>
+            )}
           </div>
         </div>
 
         {/* Options grid */}
         <div className="overflow-y-auto px-5 py-4">
-          <div className="grid grid-cols-3 gap-x-8 gap-y-1">
-            {options.map((opt) => (
-              <CheckboxOption
-                key={opt.value}
-                id={`popup-filter-${groupKey}-${opt.value}`}
-                label={opt.label}
-                count={opt.count}
-                checked={selectedValues.includes(opt.value)}
-                onChange={() => onToggle(opt.value)}
-                truncate={false}
-              />
-            ))}
+          <div ref={gridContainerRef} style={{ overflow: 'hidden' }}>
+            {filteredOptions.length > 0 ? (
+              <div className="grid grid-cols-3 gap-x-8 gap-y-1">
+                {filteredOptions.map((opt) => (
+                  <CheckboxOption
+                    key={opt.value}
+                    id={`popup-filter-${groupKey}-${opt.value}`}
+                    label={opt.label}
+                    count={opt.count}
+                    checked={selectedValues.includes(opt.value)}
+                    onChange={() => onToggle(opt.value)}
+                    truncate={false}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-center py-6" style={{ color: 'var(--color-gray-400)' }}>
+                Sin resultados para &ldquo;{search}&rdquo;
+              </p>
+            )}
           </div>
         </div>
 
         {/* Footer — selected count (left-aligned) */}
-        {selectedValues.length > 0 && (
-          <div
-            className="px-5 py-3 shrink-0 text-xs flex justify-start"
-            style={{
-              borderTop: '1px solid var(--color-gray-200)',
-              color: 'var(--color-text-brand-primary)',
-            }}
-          >
-            <span>
-              {selectedValues.length} {title.toLowerCase()} seleccionada
-              {selectedValues.length !== 1 ? 's' : ''}
-            </span>
-          </div>
-        )}
+        <div
+          className="px-5 shrink-0 text-xs flex justify-start overflow-hidden"
+          style={{
+            borderTop: hasSelection ? '1px solid var(--color-gray-200)' : '1px solid transparent',
+            color: 'var(--color-text-brand-primary)',
+            maxHeight: hasSelection ? '3rem' : '0',
+            opacity: hasSelection ? 1 : 0,
+            paddingTop: hasSelection ? '0.75rem' : '0',
+            paddingBottom: hasSelection ? '0.75rem' : '0',
+            transition: 'max-height 250ms ease, opacity 200ms ease, padding 250ms ease',
+          }}
+        >
+          <span>
+            {selectedValues.length} {title.toLowerCase()} seleccionada
+            {selectedValues.length !== 1 ? 's' : ''}
+          </span>
+        </div>
       </div>
     </div>
   );

@@ -22,6 +22,7 @@ describe('GetResearcherDetailUseCase', () => {
     const mockResearcher = {
       id: '1',
       idUcrProfile: 'UCR001',
+      profileType: 'UCR' as const,
       baseUnit: 'CIMPA',
       name: 'Juan',
       firstSurname: 'Perez',
@@ -42,6 +43,7 @@ describe('GetResearcherDetailUseCase', () => {
     expect(result).toEqual({
       id: '1',
       idUcrProfile: 'UCR001',
+      profileType: 'UCR' as const,
       baseUnit: 'CIMPA',
       name: 'Juan',
       firstSurname: 'Perez',

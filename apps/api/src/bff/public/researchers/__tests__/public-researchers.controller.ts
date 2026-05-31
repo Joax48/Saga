@@ -51,6 +51,7 @@ describe('PublicResearchersController', () => {
           {
             id: 'a1b2c3',
             idUcrProfile: 'B12345',
+            profileType: 'UCR' as const,
             baseUnit: 'CIMPA',
             name: 'Luis',
             firstSurname: 'Mora',
@@ -66,6 +67,7 @@ describe('PublicResearchersController', () => {
           {
             id: 'd4e5f6',
             idUcrProfile: 'C67890',
+            profileType: 'EXTERNAL' as const,
             baseUnit: 'CIBCM',
             name: 'Ana',
             firstSurname: 'Vargas',
@@ -219,6 +221,7 @@ describe('PublicResearchersController', () => {
       const mockResearcher = {
         id: 'a1b2c3',
         idUcrProfile: 'B12345',
+        profileType: 'UCR' as const,
         baseUnit: 'CIMPA',
         name: 'Luis',
         firstSurname: 'Mora',
@@ -270,6 +273,7 @@ describe('PublicResearchersController', () => {
       const mockProfile = {
         id: '1',
         idUcrProfile: 'UCR001',
+        profileType: 'UCR' as const,
         baseUnit: 'CIMPA',
         name: 'Juan',
         firstSurname: 'Perez',

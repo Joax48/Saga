@@ -36,8 +36,10 @@ export class ResearchersReaderService implements ResearchersReader {
     // Fetch every researcher's linked units in a single batch query so the
     // card can show all units (with a tooltip when there are more than one).
     const researcherIds = researchersPage.items.map((r) => r.id);
-    const linkedUnitsByResearcherId =
-      await this.researchersRepository.findLinkedUnitsByResearcherIds(researcherIds);
+    const [linkedUnitsByResearcherId, institutionsByResearcherId] = await Promise.all([
+      this.researchersRepository.findLinkedUnitsByResearcherIds(researcherIds),
+      this.researchersRepository.findInstitutionsByResearcherIds(researcherIds),
+    ]);
 
     return {
       // Maps each Researcher entity to the DTO exposed by the API
@@ -50,11 +52,15 @@ export class ResearchersReaderService implements ResearchersReader {
           firstSurname: researcher.firstSurname,
           secondSurname: researcher.secondSurname,
           ceaCategory: researcher.ceaCategory,
+          institution: researcher.institution,
+          country: researcher.country,
+          institutions: institutionsByResearcherId.get(String(researcher.id)) ?? [],
           orcidId: researcher.orcidId,
           linkedin: researcher.linkedin,
           researchGate: researcher.researchGate,
           scopus: researcher.scopus,
           photoUrl: researcher.photoUrl,
+          profileType: researcher.profileType,
           linkedUnits: linkedUnitsByResearcherId.get(researcher.id) ?? [],
         }),
       ),
@@ -83,11 +89,14 @@ export class ResearchersReaderService implements ResearchersReader {
       firstSurname: researcher.firstSurname,
       secondSurname: researcher.secondSurname,
       ceaCategory: researcher.ceaCategory,
+      institution: researcher.institution,
+      country: researcher.country,
       orcidId: researcher.orcidId,
       linkedin: researcher.linkedin,
       researchGate: researcher.researchGate,
       scopus: researcher.scopus,
       photoUrl: researcher.photoUrl,
+      profileType: researcher.profileType,
       linkedUnits: linkedUnits.map((u) => ({ id: String(u.id), name: u.name })),
     };
   }
@@ -113,6 +122,8 @@ export class ResearchersReaderService implements ResearchersReader {
       experienceRows,
       projectsRows,
       outputsRows,
+      institutionsMap,
+      hIndex,
     ] = await Promise.all([
       this.researchersRepository.findAlternativeNames(id),
       this.researchersRepository.findLinkedUnits(id),
@@ -121,7 +132,10 @@ export class ResearchersReaderService implements ResearchersReader {
       this.researchersRepository.findExperience(id),
       this.researchersRepository.findProjects(id),
       this.researchersRepository.findScientificOutputs(id),
+      this.researchersRepository.findInstitutionsByResearcherIds([id]),
+      this.researchersRepository.findHIndexByProfileId(id),
     ]);
+    const institutionsRows = institutionsMap.get(id) ?? [];
 
     const projectIds = projectsRows.map((row) => row.id);
     const outputIds = outputsRows.map((row) => row.id);
@@ -161,11 +175,15 @@ export class ResearchersReaderService implements ResearchersReader {
       firstSurname: researcher.firstSurname,
       secondSurname: researcher.secondSurname,
       ceaCategory: researcher.ceaCategory,
+      institution: researcher.institution,
+      country: researcher.country,
+      institutions: institutionsRows,
       orcidId: researcher.orcidId,
       linkedin: researcher.linkedin,
       researchGate: researcher.researchGate,
       scopus: researcher.scopus,
       photoUrl: researcher.photoUrl,
+      profileType: researcher.profileType,
       alternativeNames: alternativeNamesRows.map((row) => ({
         name: row.name,
         firstSurname: row.firstSurname,
@@ -202,6 +220,7 @@ export class ResearchersReaderService implements ResearchersReader {
         keywords: projectKeywordsByProjectId.get(String(row.id)) ?? [],
       })),
       scientificOutputs,
+      hIndex,
     };
   }
 

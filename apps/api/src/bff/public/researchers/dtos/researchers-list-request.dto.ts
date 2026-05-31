@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsIn, IsOptional, IsString } from 'class-validator';
 
 import { PaginatedListRequestDto } from '../../common/dtos/paginated-list-request.dto';
 
@@ -23,4 +23,9 @@ export class ResearchersListRequestDto extends PaginatedListRequestDto {
   @IsArray()
   @IsString({ each: true })
   unit?: string[];
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['UCR', 'EXTERNAL'])
+  profileType?: 'UCR' | 'EXTERNAL';
 }

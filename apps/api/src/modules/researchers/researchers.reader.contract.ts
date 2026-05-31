@@ -9,21 +9,33 @@ export interface ResearcherUnitDto {
   name: string;
 }
 
+/** Whether a profile is an internal UCR member or an external co-author */
+export type ProfileTypeDto = 'UCR' | 'EXTERNAL';
+
 /** Shape of a single researcher in the list and detail responses */
 export interface ResearcherListItemDto {
   id: string;
-  idUcrProfile: string;
+  idUcrProfile: string | null;
   baseUnit: string;
   name: string;
   firstSurname: string;
   secondSurname: string;
   ceaCategory: string | null;
+  institution: string | null;
+  country: string | null;
+  institutions: { name: string; country: string | null }[];
   orcidId: string | null;
   linkedin: string | null;
   researchGate: string | null;
   scopus: string | null;
   photoUrl: string | null;
+  profileType: ProfileTypeDto;
   linkedUnits: ResearcherUnitDto[];
+}
+
+export interface ResearcherInstitutionDto {
+  name: string;
+  country: string | null;
 }
 
 // ─── Profile DTOs (full researcher profile) ───────────────────────────────────
@@ -83,6 +95,7 @@ export interface ResearcherScientificOutputDto {
 
 /** Full researcher profile aggregating basic info, keywords, education, etc. */
 export interface ResearcherProfileDto extends ResearcherListItemDto {
+  institutions: ResearcherInstitutionDto[];
   alternativeNames: ResearcherAlternativeNameDto[];
   linkedUnits: ResearcherUnitDto[];
   keywords: string[];
@@ -90,6 +103,10 @@ export interface ResearcherProfileDto extends ResearcherListItemDto {
   experience: ResearcherExperienceDto[];
   projects: ResearcherProjectDto[];
   scientificOutputs: ResearcherScientificOutputDto[];
+  // Precomputed h-index from UCR_PROFILE_METRIC. Null when the profile has
+  // no row there — callers should fall back to computing it from the
+  // citation counts on scientificOutputs.
+  hIndex: number | null;
 }
 
 /** Response shape for the paginated researcher list */
@@ -105,6 +122,7 @@ export interface ResearchersPaginatedListDto {
 /** Filters the client can send in the request */
 export interface ResearchersFiltersRequestDto {
   unit?: string[];
+  profileType?: 'UCR' | 'EXTERNAL';
 }
 
 /**

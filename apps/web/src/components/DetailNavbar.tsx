@@ -6,6 +6,8 @@ import Image from 'next/image';
 export interface Category {
   id: string;
   name: string;
+  /** Inline icon node (e.g. a lucide-react icon). Takes precedence over iconSrc. */
+  icon?: React.ReactNode;
   iconSrc?: string;
   sectionTitle?: string;
 }
@@ -15,6 +17,13 @@ interface CategoriesNavigationProps {
   defaultActive?: string;
   onCategoryChange: (categoryId: string) => void;
   hideSectionTitle?: boolean;
+  /**
+   * When provided, the component renders a custom horizontal layout instead of
+   * the default grey boxed tabs (used by units, projects and productions).
+   */
+  containerClassName?: string;
+  itemClassName?: string;
+  activeItemClassName?: string;
 }
 
 export default function CategoriesNavigation({
@@ -22,6 +31,9 @@ export default function CategoriesNavigation({
   defaultActive,
   onCategoryChange,
   hideSectionTitle = false,
+  containerClassName,
+  itemClassName,
+  activeItemClassName,
 }: CategoriesNavigationProps) {
   const [activeCategory, setActiveCategory] = useState(
     defaultActive || categories[0]?.id,
@@ -45,6 +57,48 @@ export default function CategoriesNavigation({
     categories.find((cat) => cat.id === activeCategory)?.sectionTitle ??
     categories.find((cat) => cat.id === activeCategory)?.name;
 
+  const renderIcon = (category: Category, isActive: boolean) => {
+    if (category.icon) return category.icon;
+    if (category.iconSrc) {
+      return (
+        <Image
+          src={category.iconSrc}
+          alt=""
+          width={22}
+          height={22}
+          style={{ opacity: isActive ? 1 : 0.4 }}
+        />
+      );
+    }
+    return null;
+  };
+
+  // ── Custom horizontal layout (caller-provided classes) ──────────────────
+  const isCustomLayout = Boolean(containerClassName || itemClassName);
+  if (isCustomLayout) {
+    return (
+      <nav className={containerClassName}>
+        {categories.map((category) => {
+          const isActive = category.id === activeCategory;
+          return (
+            <button
+              key={category.id}
+              id={`navbar-tab-${category.id}`}
+              onClick={() => handleCategoryClick(category.id)}
+              className={[itemClassName, isActive ? activeItemClassName : '']
+                .filter(Boolean)
+                .join(' ')}
+            >
+              {renderIcon(category, isActive)}
+              <span>{category.name}</span>
+            </button>
+          );
+        })}
+      </nav>
+    );
+  }
+
+  // ── Default grey boxed tabs ──────────────────────────────────────────────
   return (
     <div className="w-full">
       {/* Desktop tabs */}
@@ -64,17 +118,7 @@ export default function CategoriesNavigation({
                   : 'bg-transparent text-[var(--color-text-neutral-primary)] hover:bg-[var(--color-gray-300)] hover:shadow-sm hover:scale-[1.01]',
               ].join(' ')}
             >
-              {category.iconSrc && (
-                <Image
-                  src={category.iconSrc}
-                  alt=""
-                  width={22}
-                  height={22}
-                  style={{
-                    opacity: isActive ? 1 : 0.4,
-                  }}
-                />
-              )}
+              {renderIcon(category, isActive)}
               <span>{category.name}</span>
             </button>
           );

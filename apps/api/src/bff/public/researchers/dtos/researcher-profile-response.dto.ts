@@ -56,4 +56,5 @@ export class ResearcherProfileResponseDto extends ResearcherSummaryResponseDto {
   experience!: ResearcherExperienceResponseDto[];
   projects!: ResearcherProjectResponseDto[];
   scientificOutputs!: ResearcherScientificOutputResponseDto[];
+  hIndex!: number | null;
 }

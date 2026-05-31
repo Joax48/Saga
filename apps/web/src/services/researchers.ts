@@ -27,17 +27,21 @@ export type {
  */
 interface ResearcherSummaryApiDto {
   id: string;
-  idUcrProfile: string;
+  idUcrProfile: string | null;
   baseUnit: string;
   name: string;
   firstSurname: string;
   secondSurname: string;
   ceaCategory: string | null;
+  institution: string | null;
+  country: string | null;
+  institutions: { name: string; country: string | null }[];
   orcidId: string | null;
   linkedin: string | null;
   researchGate: string | null;
   scopus: string | null;
   photoUrl: string | null;
+  profileType: 'UCR' | 'EXTERNAL';
   linkedUnits: { id: string; name: string }[];
 }
 
@@ -59,11 +63,15 @@ function mapResearcherSummaryToResearcher(item: ResearcherSummaryApiDto): Resear
     firstSurname: item.firstSurname,
     secondSurname: item.secondSurname,
     ceaCategory: item.ceaCategory,
+    institution: item.institution,
+    country: item.country,
+    institutions: item.institutions ?? [],
     orcidId: item.orcidId,
     linkedin: item.linkedin,
     researchGate: item.researchGate,
     scopus: item.scopus,
     photoUrl: item.photoUrl,
+    profileType: item.profileType,
     linkedUnits: item.linkedUnits ?? [],
   };
 }
@@ -78,6 +86,7 @@ export function getResearchers(
   limit = 9,
   searchQuery = '',
   units?: string[],
+  profileType?: 'UCR' | 'EXTERNAL',
 ): Promise<PaginatedResearchers> {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
 
@@ -86,6 +95,8 @@ export function getResearchers(
   if (units && units.length > 0) {
     units.forEach((unit) => params.append('unit', unit));
   }
+
+  if (profileType) params.set('profileType', profileType);
 
   return request<PaginatedListResponseDto<ResearcherSummaryApiDto>>(
     `/researchers?${params.toString()}`,

@@ -22,6 +22,7 @@ interface ResearchersListProps {
   currentPage: number;
   onPageChange: (page: number) => void;
   onTotalChange?: (total: number) => void;
+  profileType?: 'UCR' | 'EXTERNAL';
 }
 
 export default function ResearchersList({
@@ -30,6 +31,7 @@ export default function ResearchersList({
   currentPage,
   onPageChange,
   onTotalChange,
+  profileType,
 }: ResearchersListProps) {
   const [researchers, setResearchers] = useState<Researcher[]>([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -51,6 +53,7 @@ export default function ResearchersList({
           PAGE_SIZE,
           searchQuery,
           filters.baseUnit,
+          profileType,
         );
 
         if (cancelled) return;
@@ -73,7 +76,7 @@ export default function ResearchersList({
     return () => {
       cancelled = true;
     };
-  }, [currentPage, searchQuery, filters]);
+  }, [currentPage, searchQuery, filters, profileType]);
 
   const handlePageChange = (page: number) => {
     onPageChange(page);
@@ -119,15 +122,78 @@ export default function ResearchersList({
               const primaryFallback = fallbackUnits[0];
               const extraFallback = fallbackUnits.slice(1);
 
+              // External profile branches temporarily disabled — list is UCR-only.
+              // const isExternal = researcher.profileType === 'EXTERNAL';
+
               return (
                 <Card
                   key={researcher.id}
+                  onClick={() =>
+                    sessionStorage.setItem('researchers-scroll-y', String(window.scrollY))
+                  }
                   title={buildFullName(researcher)}
                   titleClassName="text-sm font-bold leading-snug"
                   description={
                     <span className="flex flex-col gap-0.5">
+                      {/* External-profile rendering disabled.
+                      {isExternal ? (
+                        // ── External: show institution(s) ────────────────────────
+                        <>
+                          <span
+                            className="text-xs font-medium uppercase tracking-wide"
+                            style={{ color: 'var(--color-text-neutral-secondary)' }}
+                          >
+                            Institución
+                          </span>
+                          {(() => {
+                            const institutions = researcher.institutions ?? [];
+                            const primary = institutions[0];
+                            const extra = institutions.slice(1);
+
+                            if (!primary) {
+                              return (
+                                <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                                  Sin institución registrada
+                                </span>
+                              );
+                            }
+
+                            return (
+                              <span className="inline-flex flex-wrap items-center gap-1.5">
+                                <span style={{ color: 'var(--color-text-neutral-primary)' }}>
+                                  {primary.name}
+                                </span>
+                                {extra.length > 0 && (
+                                  <span className="group relative inline-block">
+                                    <span
+                                      className="inline-flex cursor-help items-center justify-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                                      style={{ backgroundColor: 'var(--color-bg-brand-primary)' }}
+                                    >
+                                      +{extra.length}
+                                    </span>
+                                    <span
+                                      className="pointer-events-none absolute left-0 top-full z-50 mt-1 hidden w-max max-w-xs rounded-md bg-gray-900 px-3 py-2 text-xs text-white shadow-lg group-hover:block"
+                                      role="tooltip"
+                                    >
+                                      <span className="mb-1 block font-semibold">
+                                        Todas las instituciones
+                                      </span>
+                                      <ul className="space-y-0.5">
+                                        {institutions.map((inst, idx) => (
+                                          <li key={idx}>• {inst.name}</li>
+                                        ))}
+                                      </ul>
+                                    </span>
+                                  </span>
+                                )}
+                              </span>
+                            );
+                          })()}
+                        </>
+                      ) : hasBaseUnit ? (
+                      */}
                       {hasBaseUnit ? (
-                        // ── Has base unit: show it with "Unidad base" label ──────
+                        // ── UCR with base unit ───────────────────────────────────
                         <>
                           <span
                             className="text-xs font-medium uppercase tracking-wide"
@@ -144,7 +210,7 @@ export default function ResearchersList({
                           </Link>
                         </>
                       ) : (
-                        // ── No base unit: show linked units ──────────────────────
+                        // ── UCR without base unit: show linked units ─────────────
                         <>
                           <span
                             className="text-xs font-medium uppercase tracking-wide"
@@ -198,7 +264,7 @@ export default function ResearchersList({
                       )}
                     </span>
                   }
-                  excerpt={researcher.ceaCategory || 'Sin categoría registrada'}
+                  excerpt={researcher.ceaCategory ?? 'Sin categoría registrada'}
                   imageSrc={
                     // Falls back to an initials avatar when no photo is stored in the DB
                     researcher.photoUrl ||

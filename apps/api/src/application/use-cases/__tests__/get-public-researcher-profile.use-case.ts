@@ -23,6 +23,7 @@ describe('GetResearcherProfileUseCase', () => {
       const mockProfile = {
         id: '1',
         idUcrProfile: 'UCR001',
+        profileType: 'UCR' as const,
         baseUnit: 'CIMPA',
         name: 'Juan',
         firstSurname: 'Perez',
@@ -119,6 +120,7 @@ describe('GetResearcherProfileUseCase', () => {
       const mockProfile = {
         id: '1',
         idUcrProfile: 'UCR001',
+        profileType: 'UCR' as const,
         baseUnit: 'CIMPA',
         name: 'Ana',
         firstSurname: 'Lopez',
@@ -155,6 +157,7 @@ describe('GetResearcherProfileUseCase', () => {
       const mockProfile = {
         id: '1',
         idUcrProfile: 'UCR001',
+        profileType: 'UCR' as const,
         baseUnit: 'CIMPA',
         name: 'Carlos',
         firstSurname: 'Solano',
@@ -192,6 +195,7 @@ describe('GetResearcherProfileUseCase', () => {
       const mockProfile = {
         id: '1',
         idUcrProfile: 'UCR001',
+        profileType: 'UCR' as const,
         baseUnit: 'CIMPA',
         name: 'Diego',
         firstSurname: 'Martinez',

@@ -171,7 +171,7 @@ export function Card({
         !chromeless && 'card bg-base-100 shadow-sm',
         !chromeless && isHorizontal && showImage && 'card-side',
         isInteractive &&
-          'cursor-pointer transition-shadow hover:shadow-md focus-visible:outline-2',
+          'cursor-pointer focus-visible:outline-2',
         className,
       ]
         .filter(Boolean)

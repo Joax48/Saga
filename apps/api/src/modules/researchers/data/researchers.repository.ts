@@ -28,12 +28,38 @@ type BaseUnitCountRow = {
 // ─── Base SQL queries ─────────────────────────────────────────────────────────
 
 /**
- * Main SELECT joining three tables from the PRODUCCION_CIENTIFICA schema:
- *  - UCR_PROFILE   → researcher contact info (orcid, linkedin, photo)
- *  - PROFILE       → name and surnames
+ * Membership join that turns PROFILE into the set of "researchers".
+ *
+ * A profile is a researcher when it appears in either UCR_PROFILE (internal
+ * member) or EXTERNAL_PROFILE (external co-author). The UNION ALL also carries
+ * the profile type so callers can label each row 'UCR' or 'EXTERNAL'.
+ *
+ * It is expressed as an inner JOIN (not a WHERE filter) so the dynamic WHERE
+ * clause built at query time can still be appended cleanly.
+ */
+const RESEARCHER_PROFILE_TYPE_JOIN = `
+  JOIN (
+    SELECT PROFILE_ID, 'UCR' AS PROFILE_TYPE FROM PRODUCCION_CIENTIFICA.UCR_PROFILE
+    UNION ALL
+    SELECT PROFILE_ID, 'EXTERNAL' AS PROFILE_TYPE
+    FROM (
+      SELECT PROFILE_ID FROM PRODUCCION_CIENTIFICA.EXTERNAL_PROFILE
+      MINUS
+      SELECT PROFILE_ID FROM PRODUCCION_CIENTIFICA.UCR_PROFILE
+    )
+  ) profile_kind ON profile_kind.PROFILE_ID = p.PROFILE_ID
+`;
+
+/**
+ * Main SELECT joining tables from the PRODUCCION_CIENTIFICA schema:
+ *  - PROFILE       → name and surnames (base table for every profile)
+ *  - UCR_PROFILE   → internal contact info (orcid, linkedin, photo); NULL for externals
  *  - UNIT          → academic unit name
  *
- * The subquery inside the LEFT JOIN picks ONE unit per researcher
+ * UCR_PROFILE is LEFT JOINed because external profiles have no row there, so
+ * their orcid/linkedin/photo come back NULL.
+ *
+ * The subquery inside the units LEFT JOIN picks ONE unit per researcher
  * (the one with the lowest UNIT_ID) to avoid duplicate rows.
  *
  * IMPORTANT — Oracle with OUT_FORMAT_OBJECT returns column aliases in
@@ -48,30 +74,41 @@ const BASE_RESEARCHERS_SELECT = `
     p.PROFILE_NAME      AS "name",
     p.PROFILE_FIRST_SURNAME  AS "firstSurname",
     p.PROFILE_LAST_SURNAME   AS "secondSurname",
-    NULL                AS "ceaCategory",
+    up.CEA_CATEGORY     AS "ceaCategory",
     up.ORCID_ID         AS "orcidId",
     up.LINKEDIN_URL     AS "linkedin",
     up.RESEARCH_GATE_URL AS "researchGate",
     p.SCOPUS_PROFILE_LINK AS "scopus",
-    up.PROFILE_IMAGE_URL  AS "photoUrl"
-  FROM PRODUCCION_CIENTIFICA.UCR_PROFILE up
-  JOIN PRODUCCION_CIENTIFICA.PROFILE p ON p.PROFILE_ID = up.PROFILE_ID
+    up.PROFILE_IMAGE_URL  AS "photoUrl",
+    profile_kind.PROFILE_TYPE AS "profileType",
+    ext_inst.INSTITUTION_NAME AS "institution",
+    ext_c.COUNTRY_NAME        AS "country"
+  FROM PRODUCCION_CIENTIFICA.PROFILE p
+  ${RESEARCHER_PROFILE_TYPE_JOIN}
+  LEFT JOIN PRODUCCION_CIENTIFICA.UCR_PROFILE up ON up.PROFILE_ID = p.PROFILE_ID
+  LEFT JOIN (
+    SELECT PROFILE_ID, MIN(INSTITUTION_ID) AS INSTITUTION_ID
+    FROM PRODUCCION_CIENTIFICA.EXTERNAL_PROFILE_INSTITUTION
+    GROUP BY PROFILE_ID
+  ) epi ON epi.PROFILE_ID = p.PROFILE_ID
+  LEFT JOIN PRODUCCION_CIENTIFICA.INSTITUTION ext_inst ON ext_inst.INSTITUTION_ID = epi.INSTITUTION_ID
+  LEFT JOIN PRODUCCION_CIENTIFICA.COUNTRY ext_c ON ext_c.COUNTRY_ID = ext_inst.INSTITUTION_COUNTRY
   LEFT JOIN (
     SELECT PROFILE_ID, MIN(UNIT_ID) AS UNIT_ID
     FROM PRODUCCION_CIENTIFICA.UCR_PROFILE_PROJECT_UNIT
     GROUP BY PROFILE_ID
-  ) uppu ON uppu.PROFILE_ID = up.PROFILE_ID
+  ) uppu ON uppu.PROFILE_ID = p.PROFILE_ID
   LEFT JOIN PRODUCCION_CIENTIFICA.UNIT u ON u.UNIT_ID = uppu.UNIT_ID
 `;
 
 /**
- * Base COUNT query: only needs the two main tables (not the units join)
+ * Base COUNT query: only needs PROFILE plus the membership join
  * since there are no duplicate rows when counting by PROFILE_ID.
  */
 const COUNT_RESEARCHERS_QUERY = `
   SELECT COUNT(*) AS "totalCount"
-  FROM PRODUCCION_CIENTIFICA.UCR_PROFILE up
-  JOIN PRODUCCION_CIENTIFICA.PROFILE p ON p.PROFILE_ID = up.PROFILE_ID
+  FROM PRODUCCION_CIENTIFICA.PROFILE p
+  ${RESEARCHER_PROFILE_TYPE_JOIN}
 `;
 
 // ─── WHERE clause helper type ─────────────────────────────────────────────────
@@ -159,10 +196,18 @@ export class ResearchersRepository {
 
   // ── Dynamic WHERE builder ─────────────────────────────────────────────────
 
-  private normalizeSearchTerm(searchTerm?: string | null): string | null {
+  private tokenizeSearchTerm(searchTerm?: string | null): string[] {
     const normalized = searchTerm?.trim();
-    // Trailing % wildcard: matches names that START WITH the given term
-    return normalized ? `${normalized}%` : null;
+    if (!normalized) return [];
+    // Each word becomes a starts-with pattern so only names/surnames that
+    // BEGIN with the token match (e.g. "Shu" won't match "Huertas").
+    // Tokens are AND-ed across fields in buildWhereClause, so a multi-word
+    // query like "Kenneth Osorio" matches "Kenneth Santiago Osorio Masís"
+    // because "Kenneth" starts the name and "Osorio" starts a surname.
+    return normalized
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((token) => `${token}%`);
   }
 
   private normalizeFilterValues(values?: string[]): string[] {
@@ -208,18 +253,27 @@ export class ResearchersRepository {
     const clauses: string[] = [];
     const params: unknown[] = [];
 
-    const normalizedSearchTerm = this.normalizeSearchTerm(searchTerm);
-    if (normalizedSearchTerm) {
-      const b1 = this.addParam(params, normalizedSearchTerm);
-      const b2 = this.addParam(params, normalizedSearchTerm);
-      const b3 = this.addParam(params, normalizedSearchTerm);
-      const b4 = this.addParam(params, normalizedSearchTerm);
-      clauses.push(
-        `(LOWER(p.PROFILE_NAME) LIKE LOWER(${b1}) ` +
+    const searchTokens = this.tokenizeSearchTerm(searchTerm);
+    if (searchTokens.length > 0) {
+      // Each token must start at least one name field (name, first surname,
+      // or second surname). Tokens are AND-ed so multi-word queries work:
+      // "Kenneth Osorio" matches "Kenneth Santiago Osorio Masís" because
+      // "Kenneth" starts PROFILE_NAME and "Osorio" starts PROFILE_LAST_SURNAME.
+      const tokenClauses = searchTokens.map((token) => {
+        const b1 = this.addParam(params, token);
+        const b2 = this.addParam(params, token);
+        const b3 = this.addParam(params, token);
+        return (
+          `(LOWER(p.PROFILE_NAME) LIKE LOWER(${b1}) ` +
           `OR LOWER(p.PROFILE_FIRST_SURNAME) LIKE LOWER(${b2}) ` +
-          `OR LOWER(p.PROFILE_LAST_SURNAME) LIKE LOWER(${b3}) ` +
-          `OR LOWER(TRIM(p.PROFILE_NAME || ' ' || p.PROFILE_FIRST_SURNAME || ' ' || p.PROFILE_LAST_SURNAME)) LIKE LOWER(${b4}))`,
-      );
+          `OR LOWER(p.PROFILE_LAST_SURNAME) LIKE LOWER(${b3}))`
+        );
+      });
+      clauses.push(`(${tokenClauses.join(' AND ')})`);
+    }
+
+    if (filters?.profileType && ['UCR', 'EXTERNAL'].includes(filters.profileType)) {
+      clauses.push(`profile_kind.PROFILE_TYPE = ${this.addParam(params, filters.profileType)}`);
     }
 
     const units = this.normalizeFilterValues(filters?.unit);
@@ -230,7 +284,7 @@ export class ResearchersRepository {
         SELECT 1
         FROM PRODUCCION_CIENTIFICA.UCR_PROFILE_PROJECT_UNIT uppu2
         JOIN PRODUCCION_CIENTIFICA.UNIT u2 ON u2.UNIT_ID = uppu2.UNIT_ID
-        WHERE uppu2.PROFILE_ID = up.PROFILE_ID
+        WHERE uppu2.PROFILE_ID = p.PROFILE_ID
           AND LOWER(u2.UNIT_NAME) IN (${placeholders})
       )`);
     }
@@ -250,8 +304,9 @@ export class ResearchersRepository {
 
   async findById(id: string): Promise<Researcher | null> {
     const researchers = await this.databaseClient.query<Researcher>(
-      // :1 is the first (and only) bind variable; id is passed as an array
-      `${BASE_RESEARCHERS_SELECT} WHERE up.PROFILE_ID = :1`,
+      // :1 is the first (and only) bind variable; id is passed as an array.
+      // Filter on PROFILE_ID (the shared key) so both UCR and external profiles resolve.
+      `${BASE_RESEARCHERS_SELECT} WHERE p.PROFILE_ID = :1`,
       [id],
     );
 
@@ -370,6 +425,40 @@ export class ResearchersRepository {
       `,
       [profileId],
     );
+  }
+
+  /** All institutions for a set of external profiles, grouped by profile id. */
+  async findInstitutionsByResearcherIds(
+    profileIds: string[],
+  ): Promise<Map<string, { name: string; country: string | null }[]>> {
+    if (profileIds.length === 0) return new Map();
+
+    const placeholders = profileIds.map((_, i) => `:${i + 1}`).join(', ');
+    const rows = await this.databaseClient.query<{
+      profileId: string;
+      name: string;
+      country: string | null;
+    }>(
+      `
+        SELECT
+          epi.PROFILE_ID        AS "profileId",
+          inst.INSTITUTION_NAME AS "name",
+          c.COUNTRY_NAME        AS "country"
+        FROM PRODUCCION_CIENTIFICA.EXTERNAL_PROFILE_INSTITUTION epi
+        JOIN PRODUCCION_CIENTIFICA.INSTITUTION inst ON inst.INSTITUTION_ID = epi.INSTITUTION_ID
+        LEFT JOIN PRODUCCION_CIENTIFICA.COUNTRY c ON c.COUNTRY_ID = inst.INSTITUTION_COUNTRY
+        WHERE epi.PROFILE_ID IN (${placeholders})
+        ORDER BY epi.PROFILE_ID ASC, inst.INSTITUTION_NAME ASC
+      `,
+      profileIds,
+    );
+
+    return rows.reduce((acc, row) => {
+      const list = acc.get(String(row.profileId)) ?? [];
+      list.push({ name: row.name, country: row.country });
+      acc.set(String(row.profileId), list);
+      return acc;
+    }, new Map<string, { name: string; country: string | null }[]>());
   }
 
   /**
@@ -541,6 +630,26 @@ export class ResearchersRepository {
     );
   }
 
+  /**
+   * Precomputed h-index from UCR_PROFILE_METRIC. Returns null when the row
+   * does not exist (the table is sparsely populated — ~2% of UCR profiles),
+   * so callers can fall back to computing it from citation counts.
+   */
+  async findHIndexByProfileId(profileId: string): Promise<number | null> {
+    const rows = await this.databaseClient.query<{ hIndex: number | null }>(
+      `
+        SELECT H_INDEX AS "hIndex"
+        FROM PRODUCCION_CIENTIFICA.UCR_PROFILE_METRIC
+        WHERE PROFILE_ID = :1
+        FETCH FIRST 1 ROWS ONLY
+      `,
+      [profileId],
+    );
+
+    const value = rows[0]?.hIndex;
+    return value == null ? null : Number(value);
+  }
+
   /** Co-authors per scientific output (used to render the authors line). */
   async findAuthorsByOutputIds(outputIds: string[]): Promise<Map<string, string[]>> {
     if (outputIds.length === 0) {
@@ -628,10 +737,10 @@ export class ResearchersRepository {
 
     return this.databaseClient.query<BaseUnitCountRow>(
       `
-        SELECT u.UNIT_NAME AS "baseUnit", COUNT(DISTINCT up.PROFILE_ID) AS "count"
-        FROM PRODUCCION_CIENTIFICA.UCR_PROFILE up
-        JOIN PRODUCCION_CIENTIFICA.PROFILE p ON p.PROFILE_ID = up.PROFILE_ID
-        JOIN PRODUCCION_CIENTIFICA.UCR_PROFILE_PROJECT_UNIT uppu ON uppu.PROFILE_ID = up.PROFILE_ID
+        SELECT u.UNIT_NAME AS "baseUnit", COUNT(DISTINCT p.PROFILE_ID) AS "count"
+        FROM PRODUCCION_CIENTIFICA.PROFILE p
+        ${RESEARCHER_PROFILE_TYPE_JOIN}
+        JOIN PRODUCCION_CIENTIFICA.UCR_PROFILE_PROJECT_UNIT uppu ON uppu.PROFILE_ID = p.PROFILE_ID
         JOIN PRODUCCION_CIENTIFICA.UNIT u ON u.UNIT_ID = uppu.UNIT_ID
         WHERE u.UNIT_NAME IS NOT NULL
         ${extraConditions}

@@ -9,17 +9,24 @@ import type { SummaryScientificProduction } from '@/types';
 const PAGE_SIZE = 10;
 
 function parseProduction(p: UnitScientificProduction): SummaryScientificProduction {
+  const typeLabel = (() => {
+    try {
+      const parsed = JSON.parse(p.type);
+      return parsed && typeof parsed === 'object' && parsed.category
+        ? String(parsed.category)
+        : p.type;
+    } catch {
+      return p.type;
+    }
+  })();
+
   return {
     id: p.id,
     title: p.title,
-    authors: p.authors ? p.authors.split(';') : [],
-    type: (() => {
-      try {
-        return JSON.parse(p.type) ?? { category: p.type, subcategory: '' };
-      } catch {
-        return { category: p.type, subcategory: '' };
-      }
-    })(),
+    authors: p.authors
+      ? p.authors.split(';').map((name, index) => ({ id: index, name: name.trim() }))
+      : [],
+    type: typeLabel,
     open_access: false,
     publication_year: p.publicationYear,
     doi: p.doi ?? '',
@@ -27,7 +34,9 @@ function parseProduction(p: UnitScientificProduction): SummaryScientificProducti
     volume: p.volume ?? undefined,
     issue: p.issue ?? undefined,
     pages: p.pages ?? undefined,
-    keywords: p.keywords ? p.keywords.split(',') : [],
+    keywords: p.keywords
+      ? p.keywords.split(',').map((value, index) => ({ id: index, value: value.trim() }))
+      : [],
   };
 }
 

@@ -23,6 +23,7 @@ export class GetResearchersPaginatedListUseCase {
   ): Promise<PaginatedListResponseDto<ResearcherSummaryResponseDto>> {
     const filters: ResearchersFiltersRequestDto = {
       unit: input.unit,
+      profileType: input.profileType,
     };
 
     const researchers = await this.researchersReader.getPaginatedList(
@@ -47,11 +48,15 @@ export class GetResearchersPaginatedListUseCase {
         firstSurname: researcher.firstSurname,
         secondSurname: researcher.secondSurname,
         ceaCategory: researcher.ceaCategory,
+        institution: researcher.institution,
+        country: researcher.country,
+        institutions: researcher.institutions ?? [],
         orcidId: researcher.orcidId,
         linkedin: researcher.linkedin,
         researchGate: researcher.researchGate,
         scopus: researcher.scopus,
         photoUrl: researcher.photoUrl,
+        profileType: researcher.profileType,
         linkedUnits: researcher.linkedUnits,
       })),
       page: researchers.page,

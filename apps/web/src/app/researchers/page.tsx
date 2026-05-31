@@ -45,7 +45,19 @@ function ResearchersPageContent() {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
   const [total, setTotal] = useState<number | null>(null);
+  // External profiles temporarily disabled — only UCR profiles are listed.
+  // const [profileType, setProfileType] = useState<'UCR' | 'EXTERNAL' | undefined>(undefined);
   const shouldScrollToListRef = useRef(false);
+  const SCROLL_KEY = 'researchers-scroll-y';
+
+  // Restore scroll position when returning from a detail page
+  useEffect(() => {
+    const saved = sessionStorage.getItem(SCROLL_KEY);
+    if (saved) {
+      sessionStorage.removeItem(SCROLL_KEY);
+      requestAnimationFrame(() => window.scrollTo({ top: parseInt(saved, 10) }));
+    }
+  }, []);
 
   // Scroll to the list only after an explicit user action (page, search, filter).
   useEffect(() => {
@@ -71,6 +83,25 @@ function ResearchersPageContent() {
       window.scrollTo({ top, behavior: 'smooth' });
     }
   }, [currentPage, searchQuery, filters]);
+
+  // Scroll to the top of the list container whenever the page changes,
+  // skipping the initial render so the page doesn't jump on first load.
+  useEffect(() => {
+    if (isFirstPageRender.current) {
+      isFirstPageRender.current = false;
+      return;
+    }
+    if (listContainerRef.current) {
+      const navbar = document.querySelector('header') ?? document.querySelector('nav');
+      const navbarHeight = navbar ? navbar.getBoundingClientRect().height : 0;
+      const top =
+        listContainerRef.current.getBoundingClientRect().top +
+        window.scrollY -
+        navbarHeight -
+        16;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  }, [currentPage]);
 
   // Sync state to URL so the back button restores page + filters + search
   useEffect(() => {
@@ -159,6 +190,29 @@ function ResearchersPageContent() {
           </Button>
         </div>
 
+        {/* Profile type toggle — disabled while only UCR profiles are shown.
+        <div className="mb-4 flex gap-2">
+          {([undefined, 'UCR', 'EXTERNAL'] as const).map((type) => (
+            <button
+              key={type ?? 'ALL'}
+              onClick={() => {
+                setProfileType(type);
+                setCurrentPage(1);
+                shouldScrollToListRef.current = true;
+              }}
+              className={[
+                'px-3 py-1 text-xs font-medium transition-all cursor-pointer border rounded-md',
+                profileType === type
+                  ? 'bg-[var(--color-bg-brand-primary)] text-white border-[var(--color-bg-brand-primary)]'
+                  : 'text-[var(--color-text-neutral-secondary)] border-[var(--color-gray-300)] hover:border-[var(--color-text-neutral-secondary)]',
+              ].join(' ')}
+            >
+              {type === undefined ? 'Todos' : type === 'UCR' ? 'UCR' : 'Externo'}
+            </button>
+          ))}
+        </div>
+        */}
+
         {total !== null && (
           <p
             className="mb-4 text-sm"
@@ -189,19 +243,21 @@ function ResearchersPageContent() {
               currentPage={currentPage}
               onPageChange={handlePageChange}
               onTotalChange={setTotal}
+              profileType="UCR"
             />
           </div>
         </div>
       </div>
 
       {showScrollTopButton && (
-        <button
+        <Button
+          variant="primary"
+          size="md"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] text-white shadow-lg transition-transform hover:scale-110"
-          aria-label="Volver al inicio"
-        >
-          <ChevronUp size={20} strokeWidth={2} />
-        </button>
+          iconLeft={<ChevronUp size={32} strokeWidth={3.2} />}
+          aria-label="Volver arriba"
+          className="fixed bottom-6 right-6 z-50 h-16 w-16 rounded-full px-0 shadow-lg"
+        />
       )}
     </main>
   );

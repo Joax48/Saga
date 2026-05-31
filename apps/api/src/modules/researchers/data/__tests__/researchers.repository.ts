@@ -169,22 +169,41 @@ describe('ResearchersRepository', () => {
       expect(mockDb.query).toHaveBeenCalledTimes(2);
     });
 
-    it('should apply a WHERE clause searching profile name', async () => {
+    it('should apply a WHERE clause searching the full name', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
 
       await repository.findPaginated(1, 10, 'Luis');
 
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
       expect(itemsQuery).toContain('WHERE');
-      expect(itemsQuery).toContain('LOWER(p.PROFILE_NAME)');
+      expect(itemsQuery).toContain('LIKE');
+      expect(itemsQuery).toContain('PROFILE_NAME');
     });
 
-    it('should pass the search term as a starts-with parameter (params array)', async () => {
+    it('should pass a single search word as three starts-with params (one per field)', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
 
       await repository.findPaginated(1, 10, 'Ana');
 
-      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%', 'Ana%', 'Ana%', 'Ana%']);
+      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%', 'Ana%', 'Ana%']);
+    });
+
+    it('should AND each word so non-adjacent name parts still match', async () => {
+      mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
+
+      await repository.findPaginated(1, 10, 'Kenneth Osorio');
+
+      const itemsQuery = mockDb.query.mock.calls[0][0] as string;
+      expect(itemsQuery).toContain('AND');
+      // 3 binds per token × 2 tokens
+      expect(mockDb.query.mock.calls[0][1]).toEqual([
+        'Kenneth%',
+        'Kenneth%',
+        'Kenneth%',
+        'Osorio%',
+        'Osorio%',
+        'Osorio%',
+      ]);
     });
 
     it('should also apply the WHERE filter in the count query', async () => {
@@ -194,15 +213,10 @@ describe('ResearchersRepository', () => {
 
       const countQuery = mockDb.query.mock.calls[1][0] as string;
       expect(countQuery).toContain('WHERE');
-      expect(countQuery).toContain('LOWER(p.PROFILE_NAME)');
-      expect(countQuery).toContain('LOWER(p.PROFILE_FIRST_SURNAME)');
-      expect(countQuery).toContain('LOWER(p.PROFILE_LAST_SURNAME)');
-      expect(mockDb.query.mock.calls[1][1]).toEqual([
-        'Carlos%',
-        'Carlos%',
-        'Carlos%',
-        'Carlos%',
-      ]);
+      expect(countQuery).toContain('PROFILE_NAME');
+      expect(countQuery).toContain('PROFILE_FIRST_SURNAME');
+      expect(countQuery).toContain('PROFILE_LAST_SURNAME');
+      expect(mockDb.query.mock.calls[1][1]).toEqual(['Carlos%', 'Carlos%', 'Carlos%']);
     });
 
     it('should return an empty list when no researchers match the search term', async () => {
@@ -229,7 +243,7 @@ describe('ResearchersRepository', () => {
 
       await repository.findPaginated(1, 10, '  Ana  ');
 
-      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%', 'Ana%', 'Ana%', 'Ana%']);
+      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%', 'Ana%', 'Ana%']);
     });
   });
 
@@ -278,7 +292,7 @@ describe('ResearchersRepository', () => {
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
       expect(itemsQuery).toContain('WHERE');
       expect(itemsQuery).toContain('AND');
-      expect(itemsQuery).toContain('LOWER(p.PROFILE_NAME)');
+      expect(itemsQuery).toContain('PROFILE_NAME');
       expect(itemsQuery).toContain('EXISTS');
     });
   });
@@ -365,9 +379,9 @@ describe('ResearchersRepository', () => {
 
       await repository.getBaseUnitCounts('Ana');
 
-      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%', 'Ana%', 'Ana%', 'Ana%']);
+      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%', 'Ana%', 'Ana%']);
       const query = mockDb.query.mock.calls[0][0] as string;
-      expect(query).toContain('LOWER(p.PROFILE_NAME)');
+      expect(query).toContain('PROFILE_NAME');
     });
 
     it('should exclude the unit filter from the WHERE clause', async () => {
@@ -385,14 +399,9 @@ describe('ResearchersRepository', () => {
 
       await repository.getBaseUnitCounts('Carlos', { unit: ['CIMPA'] });
 
-      expect(mockDb.query.mock.calls[0][1]).toEqual([
-        'Carlos%',
-        'Carlos%',
-        'Carlos%',
-        'Carlos%',
-      ]);
+      expect(mockDb.query.mock.calls[0][1]).toEqual(['Carlos%', 'Carlos%', 'Carlos%']);
       const query = mockDb.query.mock.calls[0][0] as string;
-      expect(query).toContain('LOWER(p.PROFILE_NAME)');
+      expect(query).toContain('PROFILE_NAME');
       expect(query).not.toContain('EXISTS');
     });
 

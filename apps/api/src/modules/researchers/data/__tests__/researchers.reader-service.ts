@@ -9,6 +9,7 @@ describe('ResearchersReaderService', () => {
     repository = {
       findPaginated: jest.fn(),
       findLinkedUnitsByResearcherIds: jest.fn(),
+      findInstitutionsByResearcherIds: jest.fn().mockResolvedValue(new Map()),
       findById: jest.fn(),
       findLinkedUnits: jest.fn(),
       findAlternativeNames: jest.fn(),
@@ -20,6 +21,7 @@ describe('ResearchersReaderService', () => {
       findKeywordsByProjectIds: jest.fn(),
       findAuthorsByOutputIds: jest.fn(),
       findKeywordsByOutputIds: jest.fn(),
+      findHIndexByProfileId: jest.fn().mockResolvedValue(null),
       getBaseUnitCounts: jest.fn(),
     } as unknown as jest.Mocked<ResearchersRepository>;
 
@@ -47,10 +49,11 @@ describe('ResearchersReaderService', () => {
             researchGate: null,
             scopus: null,
             photoUrl: null,
+            profileType: 'UCR' as const,
           },
           {
             id: 'd4e5f6',
-            idUcrProfile: 'C67890',
+            idUcrProfile: null,
             baseUnit: 'CIBCM',
             name: 'Ana',
             firstSurname: 'Vargas',
@@ -61,6 +64,7 @@ describe('ResearchersReaderService', () => {
             researchGate: null,
             scopus: null,
             photoUrl: 'https://example.com/photo.jpg',
+            profileType: 'EXTERNAL' as const,
           },
         ],
         total: 25,
@@ -89,11 +93,14 @@ describe('ResearchersReaderService', () => {
             firstSurname: 'Solano',
             secondSurname: 'Quesada',
             ceaCategory: 'Investigador Principal',
+            institution: null,
+            country: null,
             orcidId: '0000-0002-9876-5432',
             linkedin: 'https://linkedin.com/in/carlos-solano',
             researchGate: 'https://researchgate.net/profile/carlos-solano',
             scopus: '123456789',
             photoUrl: 'https://example.com/carlos.jpg',
+            profileType: 'UCR' as const,
           },
         ],
         total: 1,
@@ -121,11 +128,15 @@ describe('ResearchersReaderService', () => {
         firstSurname: 'Solano',
         secondSurname: 'Quesada',
         ceaCategory: 'Investigador Principal',
+        institution: null,
+        country: null,
+        institutions: [],
         orcidId: '0000-0002-9876-5432',
         linkedin: 'https://linkedin.com/in/carlos-solano',
         researchGate: 'https://researchgate.net/profile/carlos-solano',
         scopus: '123456789',
         photoUrl: 'https://example.com/carlos.jpg',
+        profileType: 'UCR',
         linkedUnits: [
           { id: '1', name: 'CIPRONA' },
           { id: '2', name: 'CIMPA' },
@@ -207,10 +218,19 @@ describe('ResearchersReaderService', () => {
 
     it('should return researcher with empty linkedUnits when none exist', async () => {
       repository.findById.mockResolvedValue({
-        id: 'a1b2c3', idUcrProfile: 'B12345', baseUnit: 'CIMPA',
-        name: 'Luis', firstSurname: 'Mora', secondSurname: 'Jimenez',
-        ceaCategory: null, orcidId: null, linkedin: null,
-        researchGate: null, scopus: null, photoUrl: null,
+        id: 'a1b2c3',
+        idUcrProfile: 'B12345',
+        baseUnit: 'CIMPA',
+        name: 'Luis',
+        firstSurname: 'Mora',
+        secondSurname: 'Jimenez',
+        ceaCategory: null,
+        orcidId: null,
+        linkedin: null,
+        researchGate: null,
+        scopus: null,
+        photoUrl: null,
+        profileType: 'UCR' as const,
       });
       repository.findLinkedUnits.mockResolvedValue([]);
 
@@ -222,10 +242,19 @@ describe('ResearchersReaderService', () => {
 
     it('should return researcher with mapped linkedUnits', async () => {
       repository.findById.mockResolvedValue({
-        id: 'a1b2c3', idUcrProfile: 'B12345', baseUnit: 'CIMPA',
-        name: 'Luis', firstSurname: 'Mora', secondSurname: 'Jimenez',
-        ceaCategory: null, orcidId: null, linkedin: null,
-        researchGate: null, scopus: null, photoUrl: null,
+        id: 'a1b2c3',
+        idUcrProfile: 'B12345',
+        baseUnit: 'CIMPA',
+        name: 'Luis',
+        firstSurname: 'Mora',
+        secondSurname: 'Jimenez',
+        ceaCategory: null,
+        orcidId: null,
+        linkedin: null,
+        researchGate: null,
+        scopus: null,
+        photoUrl: null,
+        profileType: 'UCR' as const,
       });
       repository.findLinkedUnits.mockResolvedValue([
         { id: 1, name: 'CIMPA' },
@@ -242,10 +271,19 @@ describe('ResearchersReaderService', () => {
 
     it('should coerce linkedUnit ids to string', async () => {
       repository.findById.mockResolvedValue({
-        id: 'a1b2c3', idUcrProfile: 'B12345', baseUnit: 'CIMPA',
-        name: 'Luis', firstSurname: 'Mora', secondSurname: 'Jimenez',
-        ceaCategory: null, orcidId: null, linkedin: null,
-        researchGate: null, scopus: null, photoUrl: null,
+        id: 'a1b2c3',
+        idUcrProfile: 'B12345',
+        baseUnit: 'CIMPA',
+        name: 'Luis',
+        firstSurname: 'Mora',
+        secondSurname: 'Jimenez',
+        ceaCategory: null,
+        orcidId: null,
+        linkedin: null,
+        researchGate: null,
+        scopus: null,
+        photoUrl: null,
+        profileType: 'UCR' as const,
       });
       repository.findLinkedUnits.mockResolvedValue([{ id: 99, name: 'CIGEFI' }]);
 
@@ -262,10 +300,19 @@ describe('ResearchersReaderService', () => {
 
     it('should propagate errors from findLinkedUnits', async () => {
       repository.findById.mockResolvedValue({
-        id: 'a1b2c3', idUcrProfile: 'B12345', baseUnit: 'CIMPA',
-        name: 'Luis', firstSurname: 'Mora', secondSurname: 'Jimenez',
-        ceaCategory: null, orcidId: null, linkedin: null,
-        researchGate: null, scopus: null, photoUrl: null,
+        id: 'a1b2c3',
+        idUcrProfile: 'B12345',
+        baseUnit: 'CIMPA',
+        name: 'Luis',
+        firstSurname: 'Mora',
+        secondSurname: 'Jimenez',
+        ceaCategory: null,
+        orcidId: null,
+        linkedin: null,
+        researchGate: null,
+        scopus: null,
+        photoUrl: null,
+        profileType: 'UCR' as const,
       });
       repository.findLinkedUnits.mockRejectedValue(new Error('Units query failed'));
 
@@ -287,6 +334,7 @@ describe('ResearchersReaderService', () => {
       researchGate: null,
       scopus: null,
       photoUrl: null,
+      profileType: 'UCR' as const,
     };
 
     function mockEmptySubQueries() {
@@ -349,11 +397,21 @@ describe('ResearchersReaderService', () => {
       repository.findEducation.mockResolvedValueOnce([]);
       repository.findExperience.mockResolvedValueOnce([]);
       repository.findProjects.mockResolvedValueOnce([]);
-      repository.findScientificOutputs.mockResolvedValueOnce([{
-        id: 'out-1', title: 'Paper', typeName: null, openAccess: 1,
-        publicationYear: 2022, doi: null, journal: null, volume: null, issue: null, pages: null,
-        citationCount: null,
-      }]);
+      repository.findScientificOutputs.mockResolvedValueOnce([
+        {
+          id: 'out-1',
+          title: 'Paper',
+          typeName: null,
+          openAccess: 1,
+          publicationYear: 2022,
+          doi: null,
+          journal: null,
+          volume: null,
+          issue: null,
+          pages: null,
+          citationCount: null,
+        },
+      ]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
       repository.findAuthorsByOutputIds.mockResolvedValueOnce(new Map());
       repository.findKeywordsByOutputIds.mockResolvedValueOnce(new Map());
@@ -371,11 +429,21 @@ describe('ResearchersReaderService', () => {
       repository.findEducation.mockResolvedValueOnce([]);
       repository.findExperience.mockResolvedValueOnce([]);
       repository.findProjects.mockResolvedValueOnce([]);
-      repository.findScientificOutputs.mockResolvedValueOnce([{
-        id: 'out-1', title: 'Paper', typeName: null, openAccess: 0,
-        publicationYear: 2022, doi: null, journal: null, volume: null, issue: null, pages: null,
-        citationCount: null,
-      }]);
+      repository.findScientificOutputs.mockResolvedValueOnce([
+        {
+          id: 'out-1',
+          title: 'Paper',
+          typeName: null,
+          openAccess: 0,
+          publicationYear: 2022,
+          doi: null,
+          journal: null,
+          volume: null,
+          issue: null,
+          pages: null,
+          citationCount: null,
+        },
+      ]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
       repository.findAuthorsByOutputIds.mockResolvedValueOnce(new Map());
       repository.findKeywordsByOutputIds.mockResolvedValueOnce(new Map());
@@ -393,11 +461,21 @@ describe('ResearchersReaderService', () => {
       repository.findEducation.mockResolvedValueOnce([]);
       repository.findExperience.mockResolvedValueOnce([]);
       repository.findProjects.mockResolvedValueOnce([]);
-      repository.findScientificOutputs.mockResolvedValueOnce([{
-        id: 'out-1', title: 'Paper', typeName: null, openAccess: null,
-        publicationYear: 2022, doi: null, journal: null, volume: null, issue: null, pages: null,
-        citationCount: null,
-      }]);
+      repository.findScientificOutputs.mockResolvedValueOnce([
+        {
+          id: 'out-1',
+          title: 'Paper',
+          typeName: null,
+          openAccess: null,
+          publicationYear: 2022,
+          doi: null,
+          journal: null,
+          volume: null,
+          issue: null,
+          pages: null,
+          citationCount: null,
+        },
+      ]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
       repository.findAuthorsByOutputIds.mockResolvedValueOnce(new Map());
       repository.findKeywordsByOutputIds.mockResolvedValueOnce(new Map());
@@ -416,9 +494,14 @@ describe('ResearchersReaderService', () => {
       repository.findLinkedUnits.mockResolvedValueOnce([]);
       repository.findKeywords.mockResolvedValueOnce([]);
       repository.findEducation.mockResolvedValueOnce([]);
-      repository.findExperience.mockResolvedValueOnce([{
-        position: 'Professor', organization: 'UCR', startDate, endDate,
-      }]);
+      repository.findExperience.mockResolvedValueOnce([
+        {
+          position: 'Professor',
+          organization: 'UCR',
+          startDate,
+          endDate,
+        },
+      ]);
       repository.findProjects.mockResolvedValueOnce([]);
       repository.findScientificOutputs.mockResolvedValueOnce([]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
@@ -437,9 +520,14 @@ describe('ResearchersReaderService', () => {
       repository.findLinkedUnits.mockResolvedValueOnce([]);
       repository.findKeywords.mockResolvedValueOnce([]);
       repository.findEducation.mockResolvedValueOnce([]);
-      repository.findExperience.mockResolvedValueOnce([{
-        position: 'Professor', organization: 'UCR', startDate: null, endDate: null,
-      }]);
+      repository.findExperience.mockResolvedValueOnce([
+        {
+          position: 'Professor',
+          organization: 'UCR',
+          startDate: null,
+          endDate: null,
+        },
+      ]);
       repository.findProjects.mockResolvedValueOnce([]);
       repository.findScientificOutputs.mockResolvedValueOnce([]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
@@ -457,10 +545,15 @@ describe('ResearchersReaderService', () => {
       repository.findAlternativeNames.mockResolvedValueOnce([]);
       repository.findLinkedUnits.mockResolvedValueOnce([]);
       repository.findKeywords.mockResolvedValueOnce([]);
-      repository.findEducation.mockResolvedValueOnce([{
-        degree: 'PhD', fieldOfStudy: 'CS', institution: 'UCR',
-        country: 'Costa Rica', graduationYear: null,
-      }]);
+      repository.findEducation.mockResolvedValueOnce([
+        {
+          degree: 'PhD',
+          fieldOfStudy: 'CS',
+          institution: 'UCR',
+          country: 'Costa Rica',
+          graduationYear: null,
+        },
+      ]);
       repository.findExperience.mockResolvedValueOnce([]);
       repository.findProjects.mockResolvedValueOnce([]);
       repository.findScientificOutputs.mockResolvedValueOnce([]);
@@ -480,10 +573,19 @@ describe('ResearchersReaderService', () => {
       repository.findKeywords.mockResolvedValueOnce([]);
       repository.findEducation.mockResolvedValueOnce([]);
       repository.findExperience.mockResolvedValueOnce([]);
-      repository.findProjects.mockResolvedValueOnce([{
-        id: 'proj-1', code: 'P001', name: 'AI Research', manager: null,
-        startDate: null, endDate: null, researchType: null, projectType: null, status: null,
-      }]);
+      repository.findProjects.mockResolvedValueOnce([
+        {
+          id: 'proj-1',
+          code: 'P001',
+          name: 'AI Research',
+          manager: null,
+          startDate: null,
+          endDate: null,
+          researchType: null,
+          projectType: null,
+          status: null,
+        },
+      ]);
       repository.findScientificOutputs.mockResolvedValueOnce([]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(
         new Map([['proj-1', ['AI', 'ML']]]),
@@ -504,11 +606,21 @@ describe('ResearchersReaderService', () => {
       repository.findEducation.mockResolvedValueOnce([]);
       repository.findExperience.mockResolvedValueOnce([]);
       repository.findProjects.mockResolvedValueOnce([]);
-      repository.findScientificOutputs.mockResolvedValueOnce([{
-        id: 'out-1', title: 'A Study', typeName: null, openAccess: 0,
-        publicationYear: 2022, doi: null, journal: null, volume: null, issue: null, pages: null,
-        citationCount: null,
-      }]);
+      repository.findScientificOutputs.mockResolvedValueOnce([
+        {
+          id: 'out-1',
+          title: 'A Study',
+          typeName: null,
+          openAccess: 0,
+          publicationYear: 2022,
+          doi: null,
+          journal: null,
+          volume: null,
+          issue: null,
+          pages: null,
+          citationCount: null,
+        },
+      ]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
       repository.findAuthorsByOutputIds.mockResolvedValueOnce(
         new Map([['out-1', ['Juan Perez', 'Maria Lopez']]]),
@@ -522,7 +634,9 @@ describe('ResearchersReaderService', () => {
 
     it('should propagate errors from sub-queries', async () => {
       repository.findById.mockResolvedValueOnce(baseResearcher);
-      repository.findAlternativeNames.mockRejectedValueOnce(new Error('Sub-query failed'));
+      repository.findAlternativeNames.mockRejectedValueOnce(
+        new Error('Sub-query failed'),
+      );
       repository.findLinkedUnits.mockResolvedValueOnce([]);
       repository.findKeywords.mockResolvedValueOnce([]);
       repository.findEducation.mockResolvedValueOnce([]);
@@ -554,7 +668,9 @@ describe('ResearchersReaderService', () => {
 
       await service.getFilters('Ana', { unit: ['CIMPA'] });
 
-      expect(repository.getBaseUnitCounts).toHaveBeenCalledWith('Ana', { unit: ['CIMPA'] });
+      expect(repository.getBaseUnitCounts).toHaveBeenCalledWith('Ana', {
+        unit: ['CIMPA'],
+      });
     });
 
     it('should coerce count to Number when Oracle returns a string', async () => {
