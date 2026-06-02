@@ -77,6 +77,7 @@ export interface ResearcherProfile {
   profileType: ProfileType;
   alternativeNames: ResearcherAlternativeName[];
   linkedUnits: ResearcherLinkedUnit[];
+  workUnits: ResearcherLinkedUnit[];
   keywords: string[];
   education: ResearcherEducation[];
   experience: ResearcherExperience[];

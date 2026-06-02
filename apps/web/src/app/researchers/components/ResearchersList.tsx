@@ -100,10 +100,10 @@ export default function ResearchersList({
   // instead of leaving empty columns on the right.
   const layoutClass =
     researchers.length === 1
-      ? 'grid grid-cols-1 gap-x-8 gap-y-6 items-stretch'
+      ? 'grid grid-cols-1 gap-x-8 gap-y-10 items-stretch'
       : researchers.length === 2
-        ? 'grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 items-stretch'
-        : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6 items-stretch';
+        ? 'grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10 items-stretch'
+        : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 items-stretch';
 
   return (
     <div className="flex flex-col gap-8">
@@ -113,14 +113,9 @@ export default function ResearchersList({
               <ResearcherCardSkeleton key={i} />
             ))
           : researchers.map((researcher) => {
-              const hasBaseUnit = !!researcher.baseUnit;
-
-              // If the researcher has a base unit, show it under "Unidad base".
-              // Otherwise fall back to linked units under "Unidades asociadas".
-              const linkedUnits = researcher.linkedUnits ?? [];
-              const fallbackUnits = linkedUnits.length > 0 ? linkedUnits : [];
-              const primaryFallback = fallbackUnits[0];
-              const extraFallback = fallbackUnits.slice(1);
+              const workUnits = researcher.workUnits ?? [];
+              const primaryWorkUnit = workUnits[0];
+              const extraWorkUnits = workUnits.slice(1);
 
               // External profile branches temporarily disabled — list is UCR-only.
               // const isExternal = researcher.profileType === 'EXTERNAL';
@@ -132,135 +127,53 @@ export default function ResearchersList({
                     sessionStorage.setItem('researchers-scroll-y', String(window.scrollY))
                   }
                   title={buildFullName(researcher)}
-                  titleClassName="text-sm font-bold leading-snug"
+                  titleClassName="text-sm font-bold leading-snug text-[var(--color-text-neutral-primary)]"
+                  titleLinkClassName="after:absolute after:inset-0 after:z-[0]"
                   description={
                     <span className="flex flex-col gap-0.5">
-                      {/* External-profile rendering disabled.
-                      {isExternal ? (
-                        // ── External: show institution(s) ────────────────────────
-                        <>
-                          <span
-                            className="text-xs font-medium uppercase tracking-wide"
-                            style={{ color: 'var(--color-text-neutral-secondary)' }}
-                          >
-                            Institución
-                          </span>
-                          {(() => {
-                            const institutions = researcher.institutions ?? [];
-                            const primary = institutions[0];
-                            const extra = institutions.slice(1);
-
-                            if (!primary) {
-                              return (
-                                <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
-                                  Sin institución registrada
-                                </span>
-                              );
-                            }
-
-                            return (
-                              <span className="inline-flex flex-wrap items-center gap-1.5">
-                                <span style={{ color: 'var(--color-text-neutral-primary)' }}>
-                                  {primary.name}
-                                </span>
-                                {extra.length > 0 && (
-                                  <span className="group relative inline-block">
-                                    <span
-                                      className="inline-flex cursor-help items-center justify-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
-                                      style={{ backgroundColor: 'var(--color-bg-brand-primary)' }}
-                                    >
-                                      +{extra.length}
-                                    </span>
-                                    <span
-                                      className="pointer-events-none absolute left-0 top-full z-50 mt-1 hidden w-max max-w-xs rounded-md bg-gray-900 px-3 py-2 text-xs text-white shadow-lg group-hover:block"
-                                      role="tooltip"
-                                    >
-                                      <span className="mb-1 block font-semibold">
-                                        Todas las instituciones
-                                      </span>
-                                      <ul className="space-y-0.5">
-                                        {institutions.map((inst, idx) => (
-                                          <li key={idx}>• {inst.name}</li>
-                                        ))}
-                                      </ul>
-                                    </span>
-                                  </span>
-                                )}
-                              </span>
-                            );
-                          })()}
-                        </>
-                      ) : hasBaseUnit ? (
-                      */}
-                      {hasBaseUnit ? (
-                        // ── UCR with base unit ───────────────────────────────────
-                        <>
-                          <span
-                            className="text-xs font-medium uppercase tracking-wide"
-                            style={{ color: 'var(--color-text-neutral-secondary)' }}
-                          >
-                            Unidad base
-                          </span>
+                      <span
+                        className="text-xs font-medium uppercase tracking-wide"
+                        style={{ color: 'var(--color-text-neutral-secondary)' }}
+                      >
+                        {workUnits.length === 1 ? 'Unidad base' : 'Unidades base'}
+                      </span>
+                      {primaryWorkUnit ? (
+                        <span className="relative z-[1] inline-flex flex-wrap items-center gap-1.5">
                           <Link
-                            href={`/units?q=${encodeURIComponent(researcher.baseUnit!)}`}
+                            href={`/units?q=${encodeURIComponent(primaryWorkUnit.name)}`}
                             className="hover:underline"
                             style={{ color: 'var(--color-text-brand-primary)' }}
                           >
-                            {researcher.baseUnit}
+                            {primaryWorkUnit.name}
                           </Link>
-                        </>
-                      ) : (
-                        // ── UCR without base unit: show linked units ─────────────
-                        <>
-                          <span
-                            className="text-xs font-medium uppercase tracking-wide"
-                            style={{ color: 'var(--color-text-neutral-secondary)' }}
-                          >
-                            Unidades asociadas
-                          </span>
-                          {primaryFallback ? (
-                            <span className="inline-flex flex-wrap items-center gap-1.5">
-                              <Link
-                                href={`/units?q=${encodeURIComponent(primaryFallback.name)}`}
-                                className="hover:underline"
-                                style={{ color: 'var(--color-text-brand-primary)' }}
+                          {extraWorkUnits.length > 0 && (
+                            <span className="group relative z-[1] inline-block">
+                              <span
+                                className="inline-flex cursor-help items-center justify-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                                style={{ backgroundColor: 'var(--color-bg-brand-primary)' }}
                               >
-                                {primaryFallback.name}
-                              </Link>
-                              {extraFallback.length > 0 && (
-                                <span className="group relative inline-block">
-                                  <span
-                                    className="inline-flex cursor-help items-center justify-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
-                                    style={{
-                                      backgroundColor: 'var(--color-bg-brand-primary)',
-                                    }}
-                                  >
-                                    +{extraFallback.length}
-                                  </span>
-                                  <span
-                                    className="pointer-events-none absolute left-0 top-full z-50 mt-1 hidden w-max max-w-xs rounded-md bg-gray-900 px-3 py-2 text-xs text-white shadow-lg group-hover:block"
-                                    role="tooltip"
-                                  >
-                                    <span className="mb-1 block font-semibold">
-                                      Todas las unidades asociadas
-                                    </span>
-                                    <ul className="space-y-0.5">
-                                      {fallbackUnits.map((u) => (
-                                        <li key={u.id}>• {u.name}</li>
-                                      ))}
-                                    </ul>
-                                  </span>
+                                +{extraWorkUnits.length}
+                              </span>
+                              <span
+                                className="pointer-events-none absolute left-0 top-full z-50 mt-1 hidden w-max max-w-xs rounded-md bg-gray-900 px-3 py-2 text-xs text-white shadow-lg group-hover:block"
+                                role="tooltip"
+                              >
+                                <span className="mb-1 block font-semibold">
+                                  Todas las unidades base
                                 </span>
-                              )}
-                            </span>
-                          ) : (
-                            <span
-                              style={{ color: 'var(--color-text-neutral-secondary)' }}
-                            >
-                              Sin unidades registradas
+                                <ul className="space-y-0.5">
+                                  {workUnits.map((u) => (
+                                    <li key={u.id}>• {u.name}</li>
+                                  ))}
+                                </ul>
+                              </span>
                             </span>
                           )}
-                        </>
+                        </span>
+                      ) : (
+                        <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                          Sin unidad base registrada
+                        </span>
                       )}
                     </span>
                   }
@@ -277,7 +190,7 @@ export default function ResearchersList({
                   imageShape="circle"
                   href={`/researchers/${researcher.id}`}
                   chromeless
-                  className="flex items-start gap-4 h-full"
+                  className="relative z-0 hover:z-10 flex items-start gap-4 h-full transition-transform duration-200 hover:scale-[1.02] cursor-pointer"
                 />
               );
             })}

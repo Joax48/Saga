@@ -9,9 +9,11 @@ describe('ResearchersReaderService', () => {
     repository = {
       findPaginated: jest.fn(),
       findLinkedUnitsByResearcherIds: jest.fn(),
+      findWorkUnitsByResearcherIds: jest.fn().mockResolvedValue(new Map()),
       findInstitutionsByResearcherIds: jest.fn().mockResolvedValue(new Map()),
       findById: jest.fn(),
       findLinkedUnits: jest.fn(),
+      findWorkUnits: jest.fn().mockResolvedValue([]),
       findAlternativeNames: jest.fn(),
       findKeywords: jest.fn(),
       findEducation: jest.fn(),
@@ -141,6 +143,7 @@ describe('ResearchersReaderService', () => {
           { id: '1', name: 'CIPRONA' },
           { id: '2', name: 'CIMPA' },
         ],
+        workUnits: [],
       });
     });
 

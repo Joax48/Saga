@@ -7,13 +7,15 @@ import DetailNavbar from '../../../components/DetailNavbar';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { ExternalLink, Link2, Globe, ChevronDown } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { getResearcherProfile } from '../../../services/researchers';
 import { ResearcherDetailSkeleton } from '@/components/skeletons/DetailPageSkeleton';
 import ProfileTypeBadge from '@/components/ProfileTypeBadge';
 import { ProductionCard } from '../../scientific-productions/components';
 import ProjectListItem from '../../projects/components/ProjectListItem';
 import MetricsPanel from '../components/MetricsPanel';
+import Button from '@/components/Button';
+import Pagination from '@/components/Pagination';
 import type { SummaryScientificProduction } from '../../../types';
 import type {
   ResearcherProfile,
@@ -27,6 +29,27 @@ interface ResearchersDetailPageProps {
 // External profile views are temporarily disabled — flip to true to re-enable
 // the EXTERNAL rendering branches in this page.
 const EXTERNAL_PROFILES_ENABLED = false;
+
+const DETAIL_PAGE_SIZE = 10;
+
+// Order of project statuses in the researcher profile's projects tab.
+// Statuses not present in this list fall to the end (still sorted alphabetically
+// among themselves). Matched case-insensitively against the backend label.
+const PROJECT_STATUS_ORDER = ['terminado', 'en desarrollo', 'suspendido'];
+
+function getProjectStatusPriority(status: string | null | undefined): number {
+  if (!status) return PROJECT_STATUS_ORDER.length + 1;
+  const idx = PROJECT_STATUS_ORDER.indexOf(status.trim().toLowerCase());
+  return idx === -1 ? PROJECT_STATUS_ORDER.length : idx;
+}
+
+// Capitalizes the first letter of the project status label for display.
+// Used for the group subheading in the researcher's projects tab.
+function formatProjectStatusLabel(status: string | null | undefined): string {
+  if (!status || !status.trim()) return 'Sin estado';
+  const trimmed = status.trim();
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+}
 
 const profileSections = [
   {
@@ -47,6 +70,69 @@ const profileSections = [
   },
 ];
 
+// Official brand glyphs for the external profile links. Paths come from
+// Simple Icons (CC0) and are rendered with `fill="currentColor"` so they pick
+// up the white text color of the surrounding pill-shaped link button.
+function OrcidIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zM7.369 4.378c.525 0 .947.431.947.947 0 .525-.422.947-.947.947-.525 0-.946-.422-.946-.947 0-.516.421-.947.946-.947zm-.722 3.038h1.444v10.041H6.647V7.416zm3.562 0h3.9c3.712 0 5.344 2.653 5.344 5.025 0 2.578-2.016 5.025-5.325 5.025h-3.919V7.416zm1.444 1.303v7.444h2.297c3.272 0 4.022-2.484 4.022-3.722 0-2.016-1.284-3.722-4.097-3.722h-2.222z" />
+    </svg>
+  );
+}
+
+function LinkedInIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.063 2.063 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+    </svg>
+  );
+}
+
+function ResearchGateIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M19.586 0c-.818 0-1.508.19-2.073.565-.563.377-.97.936-1.213 1.68a3.193 3.193 0 0 0-.112.437 6.503 6.503 0 0 0-.078.53 31.99 31.99 0 0 0-.05.727c-.013.292-.022.737-.022 1.335 0 .595.009 1.041.022 1.333.013.292.03.535.05.727a4.94 4.94 0 0 0 .19.967c.241.742.65 1.303 1.214 1.679.563.377 1.255.567 2.073.567.818 0 1.51-.19 2.074-.567.564-.376.97-.937 1.214-1.679.04-.117.075-.236.107-.355.034-.117.067-.262.094-.43.026-.17.046-.376.06-.617a31.99 31.99 0 0 0 .051-.728c.011-.293.022-.738.022-1.336 0-.595-.011-1.04-.022-1.333a31.99 31.99 0 0 0-.05-.727 4.94 4.94 0 0 0-.19-.967c-.244-.744-.65-1.303-1.215-1.68C21.097.19 20.404 0 19.586 0zm0 1.553c.421 0 .77.106 1.046.32.275.213.485.515.628.904.027.075.05.156.07.243.02.087.038.196.054.323.017.13.029.288.038.476.01.187.018.43.024.724.007.295.01.66.01 1.094 0 .435-.003.8-.01 1.095-.006.295-.014.535-.024.722a4.95 4.95 0 0 1-.038.476 2.13 2.13 0 0 1-.124.567c-.143.388-.353.69-.628.904-.276.214-.625.32-1.046.32-.422 0-.77-.106-1.045-.32-.275-.213-.485-.516-.628-.904a3.234 3.234 0 0 1-.054-.243 4.85 4.85 0 0 1-.07-.323 8.7 8.7 0 0 1-.038-.476 19.476 19.476 0 0 1-.024-.722c-.007-.295-.01-.66-.01-1.095s.003-.799.01-1.094c.006-.294.014-.537.024-.724.01-.188.022-.346.038-.476.017-.127.035-.235.054-.323.02-.087.043-.168.07-.243.143-.388.353-.69.628-.904.275-.213.624-.32 1.045-.32zm-7.96 5.838c-1.04 0-1.974.137-2.802.412-.827.276-1.529.66-2.105 1.156-.576.494-1.017 1.083-1.323 1.766-.306.683-.46 1.43-.46 2.243 0 .849.144 1.62.435 2.314.291.694.706 1.286 1.244 1.776.539.49 1.187.866 1.946 1.13.759.262 1.604.394 2.535.394.689 0 1.353-.063 1.992-.187.638-.124 1.243-.31 1.815-.557v-5.355h-3.844v-1.99h6.235v8.737a9.92 9.92 0 0 1-2.71 1.32 9.927 9.927 0 0 1-3.05.47c-1.232 0-2.354-.177-3.367-.532-1.014-.355-1.879-.86-2.595-1.516a6.835 6.835 0 0 1-1.667-2.349c-.395-.91-.592-1.916-.592-3.018 0-1.085.205-2.085.615-3 .41-.916.989-1.706 1.736-2.37.748-.665 1.643-1.18 2.685-1.547 1.042-.367 2.198-.55 3.468-.55.74 0 1.434.062 2.083.187.65.124 1.252.296 1.806.516v2.094a8.07 8.07 0 0 0-1.806-.602 9.43 9.43 0 0 0-2.083-.224z" />
+    </svg>
+  );
+}
+
+function ScopusIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1.247 17.514c-1.748 0-3.318-.34-4.71-1.025a6.717 6.717 0 0 1-3.21-3.014l1.262-.635c.628 1.196 1.523 2.075 2.685 2.617 1.162.543 2.547.815 4.155.815.93 0 1.642-.16 2.137-.479.494-.32.741-.762.741-1.305 0-.495-.197-.886-.59-1.18-.394-.293-1.005-.531-1.83-.74L7.964 11.7c-1.215-.31-2.094-.704-2.643-1.18-.55-.476-.825-1.131-.825-1.967 0-1.043.443-1.873 1.328-2.494.886-.62 2.064-.93 3.534-.93 1.494 0 2.823.288 3.99.864 1.167.575 2.121 1.36 2.862 2.352l-1.262.635c-.679-.869-1.498-1.53-2.46-1.984-.96-.455-2.07-.682-3.328-.682-.86 0-1.523.156-1.985.469-.464.312-.695.737-.695 1.275 0 .494.183.881.55 1.16.366.279.974.51 1.821.692l3.245.842c1.218.312 2.107.728 2.668 1.247.562.519.842 1.193.842 2.021 0 .985-.434 1.781-1.3 2.39-.866.61-1.998.914-3.394.914zm10.18-2.493c-.91 0-1.65-.74-1.65-1.65 0-.91.74-1.65 1.65-1.65.91 0 1.65.74 1.65 1.65 0 .91-.74 1.65-1.65 1.65z" />
+    </svg>
+  );
+}
+
 // Builds the profile links array from the researcher's real data,
 // only including links that are not null.
 function buildProfileLinks(researcher: ResearcherProfile) {
@@ -58,7 +144,7 @@ function buildProfileLinks(researcher: ResearcherProfile) {
       href: researcher.orcidId.startsWith('http')
         ? researcher.orcidId
         : `https://orcid.org/${researcher.orcidId}`,
-      icon: <Globe size={16} />,
+      icon: <OrcidIcon size={16} />,
     });
   }
 
@@ -66,7 +152,7 @@ function buildProfileLinks(researcher: ResearcherProfile) {
     links.push({
       label: 'LinkedIn',
       href: researcher.linkedin,
-      icon: <Link2 size={16} />,
+      icon: <LinkedInIcon size={16} />,
     });
   }
 
@@ -74,7 +160,7 @@ function buildProfileLinks(researcher: ResearcherProfile) {
     links.push({
       label: 'ResearchGate',
       href: researcher.researchGate,
-      icon: <ExternalLink size={16} />,
+      icon: <ResearchGateIcon size={16} />,
     });
   }
 
@@ -82,7 +168,7 @@ function buildProfileLinks(researcher: ResearcherProfile) {
     links.push({
       label: 'Scopus',
       href: researcher.scopus,
-      icon: <ExternalLink size={16} />,
+      icon: <ScopusIcon size={16} />,
     });
   }
 
@@ -134,15 +220,80 @@ function formatDateOnly(value: string | null): string {
   return value.slice(0, 10);
 }
 
+interface UnitsListProps {
+  units: { id: string; name: string }[];
+  emptyText: string;
+  ulClassName: string;
+  emptyAs?: 'p' | 'span';
+  emptyClassName?: string;
+  collapsibleAfter?: number;
+}
+
+function UnitsList({
+  units,
+  emptyText,
+  ulClassName,
+  emptyAs = 'p',
+  emptyClassName,
+  collapsibleAfter,
+}: UnitsListProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (units.length === 0) {
+    const EmptyTag = emptyAs;
+    return (
+      <EmptyTag
+        className={emptyClassName}
+        style={{ color: 'var(--color-text-neutral-secondary)' }}
+      >
+        {emptyText}
+      </EmptyTag>
+    );
+  }
+
+  const shouldCollapse = collapsibleAfter != null && units.length > collapsibleAfter;
+  const visible = shouldCollapse && !expanded ? units.slice(0, collapsibleAfter) : units;
+
+  return (
+    <>
+      <ul className={ulClassName}>
+        {visible.map((unit) => (
+          <li key={unit.id} className="break-words">
+            <Link
+              href={`/units/${unit.id}`}
+              className="hover:underline"
+              style={{ color: 'var(--color-text-brand-primary)' }}
+            >
+              {unit.name}
+            </Link>
+          </li>
+        ))}
+      </ul>
+      {shouldCollapse && (
+        <button
+          type="button"
+          onClick={() => setExpanded((prev) => !prev)}
+          className="text-sm hover:underline cursor-pointer mt-1"
+          style={{ color: 'var(--color-text-brand-primary)' }}
+        >
+          {expanded ? 'Ver menos' : `Ver todas (+${units.length - collapsibleAfter!})`}
+        </button>
+      )}
+    </>
+  );
+}
+
 export default function ResearchersDetailPage({ params }: ResearchersDetailPageProps) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [profile, setProfile] = useState<ResearcherProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [showAllLinkedUnitsHeader, setShowAllLinkedUnitsHeader] = useState(false);
-  const [showAllLinkedUnitsSection, setShowAllLinkedUnitsSection] = useState(false);
   const [showAlternativeNames, setShowAlternativeNames] = useState(false);
   const [selectedYearFilter, setSelectedYearFilter] = useState<number | null>(null);
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string[]>([]);
+  const [productionPage, setProductionPage] = useState(1);
+  const [projectsPage, setProjectsPage] = useState(1);
+  const [showScrollTopButton, setShowScrollTopButton] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -159,6 +310,21 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
 
     fetchData();
   }, [params.id]);
+
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTopButton(window.scrollY > 400);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    setProductionPage(1);
+  }, [selectedYearFilter]);
+
+  useEffect(() => {
+    setProjectsPage(1);
+  }, [selectedStatusFilter]);
 
   if (loading) return <ResearcherDetailSkeleton />;
 
@@ -184,7 +350,73 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
   const productions = selectedYearFilter
     ? allProductions.filter((p) => p.publication_year === selectedYearFilter)
     : allProductions;
-  const projects = profile.projects;
+  // Counts the projects per status key (lowercased) so the filter chips can
+  // show "Terminado (12)" / "En desarrollo (3)" etc. Built from the full
+  // project list — the counts don't change when a filter is selected.
+  const statusGroups = (() => {
+    const map = new Map<string, { key: string; label: string; count: number }>();
+    for (const project of profile.projects) {
+      const key = (project.status ?? '').trim().toLowerCase();
+      const label = formatProjectStatusLabel(project.status);
+      const existing = map.get(key);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        map.set(key, { key, label, count: 1 });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => {
+      const priorityDiff =
+        getProjectStatusPriority(a.key || null) - getProjectStatusPriority(b.key || null);
+      if (priorityDiff !== 0) return priorityDiff;
+      return a.label.localeCompare(b.label, 'es');
+    });
+  })();
+
+  const filteredProjects =
+    selectedStatusFilter.length > 0
+      ? profile.projects.filter((p) =>
+          selectedStatusFilter.includes((p.status ?? '').trim().toLowerCase()),
+        )
+      : profile.projects;
+
+  // Sort projects by status priority (terminado → en desarrollo → suspendido →
+  // others alphabetically) and then alphabetically by project name within each
+  // status group.
+  const projects = [...filteredProjects].sort((a, b) => {
+    const priorityDiff = getProjectStatusPriority(a.status) - getProjectStatusPriority(b.status);
+    if (priorityDiff !== 0) return priorityDiff;
+
+    const statusA = (a.status ?? '').toLowerCase();
+    const statusB = (b.status ?? '').toLowerCase();
+    if (statusA !== statusB) return statusA.localeCompare(statusB, 'es');
+
+    return a.name.localeCompare(b.name, 'es');
+  });
+
+  const productionTotalPages = Math.max(1, Math.ceil(productions.length / DETAIL_PAGE_SIZE));
+  const safeProductionPage = Math.min(productionPage, productionTotalPages);
+  const paginatedProductions = productions.slice(
+    (safeProductionPage - 1) * DETAIL_PAGE_SIZE,
+    safeProductionPage * DETAIL_PAGE_SIZE,
+  );
+
+  const projectsTotalPages = Math.max(1, Math.ceil(projects.length / DETAIL_PAGE_SIZE));
+  const safeProjectsPage = Math.min(projectsPage, projectsTotalPages);
+  const paginatedProjects = projects.slice(
+    (safeProjectsPage - 1) * DETAIL_PAGE_SIZE,
+    safeProjectsPage * DETAIL_PAGE_SIZE,
+  );
+
+  const scrollNavbarIntoView = () => {
+    const navbarEl = document.getElementById('profile-detail-navbar');
+    if (navbarEl) {
+      const navbar = document.querySelector('header') ?? document.querySelector('nav');
+      const navbarHeight = navbar ? navbar.getBoundingClientRect().height : 0;
+      const top = navbarEl.getBoundingClientRect().top + window.scrollY - navbarHeight;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  };
 
   const handleYearSelected = (year: number | null) => {
     setSelectedYearFilter(year);
@@ -274,12 +506,11 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                   )}
                 </div>
 
-                {(!EXTERNAL_PROFILES_ENABLED || profile.profileType !== 'EXTERNAL') &&
-                  profile.ceaCategory && (
-                    <p className="text-sm sm:text-[16px] text-[var(--color-text-neutral-secondary)]">
-                      {profile.ceaCategory}
-                    </p>
-                  )}
+                {(!EXTERNAL_PROFILES_ENABLED || profile.profileType !== 'EXTERNAL') && profile.ceaCategory && (
+                  <p className="text-sm sm:text-[16px] text-[var(--color-text-neutral-secondary)]">
+                    {profile.ceaCategory}
+                  </p>
+                )}
 
                 {EXTERNAL_PROFILES_ENABLED && profile.profileType === 'EXTERNAL' ? (
                   <div className="space-y-1">
@@ -292,17 +523,10 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                     {profile.institutions.length > 0 ? (
                       <ul className="list-disc pl-5 text-sm sm:text-[16px] space-y-2">
                         {profile.institutions.map((inst, idx) => (
-                          <li
-                            key={idx}
-                            className="break-words"
-                            style={{ color: 'var(--color-text-neutral-primary)' }}
-                          >
+                          <li key={idx} className="break-words" style={{ color: 'var(--color-text-neutral-primary)' }}>
                             {inst.name}
                             {inst.country ? (
-                              <span
-                                className="block text-xs mt-0.5"
-                                style={{ color: 'var(--color-text-neutral-secondary)' }}
-                              >
+                              <span className="block text-xs mt-0.5" style={{ color: 'var(--color-text-neutral-secondary)' }}>
                                 {inst.country}
                               </span>
                             ) : null}
@@ -310,10 +534,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                         ))}
                       </ul>
                     ) : (
-                      <p
-                        className="text-sm sm:text-[16px]"
-                        style={{ color: 'var(--color-text-neutral-secondary)' }}
-                      >
+                      <p className="text-sm sm:text-[16px]" style={{ color: 'var(--color-text-neutral-secondary)' }}>
                         Sin institución registrada
                       </p>
                     )}
@@ -322,93 +543,40 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                   <>
                     <div className="space-y-1">
                       <p
-                        className="text-sm sm:text-[16px] font-semibold"
+                        className="text-xs font-semibold uppercase tracking-wide"
                         style={{ color: 'var(--color-text-neutral-secondary)' }}
                       >
-                        Unidad base
+                        {profile.workUnits.length === 1 ? 'Unidad base' : 'Unidades base'}
                       </p>
-                      {profile.baseUnit ? (
-                        (() => {
-                          const baseUnitMatch = profile.linkedUnits.find(
-                            (u) => u.name === profile.baseUnit,
-                          );
-                          return (
-                            <p className="text-sm sm:text-[16px] break-words">
-                              <Link
-                                href={
-                                  baseUnitMatch ? `/units/${baseUnitMatch.id}` : '/units'
-                                }
-                                className="hover:underline"
-                                style={{ color: 'var(--color-text-brand-primary)' }}
-                              >
-                                {profile.baseUnit}
-                              </Link>
-                            </p>
-                          );
-                        })()
-                      ) : (
-                        <p
-                          className="text-sm sm:text-[16px]"
-                          style={{ color: 'var(--color-text-neutral-secondary)' }}
-                        >
-                          Sin unidad base registrada
-                        </p>
-                      )}
+                      <UnitsList
+                        units={profile.workUnits}
+                        emptyText="Sin unidad base registrada"
+                        ulClassName="list-disc pl-5 text-sm sm:text-[16px] space-y-1"
+                        emptyClassName="text-sm sm:text-[16px]"
+                      />
                     </div>
 
                     <div className="space-y-1">
                       <p
-                        className="text-sm sm:text-[16px] font-semibold"
+                        className="text-xs font-semibold uppercase tracking-wide"
                         style={{ color: 'var(--color-text-neutral-secondary)' }}
                       >
                         Unidades de Colaboración
                       </p>
-                      {profile.linkedUnits.length > 0 ? (
-                        <>
-                          <ul className="list-disc pl-5 text-sm sm:text-[16px] space-y-1">
-                            {(showAllLinkedUnitsHeader
-                              ? profile.linkedUnits
-                              : profile.linkedUnits.slice(0, 3)
-                            ).map((unit) => (
-                              <li key={unit.id} className="break-words">
-                                <Link
-                                  href={`/units/${unit.id}`}
-                                  className="hover:underline"
-                                  style={{ color: 'var(--color-text-brand-primary)' }}
-                                >
-                                  {unit.name}
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                          {profile.linkedUnits.length > 3 && (
-                            <button
-                              type="button"
-                              onClick={() => setShowAllLinkedUnitsHeader((prev) => !prev)}
-                              className="text-sm hover:underline cursor-pointer mt-1"
-                              style={{ color: 'var(--color-text-brand-primary)' }}
-                            >
-                              {showAllLinkedUnitsHeader
-                                ? 'Ver menos'
-                                : `Ver todas (+${profile.linkedUnits.length - 3})`}
-                            </button>
-                          )}
-                        </>
-                      ) : (
-                        <p
-                          className="text-sm sm:text-[16px]"
-                          style={{ color: 'var(--color-text-neutral-secondary)' }}
-                        >
-                          Sin unidades de colaboración registradas
-                        </p>
-                      )}
+                      <UnitsList
+                        units={profile.linkedUnits}
+                        emptyText="Sin unidades de colaboración registradas"
+                        ulClassName="list-disc pl-5 text-sm sm:text-[16px] space-y-1"
+                        emptyClassName="text-sm sm:text-[16px]"
+                        collapsibleAfter={3}
+                      />
                     </div>
                   </>
                 )}
 
                 <div className="space-y-1 pt-4">
                   <p
-                    className="text-sm sm:text-[16px] font-semibold"
+                    className="text-xs font-semibold uppercase tracking-wide"
                     style={{ color: 'var(--color-text-neutral-secondary)' }}
                   >
                     Enlaces de interés
@@ -456,11 +624,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
               ? profileSections.filter((s) => s.id !== 'projects' && s.id !== 'personal')
               : profileSections
           }
-          defaultActive={
-            EXTERNAL_PROFILES_ENABLED && profile.profileType === 'EXTERNAL'
-              ? 'production'
-              : 'personal'
-          }
+          defaultActive={EXTERNAL_PROFILES_ENABLED && profile.profileType === 'EXTERNAL' ? 'production' : 'personal'}
           onCategoryChange={setActiveSection}
         />
 
@@ -477,17 +641,10 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                     {profile.institutions.length > 0 ? (
                       <ul className="list-disc pl-5 space-y-3 text-sm sm:text-[16px]">
                         {profile.institutions.map((inst, idx) => (
-                          <li
-                            key={idx}
-                            className="break-words"
-                            style={{ color: 'var(--color-text-neutral-primary)' }}
-                          >
+                          <li key={idx} className="break-words" style={{ color: 'var(--color-text-neutral-primary)' }}>
                             {inst.name}
                             {inst.country && (
-                              <span
-                                className="block text-xs mt-0.5"
-                                style={{ color: 'var(--color-text-neutral-secondary)' }}
-                              >
+                              <span className="block text-xs mt-0.5" style={{ color: 'var(--color-text-neutral-secondary)' }}>
                                 {inst.country}
                               </span>
                             )}
@@ -495,10 +652,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                         ))}
                       </ul>
                     ) : (
-                      <p
-                        className="text-sm sm:text-[16px]"
-                        style={{ color: 'var(--color-text-neutral-secondary)' }}
-                      >
+                      <p className="text-sm sm:text-[16px]" style={{ color: 'var(--color-text-neutral-secondary)' }}>
                         Sin instituciones registradas.
                       </p>
                     )}
@@ -511,10 +665,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                     {profile.education.length > 0 ? (
                       <ul className="space-y-3 text-sm sm:text-[16px] text-[var(--color-text-neutral-primary)]">
                         {profile.education.map((edu, idx) => (
-                          <li
-                            key={`${edu.degree}-${edu.institution}-${idx}`}
-                            className="break-words"
-                          >
+                          <li key={`${edu.degree}-${edu.institution}-${idx}`} className="break-words">
                             <span className="font-bold">
                               {edu.degree}
                               {edu.fieldOfStudy ? ` en ${edu.fieldOfStudy}` : ''}
@@ -526,10 +677,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                         ))}
                       </ul>
                     ) : (
-                      <p
-                        className="text-sm sm:text-[16px]"
-                        style={{ color: 'var(--color-text-neutral-secondary)' }}
-                      >
+                      <p className="text-sm sm:text-[16px]" style={{ color: 'var(--color-text-neutral-secondary)' }}>
                         No hay formación académica registrada para este perfil.
                       </p>
                     )}
@@ -545,98 +693,14 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                     <div className="space-y-4 text-sm sm:text-[16px]">
                       <div>
                         <p
-                          className="text-sm sm:text-[16px] font-semibold mb-1"
-                          style={{ color: 'var(--color-text-neutral-secondary)' }}
-                        >
-                          Unidad base
-                        </p>
-                        {profile.baseUnit ? (
-                          (() => {
-                            const baseUnitMatch = profile.linkedUnits.find(
-                              (u) => u.name === profile.baseUnit,
-                            );
-                            return (
-                              <p>
-                                <Link
-                                  href={
-                                    baseUnitMatch
-                                      ? `/units/${baseUnitMatch.id}`
-                                      : '/units'
-                                  }
-                                  className="hover:underline"
-                                  style={{ color: 'var(--color-text-brand-primary)' }}
-                                >
-                                  {profile.baseUnit}
-                                </Link>
-                              </p>
-                            );
-                          })()
-                        ) : (
-                          <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
-                            Sin unidad base registrada
-                          </span>
-                        )}
-                      </div>
-
-                      <div>
-                        <p
-                          className="text-sm sm:text-[16px] font-semibold mb-1"
-                          style={{ color: 'var(--color-text-neutral-secondary)' }}
-                        >
-                          Unidades de Colaboración
-                        </p>
-                        {profile.linkedUnits.length > 0 ? (
-                          <>
-                            <ul className="list-disc pl-5 space-y-1 text-[var(--color-text-neutral-primary)]">
-                              {(showAllLinkedUnitsSection
-                                ? profile.linkedUnits
-                                : profile.linkedUnits.slice(0, 3)
-                              ).map((unit) => (
-                                <li key={unit.id} className="break-words">
-                                  <Link
-                                    href={`/units/${unit.id}`}
-                                    className="hover:underline"
-                                    style={{ color: 'var(--color-text-brand-primary)' }}
-                                  >
-                                    {unit.name}
-                                  </Link>
-                                </li>
-                              ))}
-                            </ul>
-                            {profile.linkedUnits.length > 3 && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setShowAllLinkedUnitsSection((prev) => !prev)
-                                }
-                                className="text-sm hover:underline cursor-pointer mt-1"
-                                style={{ color: 'var(--color-text-brand-primary)' }}
-                              >
-                                {showAllLinkedUnitsSection
-                                  ? 'Ver menos'
-                                  : `Ver todas (+${profile.linkedUnits.length - 3})`}
-                              </button>
-                            )}
-                          </>
-                        ) : (
-                          <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
-                            Sin unidades de colaboración registradas
-                          </span>
-                        )}
-                      </div>
-
-                      <div>
-                        <p
-                          className="text-sm sm:text-[16px] font-semibold mb-1"
+                          className="text-xs font-semibold uppercase tracking-wide mb-1"
                           style={{ color: 'var(--color-text-neutral-secondary)' }}
                         >
                           Categoría
                         </p>
                         <p className="text-[var(--color-text-neutral-primary)] break-words">
                           {profile.ceaCategory ?? (
-                            <span
-                              style={{ color: 'var(--color-text-neutral-secondary)' }}
-                            >
+                            <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
                               No disponible
                             </span>
                           )}
@@ -645,16 +709,14 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
 
                       <div>
                         <p
-                          className="text-sm sm:text-[16px] font-semibold mb-1"
+                          className="text-xs font-semibold uppercase tracking-wide mb-1"
                           style={{ color: 'var(--color-text-neutral-secondary)' }}
                         >
                           ORCID
                         </p>
                         <p className="text-[var(--color-text-neutral-primary)] break-all">
                           {profile.orcidId ?? (
-                            <span
-                              style={{ color: 'var(--color-text-neutral-secondary)' }}
-                            >
+                            <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
                               No disponible
                             </span>
                           )}
@@ -772,9 +834,17 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
               )}
               {productions.length > 0 ? (
                 <div className="space-y-4">
-                  {productions.map((production) => (
+                  {paginatedProductions.map((production) => (
                     <ProductionCard key={production.id} production={production} />
                   ))}
+                  <Pagination
+                    currentPage={safeProductionPage}
+                    totalPages={productionTotalPages}
+                    onPageChange={(page) => {
+                      setProductionPage(page);
+                      scrollNavbarIntoView();
+                    }}
+                  />
                 </div>
               ) : (
                 <div className="flex items-center justify-center py-16">
@@ -788,42 +858,130 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
             </section>
           )}
 
-          {activeSection === 'projects' &&
-            (!EXTERNAL_PROFILES_ENABLED || profile.profileType !== 'EXTERNAL') && (
-              <section className="space-y-4">
-                {projects.length > 0 ? (
-                  <div className="space-y-4">
-                    {projects.map((project) => (
-                      <ProjectListItem
-                        key={project.id}
-                        code={project.code}
-                        title={project.name}
-                        href={`/projects/${project.id}`}
-                        manager={project.manager || 'Sin asignar'}
-                        managerHref={
-                          project.manager
-                            ? `/researchers?q=${encodeURIComponent(project.manager)}`
-                            : undefined
-                        }
-                        startDate={formatDateOnly(project.startDate)}
-                        endDate={formatDateOnly(project.endDate)}
-                        researchType={project.researchType ?? '—'}
-                        actionType={project.projectType ?? '—'}
-                        keywords={project.keywords}
-                      />
-                    ))}
+          {activeSection === 'projects' && (!EXTERNAL_PROFILES_ENABLED || profile.profileType !== 'EXTERNAL') && (
+            <section className="space-y-4">
+              {statusGroups.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {statusGroups.map((group) => {
+                      const isActive = selectedStatusFilter.includes(group.key);
+                      return (
+                        <button
+                          key={group.key || 'sin-estado'}
+                          type="button"
+                          onClick={() =>
+                            setSelectedStatusFilter((prev) =>
+                              isActive
+                                ? prev.filter((k) => k !== group.key)
+                                : [...prev, group.key],
+                            )
+                          }
+                          aria-pressed={isActive}
+                          className={`flex-1 min-w-[110px] px-3 py-2 rounded-sm text-center cursor-pointer transition-all duration-200 ease-out hover:scale-[1.03] ${
+                            isActive
+                              ? 'bg-[var(--color-text-brand-primary)]/10 ring-1 ring-[var(--color-text-brand-primary)]/30 shadow-sm'
+                              : 'bg-white ring-1 ring-gray-200 hover:ring-gray-300'
+                          }`}
+                        >
+                          <div className="text-4xl font-bold leading-none text-[var(--color-text-brand-primary)]">
+                            {group.count}
+                          </div>
+                          <div
+                            className={
+                              isActive
+                                ? 'mt-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-brand-primary)] leading-tight'
+                                : 'mt-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-text-neutral-secondary)] leading-tight'
+                            }
+                          >
+                            {group.label}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
-                ) : (
-                  <div className="flex items-center justify-center py-16">
-                    <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
-                      No hay proyectos registrados.
-                    </p>
-                  </div>
-                )}
-              </section>
-            )}
+                  {selectedStatusFilter.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedStatusFilter([])}
+                      className="text-sm text-[var(--color-text-neutral-secondary)] hover:underline cursor-pointer"
+                    >
+                      Limpiar filtro
+                    </button>
+                  )}
+                </div>
+              )}
+              {projects.length > 0 ? (
+                <div className="space-y-4">
+                  {paginatedProjects.map((project, index) => {
+                    const prev = index > 0 ? paginatedProjects[index - 1] : null;
+                    const isNewGroup =
+                      !prev ||
+                      (prev.status ?? '').trim().toLowerCase() !==
+                        (project.status ?? '').trim().toLowerCase();
+
+                    return (
+                      <div key={project.id} className="space-y-4">
+                        {isNewGroup && (
+                          <h3
+                            className={`text-xl sm:text-[22px] font-normal text-[var(--color-text-neutral-primary)] border-b border-[var(--color-border-neutral)] pb-2 ${
+                              index === 0 ? '' : 'pt-4'
+                            }`}
+                          >
+                            {formatProjectStatusLabel(project.status)}
+                          </h3>
+                        )}
+                        <ProjectListItem
+                          code={project.code}
+                          title={project.name}
+                          href={`/projects/${project.id}`}
+                          manager={project.manager || 'Sin asignar'}
+                          managerHref={
+                            project.manager
+                              ? `/researchers?q=${encodeURIComponent(project.manager)}`
+                              : undefined
+                          }
+                          startDate={formatDateOnly(project.startDate)}
+                          endDate={formatDateOnly(project.endDate)}
+                          researchType={project.researchType ?? '—'}
+                          actionType={project.projectType ?? '—'}
+                          keywords={project.keywords}
+                        />
+                      </div>
+                    );
+                  })}
+                  <Pagination
+                    currentPage={safeProjectsPage}
+                    totalPages={projectsTotalPages}
+                    onPageChange={(page) => {
+                      setProjectsPage(page);
+                      scrollNavbarIntoView();
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center justify-center py-16">
+                  <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                    {selectedStatusFilter.length > 0
+                      ? 'No hay proyectos registrados con el estado seleccionado.'
+                      : 'No hay proyectos registrados.'}
+                  </p>
+                </div>
+              )}
+            </section>
+          )}
         </div>
       </div>
+
+      {showScrollTopButton && (
+        <Button
+          variant="primary"
+          size="md"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          iconLeft={<ChevronUp size={32} strokeWidth={3.2} />}
+          aria-label="Volver arriba"
+          className="fixed bottom-6 right-6 z-50 h-16 w-16 rounded-full px-0 shadow-lg"
+        />
+      )}
     </main>
   );
 }

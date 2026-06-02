@@ -31,6 +31,12 @@ export interface ResearcherListItemDto {
   photoUrl: string | null;
   profileType: ProfileTypeDto;
   linkedUnits: ResearcherUnitDto[];
+  workUnits: ResearcherUnitDto[];
+}
+
+export interface ResearcherInstitutionDto {
+  name: string;
+  country: string | null;
 }
 
 export interface ResearcherInstitutionDto {

@@ -43,6 +43,7 @@ interface ResearcherSummaryApiDto {
   photoUrl: string | null;
   profileType: 'UCR' | 'EXTERNAL';
   linkedUnits: { id: string; name: string }[];
+  workUnits: { id: string; name: string }[];
 }
 
 /** Generic paginated response shape from the BFF */
@@ -73,6 +74,7 @@ function mapResearcherSummaryToResearcher(item: ResearcherSummaryApiDto): Resear
     photoUrl: item.photoUrl,
     profileType: item.profileType,
     linkedUnits: item.linkedUnits ?? [],
+    workUnits: item.workUnits ?? [],
   };
 }
 

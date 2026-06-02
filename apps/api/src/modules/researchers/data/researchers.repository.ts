@@ -25,6 +25,12 @@ type BaseUnitCountRow = {
   count: number;
 };
 
+// Allowlist of junction tables that map profiles to units. Typed as a literal
+// union so the table name interpolated into the SELECT cannot drift from a
+// known-safe value (no SQL injection surface even though the inputs are
+// internal).
+type ProfileUnitJoinTable = 'UCR_PROFILE_PROJECT_UNIT' | 'UCR_PROFILE_WORK_UNIT';
+
 // ─── Base SQL queries ─────────────────────────────────────────────────────────
 
 /**
@@ -413,18 +419,56 @@ export class ResearchersRepository {
    * Pulls every unit referenced in UCR_PROFILE_PROJECT_UNIT for this profile.
    */
   async findLinkedUnits(profileId: string): Promise<{ id: string; name: string }[]> {
-    return this.databaseClient.query(
+    return this.findProfileUnits('UCR_PROFILE_PROJECT_UNIT', profileId);
+  }
+
+  /** Official work units for a single profile, from UCR_PROFILE_WORK_UNIT. */
+  async findWorkUnits(profileId: string): Promise<{ id: string; name: string }[]> {
+    return this.findProfileUnits('UCR_PROFILE_WORK_UNIT', profileId);
+  }
+
+  /**
+   * Batch version of findWorkUnits — pulls work units for many researchers
+   * in one round-trip and groups them by profile id.
+   */
+  async findWorkUnitsByResearcherIds(
+    profileIds: string[],
+  ): Promise<Map<string, { id: string; name: string }[]>> {
+    return this.findProfileUnitsByIds('UCR_PROFILE_WORK_UNIT', profileIds);
+  }
+
+  /** All institutions for a set of external profiles, grouped by profile id. */
+  async findInstitutionsByResearcherIds(
+    profileIds: string[],
+  ): Promise<Map<string, { name: string; country: string | null }[]>> {
+    if (profileIds.length === 0) return new Map();
+
+    const placeholders = profileIds.map((_, i) => `:${i + 1}`).join(', ');
+    const rows = await this.databaseClient.query<{
+      profileId: string;
+      name: string;
+      country: string | null;
+    }>(
       `
-        SELECT DISTINCT
-          u.UNIT_ID   AS "id",
-          u.UNIT_NAME AS "name"
-        FROM PRODUCCION_CIENTIFICA.UCR_PROFILE_PROJECT_UNIT uppu
-        JOIN PRODUCCION_CIENTIFICA.UNIT u ON u.UNIT_ID = uppu.UNIT_ID
-        WHERE uppu.PROFILE_ID = :1 AND u.UNIT_NAME IS NOT NULL
-        ORDER BY u.UNIT_NAME ASC
+        SELECT
+          epi.PROFILE_ID        AS "profileId",
+          inst.INSTITUTION_NAME AS "name",
+          c.COUNTRY_NAME        AS "country"
+        FROM PRODUCCION_CIENTIFICA.EXTERNAL_PROFILE_INSTITUTION epi
+        JOIN PRODUCCION_CIENTIFICA.INSTITUTION inst ON inst.INSTITUTION_ID = epi.INSTITUTION_ID
+        LEFT JOIN PRODUCCION_CIENTIFICA.COUNTRY c ON c.COUNTRY_ID = inst.INSTITUTION_COUNTRY
+        WHERE epi.PROFILE_ID IN (${placeholders})
+        ORDER BY epi.PROFILE_ID ASC, inst.INSTITUTION_NAME ASC
       `,
-      [profileId],
+      profileIds,
     );
+
+    return rows.reduce((acc, row) => {
+      const list = acc.get(String(row.profileId)) ?? [];
+      list.push({ name: row.name, country: row.country });
+      acc.set(String(row.profileId), list);
+      return acc;
+    }, new Map<string, { name: string; country: string | null }[]>());
   }
 
   /** All institutions for a set of external profiles, grouped by profile id. */
@@ -469,9 +513,38 @@ export class ResearchersRepository {
   async findLinkedUnitsByResearcherIds(
     profileIds: string[],
   ): Promise<Map<string, { id: string; name: string }[]>> {
-    if (profileIds.length === 0) {
-      return new Map();
-    }
+    return this.findProfileUnitsByIds('UCR_PROFILE_PROJECT_UNIT', profileIds);
+  }
+
+  /**
+   * Shared SELECT for any profile↔unit join table. The two callers differ only
+   * in which junction table they read from; the projection, join and ordering
+   * are identical.
+   */
+  private async findProfileUnits(
+    joinTable: ProfileUnitJoinTable,
+    profileId: string,
+  ): Promise<{ id: string; name: string }[]> {
+    return this.databaseClient.query(
+      `
+        SELECT DISTINCT
+          u.UNIT_ID   AS "id",
+          u.UNIT_NAME AS "name"
+        FROM PRODUCCION_CIENTIFICA.${joinTable} jt
+        JOIN PRODUCCION_CIENTIFICA.UNIT u ON u.UNIT_ID = jt.UNIT_ID
+        WHERE jt.PROFILE_ID = :1 AND u.UNIT_NAME IS NOT NULL
+        ORDER BY u.UNIT_NAME ASC
+      `,
+      [profileId],
+    );
+  }
+
+  /** Batch counterpart of findProfileUnits — groups rows by profile id. */
+  private async findProfileUnitsByIds(
+    joinTable: ProfileUnitJoinTable,
+    profileIds: string[],
+  ): Promise<Map<string, { id: string; name: string }[]>> {
+    if (profileIds.length === 0) return new Map();
 
     const placeholders = profileIds.map((_, i) => `:${i + 1}`).join(', ');
     const rows = await this.databaseClient.query<{
@@ -481,21 +554,22 @@ export class ResearchersRepository {
     }>(
       `
         SELECT DISTINCT
-          uppu.PROFILE_ID AS "profileId",
-          u.UNIT_ID       AS "id",
-          u.UNIT_NAME     AS "name"
-        FROM PRODUCCION_CIENTIFICA.UCR_PROFILE_PROJECT_UNIT uppu
-        JOIN PRODUCCION_CIENTIFICA.UNIT u ON u.UNIT_ID = uppu.UNIT_ID
-        WHERE uppu.PROFILE_ID IN (${placeholders}) AND u.UNIT_NAME IS NOT NULL
-        ORDER BY uppu.PROFILE_ID ASC, u.UNIT_NAME ASC
+          jt.PROFILE_ID AS "profileId",
+          u.UNIT_ID     AS "id",
+          u.UNIT_NAME   AS "name"
+        FROM PRODUCCION_CIENTIFICA.${joinTable} jt
+        JOIN PRODUCCION_CIENTIFICA.UNIT u ON u.UNIT_ID = jt.UNIT_ID
+        WHERE jt.PROFILE_ID IN (${placeholders}) AND u.UNIT_NAME IS NOT NULL
+        ORDER BY jt.PROFILE_ID ASC, u.UNIT_NAME ASC
       `,
       profileIds,
     );
 
     return rows.reduce((acc, row) => {
-      const list = acc.get(row.profileId) ?? [];
+      const key = String(row.profileId);
+      const list = acc.get(key) ?? [];
       list.push({ id: String(row.id), name: row.name });
-      acc.set(row.profileId, list);
+      acc.set(key, list);
       return acc;
     }, new Map<string, { id: string; name: string }[]>());
   }

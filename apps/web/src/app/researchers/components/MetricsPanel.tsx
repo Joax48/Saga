@@ -80,7 +80,7 @@ export default function MetricsPanel({
 
   return (
     <aside
-      className="w-full lg:w-72 lg:shrink-0 lg:border-l lg:border-[var(--color-border-neutral-secondary)] lg:pl-6 pt-1"
+      className="w-full lg:w-72 lg:shrink-0 border border-gray-400 rounded-xl p-4 lg:p-5"
       aria-label="Métricas del investigador"
     >
       <h2 className="text-xl sm:text-[22px] font-normal text-[var(--color-text-neutral-primary)] mb-3">

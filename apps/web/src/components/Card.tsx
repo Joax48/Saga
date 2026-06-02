@@ -50,6 +50,8 @@ export interface CardProps {
   className?: string;
   /** Additional Tailwind classes for the title element (overrides default size) */
   titleClassName?: string;
+  /** Additional Tailwind classes for the title link (overrides default hover style) */
+  titleLinkClassName?: string;
   /**
    * When `true` the card chrome (background, shadow, border-radius) is
    * removed. Useful for list items that need the Card structure but not
@@ -131,6 +133,7 @@ export function Card({
   layout = 'horizontal',
   className = '',
   titleClassName,
+  titleLinkClassName,
   chromeless = false,
   onClick,
 }: CardProps) {
@@ -193,14 +196,13 @@ export function Card({
         <h4
           className={[
             !chromeless && 'card-title',
-            titleClassName ?? 'text-base font-bold leading-snug',
+            titleClassName ?? 'text-base font-bold leading-snug text-[var(--color-text-brand-primary)]',
           ]
             .filter(Boolean)
             .join(' ')}
-          style={{ color: 'var(--color-text-brand-primary)' }}
         >
           {href ? (
-            <Link href={href} className="hover:underline">
+            <Link href={href} className={titleLinkClassName ?? 'hover:underline decoration-2 underline-offset-2'}>
               {title}
             </Link>
           ) : (

@@ -23,6 +23,7 @@ export interface Researcher {
   photoUrl: string | null;
   profileType: ProfileType;
   linkedUnits: ResearcherListLinkedUnit[];
+  workUnits: ResearcherListLinkedUnit[];
   position?: string;
   altNames?: string[];
   profileLinks?: { label: string; href: string; icon: any }[];

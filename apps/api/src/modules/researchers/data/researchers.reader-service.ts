@@ -36,10 +36,12 @@ export class ResearchersReaderService implements ResearchersReader {
     // Fetch every researcher's linked units in a single batch query so the
     // card can show all units (with a tooltip when there are more than one).
     const researcherIds = researchersPage.items.map((r) => r.id);
-    const [linkedUnitsByResearcherId, institutionsByResearcherId] = await Promise.all([
-      this.researchersRepository.findLinkedUnitsByResearcherIds(researcherIds),
-      this.researchersRepository.findInstitutionsByResearcherIds(researcherIds),
-    ]);
+    const [linkedUnitsByResearcherId, workUnitsByResearcherId, institutionsByResearcherId] =
+      await Promise.all([
+        this.researchersRepository.findLinkedUnitsByResearcherIds(researcherIds),
+        this.researchersRepository.findWorkUnitsByResearcherIds(researcherIds),
+        this.researchersRepository.findInstitutionsByResearcherIds(researcherIds),
+      ]);
 
     return {
       // Maps each Researcher entity to the DTO exposed by the API
@@ -62,6 +64,7 @@ export class ResearchersReaderService implements ResearchersReader {
           photoUrl: researcher.photoUrl,
           profileType: researcher.profileType,
           linkedUnits: linkedUnitsByResearcherId.get(researcher.id) ?? [],
+          workUnits: workUnitsByResearcherId.get(String(researcher.id)) ?? [],
         }),
       ),
       page,
@@ -79,7 +82,10 @@ export class ResearchersReaderService implements ResearchersReader {
       return null;
     }
 
-    const linkedUnits = await this.researchersRepository.findLinkedUnits(id);
+    const [linkedUnits, workUnitsRows] = await Promise.all([
+      this.researchersRepository.findLinkedUnits(id),
+      this.researchersRepository.findWorkUnits(id),
+    ]);
 
     return {
       id: researcher.id,
@@ -91,6 +97,7 @@ export class ResearchersReaderService implements ResearchersReader {
       ceaCategory: researcher.ceaCategory,
       institution: researcher.institution,
       country: researcher.country,
+      institutions: [],
       orcidId: researcher.orcidId,
       linkedin: researcher.linkedin,
       researchGate: researcher.researchGate,
@@ -98,6 +105,7 @@ export class ResearchersReaderService implements ResearchersReader {
       photoUrl: researcher.photoUrl,
       profileType: researcher.profileType,
       linkedUnits: linkedUnits.map((u) => ({ id: String(u.id), name: u.name })),
+      workUnits: workUnitsRows.map((u) => ({ id: String(u.id), name: u.name })),
     };
   }
 
@@ -117,6 +125,7 @@ export class ResearchersReaderService implements ResearchersReader {
     const [
       alternativeNamesRows,
       linkedUnitsRows,
+      workUnitsRows,
       keywordsRows,
       educationRows,
       experienceRows,
@@ -127,6 +136,7 @@ export class ResearchersReaderService implements ResearchersReader {
     ] = await Promise.all([
       this.researchersRepository.findAlternativeNames(id),
       this.researchersRepository.findLinkedUnits(id),
+      this.researchersRepository.findWorkUnits(id),
       this.researchersRepository.findKeywords(id),
       this.researchersRepository.findEducation(id),
       this.researchersRepository.findExperience(id),
@@ -190,6 +200,10 @@ export class ResearchersReaderService implements ResearchersReader {
         lastSurname: row.lastSurname,
       })),
       linkedUnits: linkedUnitsRows.map((row) => ({
+        id: String(row.id),
+        name: row.name,
+      })),
+      workUnits: workUnitsRows.map((row) => ({
         id: String(row.id),
         name: row.name,
       })),

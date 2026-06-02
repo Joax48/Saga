@@ -23,4 +23,5 @@ export class ResearcherSummaryResponseDto {
   photoUrl!: string | null;
   profileType!: ProfileType;
   linkedUnits!: ResearcherLinkedUnitSummaryDto[];
+  workUnits!: ResearcherLinkedUnitSummaryDto[];
 }

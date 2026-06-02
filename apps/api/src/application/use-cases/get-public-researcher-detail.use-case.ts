@@ -29,6 +29,9 @@ export class GetResearcherDetailUseCase {
       firstSurname: researcher.firstSurname,
       secondSurname: researcher.secondSurname,
       ceaCategory: researcher.ceaCategory,
+      institution: researcher.institution,
+      country: researcher.country,
+      institutions: researcher.institutions ?? [],
       orcidId: researcher.orcidId,
       linkedin: researcher.linkedin,
       researchGate: researcher.researchGate,
@@ -36,6 +39,7 @@ export class GetResearcherDetailUseCase {
       photoUrl: researcher.photoUrl,
       profileType: researcher.profileType,
       linkedUnits: researcher.linkedUnits,
+      workUnits: researcher.workUnits,
     };
   }
 }
