@@ -447,7 +447,7 @@ Each `describe` groups cases related to the same method. Each `it` tests a singl
 From the root of the monorepo:
 
 ```bash
-npm run test
+pnpm run test
 ```
 
 ---
@@ -499,7 +499,7 @@ Example:
 Example:
 1. Start API:
 ```bash
-npm run dev:api
+pnpm run dev:api
 ```
 2. Call the public endpoint
 ```bash
@@ -507,7 +507,7 @@ curl -s "http://localhost:3000/public/units?page=1&limit=10"
 ```
 3. Run unit tests for units module:
 ```bash
-npm run test -- apps/api/src/modules/units
+pnpm run test -- apps/api/src/modules/units
 ```
 
 **Expected result:**
@@ -515,7 +515,7 @@ npm run test -- apps/api/src/modules/units
 Example:
 - HTTP: 200 OK with JSON body containing items (array of units) and meta (pagination info: page, limit, total).
 - Behavior: Response respects page and limit query parameters and returns an empty items array when no records match.
-- Tests: Unit tests for units.service and units.repository pass locally (npm run test).
+- Tests: Unit tests for units.service and units.repository pass locally (pnpm run test).
 
 ---
 
@@ -546,12 +546,12 @@ Example:
 ### Tests
 - [ ] Tests added or updated
 - [ ] Cover happy paths, edge cases, and errors
-- [ ] `npm run test` passes locally
+- [ ] `pnpm run test` passes locally
 
 ### Technical Validations
-- [ ] `npm run typecheck` passes
-- [ ] `npm run lint` passes
-- [ ] `npm run build` passes
+- [ ] `pnpm run typecheck` passes
+- [ ] `pnpm run lint` passes
+- [ ] `pnpm run build` passes
 - [ ] Pipeline is green
 
 ### Functional QA
@@ -615,16 +615,16 @@ Run these commands before opening a Merge Request:
 
 ```bash
 # 1. Install dependencies (first time only)
-npm install
+pnpm install
 
 # 2. Check types
-npm run typecheck
+pnpm run typecheck
 
 # 3. Run tests
-npm run test
+pnpm run test
 
 # 4. Verify build
-npm run build
+pnpm run build
 ```
 
 ---

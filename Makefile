@@ -7,40 +7,40 @@
 # ── Setup ──────────────────────────────────────
 
 install:
-	npm install
+	pnpm install
 
 # ── Development ────────────────────────────────
 
 dev-api:
-	npm run dev:api
+	pnpm run dev:api
 
 dev-web:
-	npm run dev:web
+	pnpm run dev:web
 
 # ── Build ──────────────────────────────────────
 
 build:
-	npm run build
+	pnpm run build
 
 # ── Quality ────────────────────────────────────
 
 lint:
-	npm run lint
+	pnpm run lint
 
 typecheck:
-	npm run typecheck
+	pnpm run typecheck
 
 test:
-	npm run test
+	pnpm run test
 
 format:
-	npm run format
+	pnpm run format
 
 format-check:
-	npm run format:check
+	pnpm run format:check
 
 ci:
-	npm run ci
+	pnpm run ci
 
 # ── Docker ─────────────────────────────────────
 

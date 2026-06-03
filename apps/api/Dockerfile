@@ -1,14 +1,16 @@
 FROM node:20-alpine AS base
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
+RUN npm install -g pnpm@11
+
+COPY package.json pnpm-lock.yaml ./
 COPY apps/api/package.json ./apps/api/
 
-RUN npm install
+RUN pnpm install --frozen-lockfile
 
 COPY apps/api ./apps/api
 
-RUN npm run build -w apps/api
+RUN pnpm --filter api build
 
 EXPOSE 3001
 CMD ["node", "apps/api/dist/main.js"]

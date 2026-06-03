@@ -50,7 +50,8 @@ The project's software quality practices, conventions, and guidelines are docume
 ├── .gitlab-ci.yml
 ├── .env.development
 ├── Makefile
-└── package.json          # npm workspaces root
+├── pnpm-workspace.yaml   # pnpm workspaces config
+└── package.json          # monorepo root
 ```
 
 ### Architecture (BFF Pattern)
@@ -68,6 +69,7 @@ Browser → Next.js (web) → NestJS BFF controllers → Application use cases �
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) >= 18
+- [pnpm](https://pnpm.io/) >= 11 — `npm install -g pnpm`
 - [Docker](https://www.docker.com/) and Docker Compose (for containerized setup)
 
 ## Getting Started
@@ -75,7 +77,7 @@ Browser → Next.js (web) → NestJS BFF controllers → Application use cases �
 ### 1. Install dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### 2. Environment variables
@@ -92,10 +94,10 @@ Start the API and frontend in separate terminals:
 
 ```bash
 # Terminal 1 — API on port 3001
-npm run dev:api
+pnpm run dev:api
 
 # Terminal 2 — Web on port 3000
-npm run dev:web
+pnpm run dev:web
 ```
 
 ### 4. Run with Docker Compose
@@ -131,36 +133,36 @@ All commands are run from the project root.
 
 ### Development
 
-| Command           | Description                           |
-| ----------------- | ------------------------------------- |
-| `npm run dev:api` | Start API server (ts-node, port 3001) |
-| `npm run dev:web` | Start web dev server (port 3000)      |
+| Command            | Description                           |
+| ------------------ | ------------------------------------- |
+| `pnpm run dev:api` | Start API server (ts-node, port 3001) |
+| `pnpm run dev:web` | Start web dev server (port 3000)      |
 
 ### Build
 
-| Command             | Description       |
-| ------------------- | ----------------- |
-| `npm run build`     | Build API and web |
-| `npm run build:api` | Build API only    |
-| `npm run build:web` | Build web only    |
+| Command              | Description       |
+| -------------------- | ----------------- |
+| `pnpm run build`     | Build API and web |
+| `pnpm run build:api` | Build API only    |
+| `pnpm run build:web` | Build web only    |
 
 ### Quality
 
-| Command                | Description                      |
-| ---------------------- | -------------------------------- |
-| `npm run lint`         | Lint API and web                 |
-| `npm run typecheck`    | TypeScript type checking         |
-| `npm run test`         | Run API tests                    |
-| `npm run format`       | Format all files with Prettier   |
-| `npm run format:check` | Check formatting without writing |
-| `npm run ci`           | Run lint + typecheck + test      |
+| Command                 | Description                      |
+| ----------------------- | -------------------------------- |
+| `pnpm run lint`         | Lint API and web                 |
+| `pnpm run typecheck`    | TypeScript type checking         |
+| `pnpm run test`         | Run API tests                    |
+| `pnpm run format`       | Format all files with Prettier   |
+| `pnpm run format:check` | Check formatting without writing |
+| `pnpm run ci`           | Run lint + typecheck + test      |
 
 ### Makefile
 
 A `Makefile` is provided for convenience:
 
 ```bash
-make install      # Install dependencies
+make install      # Install dependencies (pnpm install)
 make dev-api      # Start API
 make dev-web      # Start web
 make lint         # Lint all

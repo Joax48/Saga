@@ -11,64 +11,63 @@ workflow:
 
 variables:
   NODE_VERSION: "20"
-  NPM_CONFIG_CACHE: "$CI_PROJECT_DIR/.npm"
+  PNPM_HOME: "$CI_PROJECT_DIR/.pnpm-store"
 
 default:
   image: node:${NODE_VERSION}-alpine
   interruptible: true
+  before_script:
+    - npm install -g pnpm@11
+    - pnpm config set store-dir $PNPM_HOME
 
 cache:
   key: "${CI_COMMIT_REF_SLUG}"
   policy: pull-push
   paths:
-    - .npm/
+    - .pnpm-store/
     - node_modules/
-    - apps/api/node_modules/
-    - apps/web/node_modules/
 
 install:
   stage: install
   when: manual
   script:
-    - npm ci
+    - pnpm install --frozen-lockfile
   artifacts:
     expire_in: 1 day
     paths:
       - node_modules/
-      - apps/api/node_modules/
-      - apps/web/node_modules/
 
 lint:
   stage: quality
   needs: [install]
   script:
-    - npm run lint
+    - pnpm run lint
 
 typecheck:
   stage: quality
   needs: [install]
   script:
-    - npm run typecheck
+    - pnpm run typecheck
 
 test:api:
   stage: test
   needs: [install]
   script:
-    - npm run test:api
+    - pnpm run test:api
   coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
 
 test:web:
   stage: test
   needs: [install]
   script:
-    - npm run test:web
+    - pnpm run test:web
   coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
 
 build:api:
   stage: build
   needs: [lint, typecheck, test:api, test:web]
   script:
-    - npm run build:api
+    - pnpm run build:api
   artifacts:
     expire_in: 1 day
     paths:
@@ -78,7 +77,7 @@ build:web:
   stage: build
   needs: [lint, typecheck, test:api, test:web]
   script:
-    - npm run build:web
+    - pnpm run build:web
   artifacts:
     expire_in: 1 day
     paths:
