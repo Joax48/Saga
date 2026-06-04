@@ -7,7 +7,7 @@ const PROJECT_KEYWORDS_BY_PROJECT_IDS_SELECT = `
     ON project_keyword_link.KEYWORD_ID = keyword.KEYWORD_ID
 `;
 
-const PROFILE_FULL_NAME_SQL = (profileAlias: string): string => `TRIM(
+const PROFILE_FULL_NAME_SQL = (profileAlias: string): string => `(
   ${profileAlias}.PROFILE_NAME || ' ' || ${profileAlias}.PROFILE_FIRST_SURNAME ||
   CASE
     WHEN ${profileAlias}.PROFILE_LAST_SURNAME IS NULL OR ${profileAlias}.PROFILE_LAST_SURNAME = '' THEN ''
