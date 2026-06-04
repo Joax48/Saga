@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { LoggerModule } from './common/logger/logger.module';
 import { SearchModule } from './modules/search/search.module';
 import { CacheModule } from './modules/cache/cache.module';
@@ -67,6 +69,7 @@ const validateEnvironment = (env: Record<string, string | undefined>) => {
     PublicUnitsController,
   ],
   providers: [
+    { provide: APP_FILTER, useClass: GlobalExceptionFilter },
     GetProjectsPaginatedListUseCase,
     GetProjectsFiltersUseCase,
     GetProjectDetailUseCase,

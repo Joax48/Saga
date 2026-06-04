@@ -1,5 +1,5 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-
+import { Inject, Injectable } from '@nestjs/common';
+import { NotFoundException } from '../../application/common/exceptions';
 import { ProjectDetailResponseDto } from '../../bff/public/projects/dtos/project-detail-response.dto';
 import {
   PROJECTS_READER,
@@ -17,7 +17,7 @@ export class GetProjectDetailUseCase {
     const project = await this.projectsReader.getById(id);
 
     if (!project) {
-      throw new NotFoundException(`Project with id "${id}" not found`);
+      throw new NotFoundException(`Project with id ${id} not found`);
     }
 
     return project;

@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '../../../application/common/exceptions';
 
 import { GetProjectDetailUseCase } from '../get-public-project-detail.use-case';
 import type { ProjectsReader } from '../../../modules/projects/projects.reader.contract';
