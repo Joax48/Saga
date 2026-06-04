@@ -5,6 +5,8 @@ import type { DatabaseClient } from '../../../common/database/database-client.co
 import {
   ScientificProductionsFiltersResponseDto,
   ScientificProductionsFiltersRequestDto,
+  ScientificProductionSortBy,
+  ScientificProductionSortOrder,
 } from '../scientific-productions.reader.contract';
 import type {
   ScientificProductionSummary,
@@ -27,10 +29,6 @@ type PaginatedResult<T> = {
   items: T[];
   total: number;
 };
-
-// type ScientificProductionCountRow = {
-//   totalCount: number;
-// };
 
 // types en el repositorio
 type FilterField = 'type' | 'openAccess' | 'year' | 'keywords' | 'q';
@@ -57,12 +55,20 @@ export class ScientificProductionRepository {
     page: number,
     limit: number,
     filters?: ScientificProductionsFiltersRequestDto,
+    sortBy: ScientificProductionSortBy = 'title',
+    sortOrder: ScientificProductionSortOrder = 'asc',
   ): Promise<PaginatedResult<ScientificProductionSummary>> {
     const offset = this.calculateOffset(page, limit);
     const { clause, params } = this.buildFilterWhereClause(filters);
 
+    // mapear el campo de ordenamiento al alias correcto en el SELECT
+    const sortColumn = sortBy === 'title' ? 'so.TITLE' : 'so.PUBLICATION_YEAR';
+
+    // ASC o DESC
+    const order = sortOrder?.toLowerCase() === 'desc' ? 'DESC' : 'ASC';
+
     const [items, total] = await Promise.all([
-      this.findItemsPage(limit, offset, clause, params),
+      this.findItemsPage(limit, offset, clause, params, sortColumn, order),
       this.countScientificProductions(clause, params),
     ]);
 
@@ -105,6 +111,8 @@ export class ScientificProductionRepository {
     offset: number,
     clause: string,
     params: Record<string, unknown>,
+    sortColumn: string,
+    order: string,
   ): Promise<ScientificProductionSummary[]> {
     return this.databaseClient.query<ScientificProductionSummary>(
       `
@@ -113,9 +121,10 @@ export class ScientificProductionRepository {
       ${AUTHORS_ALL_SUBQUERY}
       ${KEYWORDS_SUBQUERY}
       ${clause}
-      ORDER BY so.PUBLICATION_YEAR DESC, so.SCIENTIFIC_OUTPUT_ID
+      ORDER BY ${sortColumn} ${order}, so.SCIENTIFIC_OUTPUT_ID ASC
       OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
       `,
+      // Oracle doesn't allow binding identifiers/keywords
       {
         ...params,
         offset: offset,

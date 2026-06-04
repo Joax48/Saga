@@ -14,6 +14,8 @@ interface PageProps {
     openAccess?: string;
     year?: string; // comma-separated: "2024,2023"
     keywords?: string; // comma-separated
+    sortBy?: string;
+    sortOrder?: string;
   };
 }
 
@@ -33,6 +35,16 @@ export default async function ScientificProductionsPage({ searchParams }: PagePr
     ? searchParams.keywords.split(',').map((k) => k.trim())
     : undefined;
 
+  const sortBy =
+    searchParams.sortBy === 'title' || searchParams.sortBy === 'publication_year'
+      ? searchParams.sortBy
+      : 'publication_year';
+
+  const sortOrder =
+    searchParams.sortOrder === 'asc' || searchParams.sortOrder === 'desc'
+      ? searchParams.sortOrder
+      : 'desc';
+
   const filterParams = {
     q: searchParams.q,
     type,
@@ -42,7 +54,7 @@ export default async function ScientificProductionsPage({ searchParams }: PagePr
   };
 
   const [response, filterOptions] = await Promise.all([
-    getScientificProductions({ page, limit, ...filterParams }),
+    getScientificProductions({ page, limit, ...filterParams, sortBy, sortOrder }),
     getScientificProductionFilters(filterParams),
   ]);
 
@@ -60,6 +72,8 @@ export default async function ScientificProductionsPage({ searchParams }: PagePr
         keywords: keywords ?? [],
       }}
       filterOptions={filterOptions}
+      sortBy={sortBy}
+      sortOrder={sortOrder}
     />
   );
 }

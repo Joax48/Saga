@@ -91,8 +91,10 @@ LEFT JOIN (
                     || NVL2(p.PROFILE_LAST_SURNAME, ' ' || p.PROFILE_LAST_SURNAME, ''),
                   an.NAME || ' ' || an.FIRST_SURNAME
                     || NVL2(an.LAST_SURNAME, ' ' || an.LAST_SURNAME, '')
-                )
-      ) ORDER BY p.PROFILE_NAME
+        )
+      ) 
+      ORDER BY p.PROFILE_NAME
+      RETURNING CLOB
     ) AS authors
   FROM PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_PROFILE sop
   JOIN PRODUCCION_CIENTIFICA.PROFILE p ON p.PROFILE_ID = sop.PROFILE_ID
@@ -117,7 +119,9 @@ const UCR_AUTHORS_SUBQUERY = `
             an.NAME || ' ' || an.FIRST_SURNAME
               || NVL2(an.LAST_SURNAME, ' ' || an.LAST_SURNAME, '')
           )
-        ) ORDER BY p.PROFILE_NAME
+        ) 
+        ORDER BY p.PROFILE_NAME
+        RETURNING CLOB
       ) AS authors
     FROM PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_PROFILE sop
     JOIN PRODUCCION_CIENTIFICA.PROFILE p ON p.PROFILE_ID = sop.PROFILE_ID
@@ -143,7 +147,9 @@ const EXTERNAL_AUTHORS_SUBQUERY = `
           an.NAME || ' ' || an.FIRST_SURNAME
             || NVL2(an.LAST_SURNAME, ' ' || an.LAST_SURNAME, '')
           )
-        ) ORDER BY p.PROFILE_NAME
+        ) 
+        ORDER BY p.PROFILE_NAME
+        RETURNING CLOB
       ) AS authors
     FROM PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_PROFILE sop
     JOIN PRODUCCION_CIENTIFICA.PROFILE p ON p.PROFILE_ID = sop.PROFILE_ID
@@ -165,6 +171,7 @@ const UNITS_SUBQUERY = `
           'id'   VALUE UNIT_ID,
           'unit' VALUE UNIT_NAME
         ) ORDER BY UNIT_NAME
+        RETURNING CLOB
       ) AS units
     FROM (
       SELECT DISTINCT sop.SCIENTIFIC_OUTPUT_ID, u.UNIT_ID, u.UNIT_NAME
@@ -185,6 +192,7 @@ const AFFILIATIONS_SUBQUERY = `
           'id'          VALUE INSTITUTION_ID,
           'affiliation' VALUE INSTITUTION_NAME
         ) ORDER BY INSTITUTION_NAME
+        RETURNING CLOB
       ) AS affiliations
     FROM (
       SELECT DISTINCT sop.SCIENTIFIC_OUTPUT_ID, i.INSTITUTION_ID, i.INSTITUTION_NAME
@@ -204,7 +212,9 @@ const KEYWORDS_SUBQUERY = `
         JSON_OBJECT(
           'id'    VALUE k.KEYWORD_ID,
           'value' VALUE k.KEYWORD
-        ) ORDER BY k.KEYWORD
+        )
+        ORDER BY k.KEYWORD
+        RETURNING CLOB
       ) AS keywords
     FROM PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_KEYWORD sok
     JOIN PRODUCCION_CIENTIFICA.KEYWORD k ON k.KEYWORD_ID = sok.KEYWORD_ID

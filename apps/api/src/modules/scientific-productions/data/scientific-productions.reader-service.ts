@@ -10,6 +10,8 @@ import type {
   KeywordReference,
   UnitReference,
   AffiliationReference,
+  ScientificProductionSortBy,
+  ScientificProductionSortOrder,
 } from '../scientific-productions.reader.contract';
 import { ScientificProductionRepository } from './scientific-productions.repository';
 
@@ -23,9 +25,17 @@ export class ScientificProductionsService implements ScientificProductionsReader
     page: number,
     limit: number,
     filters?: ScientificProductionsFiltersRequestDto,
+    sortBy?: ScientificProductionSortBy,
+    sortOrder?: ScientificProductionSortOrder,
   ): Promise<ScientificProductionsPaginatedListDto> {
     const scientificProductionsPage =
-      await this.scientificProductionsRepository.findPaginated(page, limit, filters);
+      await this.scientificProductionsRepository.findPaginated(
+        page,
+        limit,
+        filters,
+        sortBy,
+        sortOrder,
+      );
 
     let effectivePage = page;
     let effectiveItems = scientificProductionsPage.items;

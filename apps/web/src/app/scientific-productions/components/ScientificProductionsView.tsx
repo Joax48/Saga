@@ -17,6 +17,8 @@ import type { FiltersApiResponse } from '@/services/scientific-productions';
 
 const BREADCRUMB_ITEMS = [{ label: 'Producción científica' }];
 
+/* ─── Interfaces ──────────────────────────────────────────────────────── */
+
 interface ActiveFilters {
   q?: string;
   type?: string[];
@@ -32,6 +34,8 @@ interface ScientificProductionsViewProps {
   limit: number;
   activeFilters: ActiveFilters;
   filterOptions: FiltersApiResponse;
+  sortBy: 'title' | 'publication_year';
+  sortOrder: 'asc' | 'desc';
 }
 
 export function ScientificProductionsView({
@@ -41,6 +45,8 @@ export function ScientificProductionsView({
   limit,
   activeFilters,
   filterOptions,
+  sortBy,
+  sortOrder,
 }: ScientificProductionsViewProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -78,18 +84,12 @@ export function ScientificProductionsView({
         mode === 'replace'
           ? router.replace(url, { scroll: false })
           : router.push(url, { scroll: false });
+
+        router.refresh();
       });
     },
     [router, pathname, searchParams],
   );
-
-  useEffect(() => {
-    if (!searchParams.get('page')) {
-      updateParams({ page: '1' }, false, 'replace');
-    }
-    // Se desactiva para que solo se realice una vez
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -115,6 +115,20 @@ export function ScientificProductionsView({
     (page: number) => {
       updateParams({ page: String(page) }, false);
       resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+    [updateParams],
+  );
+
+  const handleSortByChange = useCallback(
+    (value: string) => {
+      updateParams({ sortBy: value });
+    },
+    [updateParams],
+  );
+
+  const handleSortOrderChange = useCallback(
+    (value: string) => {
+      updateParams({ sortOrder: value });
     },
     [updateParams],
   );
@@ -181,7 +195,7 @@ export function ScientificProductionsView({
         },
       },
     ];
-  }, [filterOptions, activeFilters, updateParams]);
+  }, [filterOptions, activeFilters, updateParams, scrollToResults]);
 
   const [filtersVisible, setFiltersVisible] = useState(false);
 
@@ -230,6 +244,48 @@ export function ScientificProductionsView({
           >
             {total} resultado{total !== 1 ? 's' : ''}
           </p>
+
+          {/* Ordenamiento */}
+          <div className="flex items-center gap-3 mb-4">
+            <span
+              className="text-sm"
+              style={{ color: 'var(--color-text-neutral-secondary)' }}
+            >
+              Ordenar por
+            </span>
+
+            <select
+              value={sortBy}
+              onChange={(e) => handleSortByChange(e.target.value)}
+              className="text-sm border rounded px-2 py-1"
+              style={{
+                color: 'var(--color-text-neutral-secondary)',
+              }}
+            >
+              <option value="publication_year" className="text-sm">
+                Año de publicación
+              </option>
+              <option value="title" className="text-sm">
+                Título
+              </option>
+            </select>
+
+            <select
+              value={sortOrder}
+              onChange={(e) => handleSortOrderChange(e.target.value)}
+              className="text-sm border rounded px-2 py-1"
+              style={{
+                color: 'var(--color-text-neutral-secondary)',
+              }}
+            >
+              <option value="desc" className="text-sm">
+                Descendente
+              </option>
+              <option value="asc" className="text-sm">
+                Ascendente
+              </option>
+            </select>
+          </div>
 
           <div className="flex flex-col gap-8 lg:flex-row">
             <div
@@ -290,7 +346,7 @@ export function ScientificProductionsView({
       {showScrollTopButton && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] text-white shadow-lg transition-transform hover:scale-110"
+          className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-(--color-bg-brand-primary) text-white shadow-lg transition-transform hover:scale-110"
           aria-label="Volver al inicio"
         >
           <ChevronUp size={20} strokeWidth={2} />

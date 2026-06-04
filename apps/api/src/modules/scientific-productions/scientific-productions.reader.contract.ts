@@ -83,11 +83,16 @@ export interface ScientificProductionsFiltersRequestDto {
   keywords?: string[];
 }
 
+export type ScientificProductionSortBy = 'title' | 'publication_year';
+export type ScientificProductionSortOrder = 'asc' | 'desc';
+
 export interface ScientificProductionsReader {
   getPaginatedList(
     page: number,
     limit: number,
     filters?: ScientificProductionsFiltersRequestDto,
+    sortBy?: ScientificProductionSortBy,
+    sortOrder?: ScientificProductionSortOrder,
   ): Promise<ScientificProductionsPaginatedListDto>;
   getById(id: string): Promise<ScientificProductionsDetailItemDto | null>;
   getFilters(

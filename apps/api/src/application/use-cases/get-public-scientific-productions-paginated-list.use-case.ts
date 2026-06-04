@@ -30,6 +30,8 @@ export class GetScientificProductionPaginatedListUseCase {
         year: input.year,
         keywords: input.keywords,
       },
+      input.sortBy,
+      input.sortOrder,
     );
     return this.mapToResponseDto(scientificProductions);
   }

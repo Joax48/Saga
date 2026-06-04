@@ -1,9 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { request } from './api';
-import type {
-  SummaryScientificProduction,
-  ScientificProduction,
-} from '@/types';
+import type { SummaryScientificProduction, ScientificProduction } from '@/types';
 
 interface GetScientificProductionsParams {
   page?: number;
@@ -13,6 +10,8 @@ interface GetScientificProductionsParams {
   openAccess?: boolean;
   year?: string[];
   keywords?: string[];
+  sortBy?: 'title' | 'publication_year';
+  sortOrder?: 'asc' | 'desc';
 }
 
 interface AuthorReference {
@@ -131,7 +130,17 @@ function parseDetailScientificProduction(
 export async function getScientificProductions(
   params: GetScientificProductionsParams = {},
 ): Promise<{ items: SummaryScientificProduction[]; total: number }> {
-  const { page = 1, limit = 10, q, type, openAccess, year, keywords } = params;
+  const {
+    page = 1,
+    limit = 10,
+    q,
+    type,
+    openAccess,
+    year,
+    keywords,
+    sortBy,
+    sortOrder,
+  } = params;
 
   const searchParams = new URLSearchParams();
   searchParams.set('page', String(page));
@@ -142,6 +151,8 @@ export async function getScientificProductions(
   if (openAccess) searchParams.set('openAccess', 'true');
   if (year?.length) searchParams.set('year', year.join(','));
   if (keywords?.length) searchParams.set('keywords', keywords.join(','));
+  if (sortBy) searchParams.set('sortBy', sortBy);
+  if (sortOrder) searchParams.set('sortOrder', sortOrder);
 
   const endpoint = `/scientific-productions?${searchParams.toString()}`;
 

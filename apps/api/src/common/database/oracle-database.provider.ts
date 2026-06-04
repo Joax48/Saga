@@ -24,6 +24,12 @@ export class OracleDatabaseProvider
       poolMax: 10,
       poolIncrement: 1,
     });
+    /* 
+    Provoca que los objetos retornados como CLOB (Character Large Object)
+    vuelva como un string. Consultas que hacen uso de esto pueden ser
+    encontradas en el archivo scientific-productions-queries.ts
+    */
+    oracledb.fetchAsString = [oracledb.CLOB];
   }
 
   async onModuleDestroy() {
