@@ -7,7 +7,7 @@ const SUMMARY_SELECT = `
   SELECT
     so.SCIENTIFIC_OUTPUT_ID                                       AS "id",
     so.TITLE                                                      AS "title",
-    authors_sub.authors                                           AS "authors",
+    ucr_authors_sub.authors                                       AS "authors",
     sot.SCIENTIFIC_OUTPUT_TYPE_NAME                               AS "type",
     CASE
       WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN sc.OPEN_ACCESS
@@ -219,7 +219,7 @@ const KEYWORDS_SUBQUERY = `
       JSON_ARRAYAGG(
         JSON_OBJECT(
           'id'    VALUE k.KEYWORD_ID,
-          'value' VALUE k.KEYWORD
+          'value' VALUE INITCAP(k.KEYWORD)
         )
         ORDER BY k.KEYWORD
         RETURNING CLOB

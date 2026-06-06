@@ -73,9 +73,13 @@ export function ProductionCard({ production }: ProductionCardProps) {
   const allTags = open_access ? ['Acceso abierto', ...keywordTags] : keywordTags;
 
   /* Authors (blue links) + year/journal meta (grey) on the same line */
+  const authorArray = Array.from(authors);
+  const visibleAuthors = authorArray.slice(0, 4);
+  const hasMoreAuthors = authorArray.length > 4;
+
   const authorsNode = (
     <p className="leading-relaxed">
-      {Array.from(authors).map((author, index) => (
+      {visibleAuthors.map((author, index) => (
         <span key={author.id}>
           {/* TODO: replace href with /researchers/[id] once author IDs are available */}
           <Link
@@ -85,11 +89,18 @@ export function ProductionCard({ production }: ProductionCardProps) {
           >
             {author.name}
           </Link>
-          {index < authors.length - 1 && (
+          {(index < visibleAuthors.length - 1 || hasMoreAuthors) && (
             <span style={{ color: 'var(--color-text-brand-primary)' }}>{', '}</span>
           )}
         </span>
       ))}
+
+      {hasMoreAuthors && (
+        <span style={{ color: 'var(--color-text-brand-primary)' }} aria-hidden>
+          ...
+        </span>
+      )}
+
       {metaSuffix && (
         <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
           {'. '}

@@ -32,8 +32,8 @@ export interface SummaryScientificProduction {
 export interface ScientificProduction {
   id: string;
   title: string;
-  authors: string[];
-  principalAuthor: string;
+  ucrAuthors: AuthorReference[];
+  externalAuthors: AuthorReference[];
   unit: string;
   affiliations: string[];
   type: string;

@@ -108,12 +108,12 @@ function parseSummaryScientificProduction(
 function parseDetailScientificProduction(
   item: ApiDetailScientificProduction,
 ): ScientificProduction {
-  const allAuthors = [...(item.ucrAuthors ?? []), ...(item.externalAuthors ?? [])];
+
   return {
     id: item.id,
     title: item.title,
-    authors: allAuthors.map((a) => a.name),
-    principalAuthor: item.ucrAuthors?.[0]?.name ?? '',
+    ucrAuthors: item.ucrAuthors ?? [],
+    externalAuthors: item.externalAuthors ?? [],
     unit: item.unit?.map((u) => u.unit).join(', ') ?? '',
     affiliations: item.affiliations?.map((a) => a.affiliation) ?? [],
     type: item.type ?? '',

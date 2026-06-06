@@ -17,7 +17,6 @@ import {
   SUMMARY_SELECT,
   DETAIL_SELECT,
   BASE_FROM,
-  AUTHORS_ALL_SUBQUERY,
   UCR_AUTHORS_SUBQUERY,
   EXTERNAL_AUTHORS_SUBQUERY,
   UNITS_SUBQUERY,
@@ -118,7 +117,7 @@ export class ScientificProductionRepository {
       `
       ${SUMMARY_SELECT}
       ${BASE_FROM}
-      ${AUTHORS_ALL_SUBQUERY}
+      ${UCR_AUTHORS_SUBQUERY}
       ${KEYWORDS_SUBQUERY}
       ${clause}
       ORDER BY ${sortColumn} ${order}, so.SCIENTIFIC_OUTPUT_ID ASC
@@ -156,7 +155,7 @@ export class ScientificProductionRepository {
     const rows = await this.databaseClient.query<FacetRow>(
       `
       SELECT
-        sot.SCIENTIFIC_OUTPUT_TYPE_NAME AS LABEL,
+        INITCAP(sot.SCIENTIFIC_OUTPUT_TYPE_NAME) AS LABEL,
         sot.SCIENTIFIC_OUTPUT_TYPE_NAME AS OPTIONVALUE,
         COUNT(DISTINCT so.SCIENTIFIC_OUTPUT_ID) AS OPTIONCOUNT
       ${BASE_FROM}
@@ -200,7 +199,7 @@ export class ScientificProductionRepository {
     const rows = await this.databaseClient.query<FacetRow>(
       `
       SELECT
-        k.KEYWORD AS LABEL,
+        INITCAP(k.KEYWORD) AS LABEL,
         LOWER(k.KEYWORD) AS OPTIONVALUE,
         COUNT(DISTINCT so.SCIENTIFIC_OUTPUT_ID) AS OPTIONCOUNT
       ${BASE_FROM}
@@ -211,10 +210,11 @@ export class ScientificProductionRepository {
       ${clause}
       GROUP BY k.KEYWORD
       ORDER BY OPTIONCOUNT DESC
-      FETCH FIRST 50 ROWS ONLY
+      FETCH FIRST 1000 ROWS ONLY
       `,
       { ...params },
     );
+
     return rows.map((row) => ({
       label: row.LABEL,
       value: row.OPTIONVALUE,

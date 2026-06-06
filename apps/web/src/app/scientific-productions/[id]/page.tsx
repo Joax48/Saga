@@ -149,29 +149,39 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
               </h1>
 
               <p className="text-[18px] leading-[1.6]">
-                {production.authors.map((author, index) => {
-                  const isPrincipal = author === production.principalAuthor;
-                  return (
-                    <span key={author}>
-                      <Link
-                        href={`/researchers?q=${encodeURIComponent(author)}`}
-                        className="hover:underline"
-                        style={{
-                          color: isPrincipal
-                            ? 'var(--color-text-brand-primary)'
-                            : 'var(--color-text-neutral-primary)',
-                        }}
-                      >
-                        {author}
-                      </Link>
-                      {index < production.authors.length - 1 && (
-                        <span className="text-(--color-text-neutral-secondary)">
-                          {', '}
+                {production.ucrAuthors.map((author, index) => (
+                  <span key={`ucr-${author.id}`}>
+                    <Link
+                      href={`/researchers/${encodeURIComponent(author.id)}`}
+                      className="hover:underline"
+                      style={{ color: 'var(--color-text-brand-primary)' }}
+                    >
+                      {author.name}
+                    </Link>
+                    {index < production.ucrAuthors.length - 1 ||
+                    production.externalAuthors.length > 0 ? (
+                      <span className="text-(--color-text-neutral-secondary)">
+                        {', '}
+                      </span>
+                    ) : null}
+                  </span>
+                ))}
+                {production.externalAuthors.length > 0 && (
+                  <>
+                    {production.externalAuthors.map((author, index) => (
+                      <span key={`external-${author.id}`}>
+                        <span className="text-(--color-text-neutral-primary)">
+                          {author.name}
                         </span>
-                      )}
-                    </span>
-                  );
-                })}
+                        {index < production.externalAuthors.length - 1 ? (
+                          <span className="text-(--color-text-neutral-secondary)">
+                            {', '}
+                          </span>
+                        ) : null}
+                      </span>
+                    ))}
+                  </>
+                )}
               </p>
 
               {production.unit && (

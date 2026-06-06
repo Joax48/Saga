@@ -18,6 +18,7 @@ export async function request<T>(endpoint: string, options?: RequestInit): Promi
       ...options?.headers,
     },
     ...options,
+    cache: 'no-store',
   });
 
   if (!response.ok) {
