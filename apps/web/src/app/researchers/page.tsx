@@ -92,13 +92,19 @@ function ResearchersPageContent() {
     }
   }, [currentPage, searchQuery, filters]);
 
-  // Scroll to the top of the list container whenever the page changes,
-  // skipping the initial render so the page doesn't jump on first load.
+  // Scroll to the list only after an explicit user action (page, search, filter).
   useEffect(() => {
     if (isFirstPageRender.current) {
       isFirstPageRender.current = false;
       return;
     }
+
+    if (!shouldScrollToListRef.current) {
+      return;
+    }
+
+    shouldScrollToListRef.current = false;
+
     if (listContainerRef.current) {
       const navbar = document.querySelector('header') ?? document.querySelector('nav');
       const navbarHeight = navbar ? navbar.getBoundingClientRect().height : 0;
@@ -109,7 +115,7 @@ function ResearchersPageContent() {
         16;
       window.scrollTo({ top, behavior: 'smooth' });
     }
-  }, [currentPage]);
+  }, [currentPage, searchQuery, filters]);
 
   // Sync state to URL so the back button restores page + filters + search
   useEffect(() => {
@@ -287,14 +293,13 @@ function ResearchersPageContent() {
       </div>
 
       {showScrollTopButton && (
-        <Button
-          variant="primary"
-          size="md"
+        <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          iconLeft={<ChevronUp size={32} strokeWidth={3.2} />}
-          aria-label="Volver arriba"
-          className="fixed bottom-6 right-6 z-50 h-16 w-16 rounded-full px-0 shadow-lg"
-        />
+          className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] text-white shadow-lg transition-transform hover:scale-110"
+          aria-label="Volver al inicio"
+        >
+          <ChevronUp size={20} strokeWidth={2} />
+        </button>
       )}
     </main>
   );

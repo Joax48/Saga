@@ -104,6 +104,19 @@ export function ScientificProductionsView({
     };
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTopButton(window.scrollY > 400);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   const handleSearch = useCallback(
     (q: string) => {
       updateParams({ q: q || null });

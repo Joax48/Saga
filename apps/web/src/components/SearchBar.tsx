@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 
 /**
@@ -32,6 +32,10 @@ export default function SearchBar({
   initialValue = '',
 }: SearchBarProps) {
   const [query, setQuery] = useState(initialValue);
+
+  useEffect(() => {
+    setQuery(initialValue);
+  }, [initialValue]);
 
   /**
    * Handles form submission.
