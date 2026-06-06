@@ -1,55 +1,61 @@
 'use client';
 
+import { useState } from 'react';
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
-
+import { BookOpen, FolderOpen, X } from 'lucide-react';
 import { lookupCountryCoordinates } from '@/data/country-coordinates';
 
-type CollaborationPoint = {
+export type CollaborationInstitution = {
+  name: string;
+  researchCount: number;
+  projectCount: number;
+};
+
+export type CollaborationPoint = {
   id: string;
   lat: number;
   lng: number;
+  country: string;
+  count: number;
   tone?: 'primary' | 'secondary' | 'accent';
-  tooltip: string;
+  isMain?: boolean;
+  institutions?: CollaborationInstitution[];
 };
 
-// Costa Rica is always the central node of a researcher's network.
 const COSTA_RICA_NODE: CollaborationPoint = {
   id: 'cr',
   lat: 9.7489,
   lng: -83.7534,
+  country: 'Costa Rica',
+  count: 0,
   tone: 'accent',
-  tooltip: 'Nodo principal: Costa Rica',
+  isMain: true,
 };
 
-/**
- * Builds real map markers from the backend collaboration-country list. Costa
- * Rica anchors the network; every country with known coordinates becomes a
- * node whose tone reflects how strong the collaboration is (by output count).
- * Countries without coordinates are skipped (the list filter still covers them).
- */
 export function buildCollaborationPoints(
   countries: { country: string; count: number }[],
 ): CollaborationPoint[] {
   const maxCount = countries.reduce((max, c) => Math.max(max, c.count), 0);
+  const crEntry = countries.find((c) => normalize(c.country) === 'costa rica');
 
   const points: CollaborationPoint[] = [];
   for (const { country, count } of countries) {
     if (normalize(country) === 'costa rica') continue;
     const coords = lookupCountryCoordinates(country);
     if (!coords) continue;
-    // Top third of the range → primary (strongest), rest → secondary.
     const tone: CollaborationPoint['tone'] =
       maxCount > 0 && count >= maxCount * (2 / 3) ? 'primary' : 'secondary';
     points.push({
       id: normalize(country),
       lat: coords.lat,
       lng: coords.lng,
+      country,
+      count,
       tone,
-      tooltip: `Colaboración con ${country} (${count})`,
     });
   }
 
-  return [COSTA_RICA_NODE, ...points];
+  return [{ ...COSTA_RICA_NODE, count: crEntry?.count ?? 0 }, ...points];
 }
 
 function normalize(value: string): string {
@@ -65,9 +71,6 @@ type CollaborationMapPreviewProps = {
   subtitle?: string;
   scopeLabel?: string;
   points?: CollaborationPoint[];
-  // When true (default) shows the "Simulación visual" badge used by the mock
-  // placeholders. Pass false when feeding real backend data.
-  simulation?: boolean;
 };
 
 const DEFAULT_POINTS: CollaborationPoint[] = [
@@ -75,106 +78,112 @@ const DEFAULT_POINTS: CollaborationPoint[] = [
     id: 'cr',
     lat: 9.7489,
     lng: -83.7534,
+    country: 'Costa Rica',
+    count: 0,
     tone: 'accent',
-    tooltip: 'Nodo principal: Costa Rica',
-  },
-  {
-    id: 'mx',
-    lat: 23.6345,
-    lng: -102.5528,
-    tone: 'primary',
-    tooltip: 'Colaboracion con Mexico',
+    isMain: true,
   },
   {
     id: 'us',
-    lat: 39.8283,
-    lng: -98.5795,
+    lat: 37.0902,
+    lng: -95.7129,
+    country: 'Estados Unidos',
+    count: 12,
     tone: 'primary',
-    tooltip: 'Colaboracion con Estados Unidos',
-  },
-  {
-    id: 'ca',
-    lat: 56.1304,
-    lng: -106.3468,
-    tone: 'secondary',
-    tooltip: 'Colaboracion con Canada',
-  },
-  {
-    id: 'co',
-    lat: 4.5709,
-    lng: -74.2973,
-    tone: 'secondary',
-    tooltip: 'Colaboracion con Colombia',
-  },
-  {
-    id: 'br',
-    lat: -14.235,
-    lng: -51.9253,
-    tone: 'primary',
-    tooltip: 'Colaboracion con Brasil',
-  },
-  {
-    id: 'ar',
-    lat: -38.4161,
-    lng: -63.6167,
-    tone: 'secondary',
-    tooltip: 'Colaboracion con Argentina',
+    institutions: [
+      { name: 'University of Florida', researchCount: 5, projectCount: 2 },
+      { name: 'MIT', researchCount: 4, projectCount: 1 },
+      { name: 'Stanford University', researchCount: 3, projectCount: 1 },
+    ],
   },
   {
     id: 'es',
     lat: 40.4637,
     lng: -3.7492,
+    country: 'España',
+    count: 8,
     tone: 'primary',
-    tooltip: 'Colaboracion con Espana',
+    institutions: [
+      { name: 'Universidad Complutense de Madrid', researchCount: 5, projectCount: 2 },
+      { name: 'Universidad de Barcelona', researchCount: 3, projectCount: 1 },
+    ],
+  },
+  {
+    id: 'mx',
+    lat: 23.6345,
+    lng: -102.5528,
+    country: 'México',
+    count: 6,
+    tone: 'primary',
+    institutions: [
+      { name: 'UNAM', researchCount: 4, projectCount: 2 },
+      { name: 'IPN', researchCount: 2, projectCount: 1 },
+    ],
+  },
+  {
+    id: 'de',
+    lat: 51.1657,
+    lng: 10.4515,
+    country: 'Alemania',
+    count: 4,
+    tone: 'secondary',
+    institutions: [
+      { name: 'Technische Universität München', researchCount: 3, projectCount: 1 },
+      { name: 'Heidelberg University', researchCount: 1, projectCount: 0 },
+    ],
+  },
+  {
+    id: 'br',
+    lat: -14.235,
+    lng: -51.9253,
+    country: 'Brasil',
+    count: 3,
+    tone: 'secondary',
+    institutions: [{ name: 'Universidade de São Paulo', researchCount: 3, projectCount: 1 }],
+  },
+  {
+    id: 'co',
+    lat: 4.5709,
+    lng: -74.2973,
+    country: 'Colombia',
+    count: 2,
+    tone: 'secondary',
+    institutions: [{ name: 'Universidad de los Andes', researchCount: 2, projectCount: 0 }],
   },
   {
     id: 'fr',
     lat: 46.2276,
     lng: 2.2137,
-    tone: 'primary',
-    tooltip: 'Colaboracion con Francia',
-  },
-  {
-    id: 'uk',
-    lat: 55.3781,
-    lng: -3.436,
+    country: 'Francia',
+    count: 2,
     tone: 'secondary',
-    tooltip: 'Colaboracion con Reino Unido',
-  },
-  {
-    id: 'jp',
-    lat: 36.2048,
-    lng: 138.2529,
-    tone: 'secondary',
-    tooltip: 'Colaboracion con Japon',
-  },
-  {
-    id: 'au',
-    lat: -25.2744,
-    lng: 133.7751,
-    tone: 'secondary',
-    tooltip: 'Colaboracion con Australia',
+    institutions: [{ name: 'Université Paris-Saclay', researchCount: 2, projectCount: 1 }],
   },
 ];
 
 const WORLD_GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 
-function pointToneColors(tone: CollaborationPoint['tone']): {
-  fill: string;
-  halo: string;
-} {
-  if (tone === 'accent') return { fill: '#F97316', halo: '#FDBA74' };
-  if (tone === 'secondary') return { fill: '#60A5FA', halo: '#BFDBFE' };
-  return { fill: '#0B66B2', halo: '#93C5FD' };
+const PIN_PATH =
+  'M 0,-12 C -6,-12 -10,-7 -10,-2 C -10,6 0,14 0,14 C 0,14 10,6 10,-2 C 10,-7 6,-12 0,-12 Z';
+
+function pinFill(tone: CollaborationPoint['tone']): string {
+  if (tone === 'accent') return '#F97316';
+  if (tone === 'secondary') return '#60A5FA';
+  return '#0B66B2';
 }
 
 export default function CollaborationMapPreview({
   title = 'Redes de colaboracion',
-  subtitle = 'Vista de ejemplo para la capa visual. Luego se conectara con datos reales desde backend por perfil, unidad y produccion cientifica.',
+  subtitle = 'Haga clic en los puntos para mostrar los detalles.',
   scopeLabel = 'Mapa general',
   points = DEFAULT_POINTS,
-  simulation = true,
 }: CollaborationMapPreviewProps) {
+  const [selected, setSelected] = useState<CollaborationPoint | null>(null);
+
+  function handleMarkerClick(point: CollaborationPoint) {
+    setSelected((prev) => (prev?.id === point.id ? null : point));
+  }
+
   return (
     <section className="mt-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -190,7 +199,8 @@ export default function CollaborationMapPreview({
         {subtitle}
       </p>
 
-      <div className="relative mt-6 h-[520px] overflow-hidden border border-[var(--color-gray-300)] bg-[#EEF1F4]">
+      {/* Map container — relative so the panel can be absolute inside */}
+      <div className="relative mt-6 h-[520px] overflow-hidden">
         <ComposableMap
           projection="geoMercator"
           projectionConfig={{ scale: 124, center: [0, 40] }}
@@ -199,10 +209,10 @@ export default function CollaborationMapPreview({
           className="h-full w-full select-none"
         >
           <Geographies geography={WORLD_GEO_URL}>
-            {({ geographies }: { geographies: any[] }) =>
-              geographies.map((geo: any) => (
+            {({ geographies }: { geographies: Record<string, unknown>[] }) =>
+              geographies.map((geo) => (
                 <Geography
-                  key={geo.rsmKey}
+                  key={geo.rsmKey as string}
                   geography={geo}
                   fill="#B8BDC3"
                   stroke="#9EA5AD"
@@ -222,26 +232,73 @@ export default function CollaborationMapPreview({
           </Geographies>
 
           {points.map((point) => {
-            const tone = pointToneColors(point.tone);
+            const fill = pinFill(point.tone);
+            const isSelected = selected?.id === point.id;
 
             return (
-              <Marker key={point.id} coordinates={[point.lng, point.lat]} tabIndex={-1}>
-                <title>{point.tooltip}</title>
-                <circle r={7} fill={tone.halo} opacity={0.95} />
-                <circle r={5.4} fill={tone.fill} stroke="#ffffff" strokeWidth={1.2} />
+              <Marker
+                key={point.id}
+                coordinates={[point.lng, point.lat]}
+                tabIndex={-1}
+                onClick={() => handleMarkerClick(point)}
+                style={{ cursor: 'pointer' }}
+              >
+                <title>
+                  {point.isMain
+                    ? 'Nodo principal: UCR, Costa Rica'
+                    : `${point.country} — ${point.count} colaborador${point.count !== 1 ? 'es' : ''}`}
+                </title>
+                {isSelected && (
+                  <circle r={14} cy={-2} fill="none" stroke={fill} strokeWidth={2} opacity={0.5} />
+                )}
+                <path d={PIN_PATH} fill={fill} stroke="#ffffff" strokeWidth={1.2} />
+                <circle r={3.5} cy={-2} fill="#ffffff" />
               </Marker>
             );
           })}
         </ComposableMap>
 
-        {simulation && (
-          <div className="absolute bottom-4 left-4 rounded-xl border border-[var(--color-gray-300)] bg-white/95 px-3 py-2 text-body-sm text-[var(--color-text-neutral-secondary)]">
-            <p>
-              <span className="font-medium text-[var(--color-text-neutral-primary)]">
-                Simulacion visual
-              </span>{' '}
-              de nodos de colaboracion.
-            </p>
+        {/* Floating detail panel — appears on marker click */}
+        {selected && (
+          <div className="absolute bottom-4 left-4 z-10 flex w-64 max-h-72 flex-col overflow-hidden rounded-xl border border-[var(--color-gray-300)] bg-white shadow-lg">
+            <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3">
+              <h3 className="text-sm font-bold text-gray-900">{selected.country}</h3>
+              <button
+                onClick={() => setSelected(null)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Cerrar panel"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto divide-y divide-gray-100">
+              {selected.isMain ? (
+                <div className="px-4 py-3 text-sm text-gray-500">
+                  {selected.count > 0
+                    ? `${selected.count} autor${selected.count !== 1 ? 'es' : ''} UCR`
+                    : 'Nodo principal UCR'}
+                </div>
+              ) : selected.institutions && selected.institutions.length > 0 ? (
+                selected.institutions.map((inst, i) => (
+                  <div key={i} className="px-4 py-3">
+                    <p className="mb-1.5 text-xs font-medium text-gray-800">{inst.name}</p>
+                    <p className="flex items-center gap-1.5 text-xs text-[#0B66B2]">
+                      <BookOpen size={11} />
+                      {inst.researchCount} resultado{inst.researchCount !== 1 ? 's' : ''} de investigación compartida
+                    </p>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-[#0B66B2]">
+                      <FolderOpen size={11} />
+                      {inst.projectCount} proyecto{inst.projectCount !== 1 ? 's' : ''} compartido{inst.projectCount !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="px-4 py-3 text-xs text-gray-500">
+                  {selected.count} colaborador{selected.count !== 1 ? 'es' : ''} registrado{selected.count !== 1 ? 's' : ''}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

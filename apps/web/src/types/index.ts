@@ -48,6 +48,7 @@ export interface ScientificProduction {
   citation_count: number;
   source: string;
   keywords: string[];
+  collaborationCountries: { country: string; count: number }[];
 }
 
 /* ─── Filters ────────────────────────────────────────────────────────── */

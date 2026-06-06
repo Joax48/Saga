@@ -17,6 +17,7 @@ interface GetScientificProductionsParams {
 interface AuthorReference {
   id: number;
   name: string;
+  country?: string;
 }
 
 interface KeywordReference {
@@ -108,6 +109,13 @@ function parseSummaryScientificProduction(
 function parseDetailScientificProduction(
   item: ApiDetailScientificProduction,
 ): ScientificProduction {
+  const allAuthors = [...(item.ucrAuthors ?? []), ...(item.externalAuthors ?? [])];
+
+  const countryMap = new Map<string, number>();
+  for (const author of allAuthors) {
+    if (!author.country) continue;
+    countryMap.set(author.country, (countryMap.get(author.country) ?? 0) + 1);
+  }
 
   return {
     id: item.id,
@@ -128,6 +136,10 @@ function parseDetailScientificProduction(
     citation_count: item.citationCount ?? 0,
     source: item.source ?? '',
     keywords: item.keywords?.map((k) => k.value) ?? [],
+    collaborationCountries: [...countryMap.entries()].map(([country, count]) => ({
+      country,
+      count,
+    })),
   };
 }
 

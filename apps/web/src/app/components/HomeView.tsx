@@ -38,11 +38,10 @@ export function HomeView() {
             </p>
           </div>
 
-          <div className="">
+          <div className="pb-16">
             <CollaborationMapPreview />
           </div>
 
-          <hr className="border-t border-gray-300 mt-2 py-5" />
 
           <div className="hidden">
             <h1 className="text-3xl font-bold mb-6"> Producción científica destacada </h1>

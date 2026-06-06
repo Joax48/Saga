@@ -120,14 +120,15 @@ const UCR_AUTHORS_SUBQUERY = `
     SELECT sop.SCIENTIFIC_OUTPUT_ID,
       JSON_ARRAYAGG(
         JSON_OBJECT(
-          'id'    VALUE p.PROFILE_ID,
-          'name'  VALUE NVL(
+          'id'      VALUE p.PROFILE_ID,
+          'name'    VALUE NVL(
             p.PROFILE_NAME || ' ' || p.PROFILE_FIRST_SURNAME
               || NVL2(p.PROFILE_LAST_SURNAME, ' ' || p.PROFILE_LAST_SURNAME, ''),
             an.NAME || ' ' || an.FIRST_SURNAME
               || NVL2(an.LAST_SURNAME, ' ' || an.LAST_SURNAME, '')
-          )
-        ) 
+          ),
+          'country' VALUE 'Costa Rica'
+        )
         ORDER BY p.PROFILE_NAME
         RETURNING CLOB
       ) AS authors
@@ -148,20 +149,28 @@ const EXTERNAL_AUTHORS_SUBQUERY = `
     SELECT sop.SCIENTIFIC_OUTPUT_ID,
       JSON_ARRAYAGG(
         JSON_OBJECT(
-          'id'    VALUE p.PROFILE_ID,
-          'name'  VALUE NVL(
-          p.PROFILE_NAME || ' ' || p.PROFILE_FIRST_SURNAME
-            || NVL2(p.PROFILE_LAST_SURNAME, ' ' || p.PROFILE_LAST_SURNAME, ''),
-          an.NAME || ' ' || an.FIRST_SURNAME
-            || NVL2(an.LAST_SURNAME, ' ' || an.LAST_SURNAME, '')
-          )
-        ) 
+          'id'      VALUE p.PROFILE_ID,
+          'name'    VALUE NVL(
+            p.PROFILE_NAME || ' ' || p.PROFILE_FIRST_SURNAME
+              || NVL2(p.PROFILE_LAST_SURNAME, ' ' || p.PROFILE_LAST_SURNAME, ''),
+            an.NAME || ' ' || an.FIRST_SURNAME
+              || NVL2(an.LAST_SURNAME, ' ' || an.LAST_SURNAME, '')
+          ),
+          'country' VALUE c.COUNTRY_NAME
+        )
         ORDER BY p.PROFILE_NAME
         RETURNING CLOB
       ) AS authors
     FROM PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_PROFILE sop
     JOIN PRODUCCION_CIENTIFICA.PROFILE p ON p.PROFILE_ID = sop.PROFILE_ID
     JOIN PRODUCCION_CIENTIFICA.EXTERNAL_PROFILE ep ON ep.PROFILE_ID = sop.PROFILE_ID
+    LEFT JOIN (
+      SELECT PROFILE_ID, MIN(INSTITUTION_ID) AS INSTITUTION_ID
+      FROM PRODUCCION_CIENTIFICA.EXTERNAL_PROFILE_INSTITUTION
+      GROUP BY PROFILE_ID
+    ) epi ON epi.PROFILE_ID = sop.PROFILE_ID
+    LEFT JOIN PRODUCCION_CIENTIFICA.INSTITUTION i ON i.INSTITUTION_ID = epi.INSTITUTION_ID
+    LEFT JOIN PRODUCCION_CIENTIFICA.COUNTRY c ON c.COUNTRY_ID = i.INSTITUTION_COUNTRY
     LEFT JOIN (
       SELECT PROFILE_ID, NAME, FIRST_SURNAME, LAST_SURNAME,
              ROW_NUMBER() OVER (PARTITION BY PROFILE_ID ORDER BY ALTERNATIVE_NAME_ID) AS rn

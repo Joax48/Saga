@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-
-import { FileText, Tag } from 'lucide-react';
+import { FileText, Tag, Globe } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
 import CategoriesNavigation from '@/components/DetailNavbar';
 import type { Category } from '@/components/DetailNavbar';
@@ -12,10 +11,23 @@ import DetailNavbar from '@/components/DetailNavbar';
 import { getScientificProductionById } from '@/services/scientific-productions';
 import type { ScientificProduction } from '@/types';
 import { DetailPageSkeleton } from '@/components/skeletons/DetailPageSkeleton';
+import CollaborationMapPreview from '@/components/CollaborationMapPreview';
+import { countriesToCollaborationPoints } from '@/utils/collaboration-map';
 
 interface Props {
   params: { id: string };
 }
+
+// TODO: remove once backend returns real country data per author
+const MOCK_COLLABORATION_COUNTRIES = [
+  { country: 'Costa Rica', count: 3 },
+  { country: 'Estados Unidos', count: 5 },
+  { country: 'España', count: 2 },
+  { country: 'México', count: 2 },
+  { country: 'Brasil', count: 1 },
+  { country: 'Alemania', count: 1 },
+  { country: 'Francia', count: 1 },
+];
 
 const SOURCE_LOGOS: Record<
   string,
@@ -28,7 +40,7 @@ const SOURCE_LOGOS: Record<
     height: 99,
   },
   Scopus: {
-    src: '/icons/logo_Scopus.png', // fill in later
+    src: '/icons/logo_Scopus.png',
     alt: 'Scopus logo',
     width: 330,
     height: 99,
@@ -124,6 +136,12 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
       name: 'Palabras clave',
       icon: <Tag size={18} />,
       sectionTitle: 'Palabras claves',
+    },
+    {
+      id: 'collaborations',
+      name: 'Redes de colaboración',
+      icon: <Globe size={18} />,
+      sectionTitle: 'Colaboradores',
     },
   ];
 
@@ -356,6 +374,18 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* ── Collaborations map ──────────────────────────────── */}
+            {activeTab === 'collaborations' && (
+              <div className="pb-8">
+                <CollaborationMapPreview
+                  title="Colaboradores por país"
+                  subtitle="Distribución geográfica de los autores colaboradores de esta producción científica."
+                  scopeLabel={`${production.authors.length} autor${production.authors.length !== 1 ? 'es' : ''}`}
+                  points={countriesToCollaborationPoints(MOCK_COLLABORATION_COUNTRIES, production.authors.length)}
+                />
               </div>
             )}
           </div>
