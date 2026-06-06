@@ -32,7 +32,6 @@ describe('UnitsReaderService', () => {
         email: 'physics@ucr.ac.cr',
         pageUrl: 'https://www.ucr.ac.cr',
         phoneNumber: '+506 2511-0000',
-        imageUrl: '',
       };
       unitsRepository.findById.mockResolvedValue(mockUnit);
 
@@ -57,24 +56,6 @@ describe('UnitsReaderService', () => {
 
       expect(result).toBeNull();
       expect(unitsRepository.findById).toHaveBeenCalledWith(99999);
-    });
-
-    it('should not include imageUrl in the returned UnitDetailDto', async () => {
-      const mockUnit: Unit = {
-        id: 1,
-        isPartOf: null,
-        name: 'Escuela de Física',
-        description: 'Investigación en física teórica y experimental.',
-        email: 'physics@ucr.ac.cr',
-        pageUrl: 'https://www.ucr.ac.cr',
-        phoneNumber: '+506 2511-0000',
-        imageUrl: 'https://image.url/logo.png',
-      };
-      unitsRepository.findById.mockResolvedValue(mockUnit);
-
-      const result = await readerService.getById(1);
-
-      expect(result).not.toHaveProperty('imageUrl');
     });
   });
 

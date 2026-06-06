@@ -5,6 +5,7 @@ export interface Unit {
   description: string;
   email: string;
   pageUrl: string;
-  imageUrl: string;
+  logoSvgContent: string | null;
+  logoUnitAcronym: string | null;
   phoneNumber: string;
 }

@@ -33,7 +33,8 @@ export class GetUnitsPaginatedListUseCase {
       items: units.items.map((unit) => ({
         id: unit.id,
         name: unit.name,
-        imageUrl: unit.imageUrl,
+        logoSvgContent: unit.logoSvgContent,
+        logoUnitAcronym: unit.logoUnitAcronym,
       })),
       page: units.page,
       limit: units.limit,

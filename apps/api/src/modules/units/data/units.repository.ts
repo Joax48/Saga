@@ -52,7 +52,8 @@ const BASE_UNITS_SELECT = `
   SELECT
     u.unit_id AS "id",
     u.unit_name AS "name",
-    u.unit_image_url AS "imageUrl"
+    u.logo_svg_content AS "logoSvgContent",
+    u.logo_unit_acronym AS "logoUnitAcronym"
   FROM unit u
 `;
 
@@ -187,8 +188,10 @@ export class UnitsRepository {
           UP.profile_image_url AS "photoUrl"
         FROM UCR_Profile UP
         JOIN Profile P ON P.profile_id = UP.profile_id
-        LEFT JOIN Unit U ON U.unit_id = UP.base_unit
-        WHERE UP.base_unit = :unitId
+        JOIN UCR_PROFILE_WORK_UNIT PWU ON PWU.profile_id = P.profile_id
+          AND PWU.unit_id = :unitId
+          AND PWU.year = EXTRACT(YEAR FROM SYSDATE)
+        LEFT JOIN Unit U ON U.unit_id = PWU.unit_id
         ORDER BY P.profile_name ASC
       `,
       { unitId },

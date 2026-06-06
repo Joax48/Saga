@@ -15,6 +15,7 @@ export class OracleDatabaseProvider
 
   async onModuleInit() {
     oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
+    oracledb.fetchAsString = [oracledb.CLOB];
 
     this.pool = await oracledb.createPool({
       user: this.configService.get<string>('DB_USER'),

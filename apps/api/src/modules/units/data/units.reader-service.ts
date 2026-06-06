@@ -24,7 +24,8 @@ export class UnitsReaderService implements UnitsReader {
         (unit): UnitListItemDto => ({
           id: unit.id,
           name: unit.name,
-          imageUrl: unit.imageUrl,
+          logoSvgContent: unit.logoSvgContent,
+          logoUnitAcronym: unit.logoUnitAcronym,
         }),
       ),
       page: searchDTO.page,

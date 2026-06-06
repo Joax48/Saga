@@ -27,12 +27,13 @@ export default function UnitsList({ units }: UnitsListProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 mb-12">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
       {units.map((unit) => (
         <UnitCard
           key={unit.id}
           name={unit.name}
-          url={`/units/mock-images/logos/${unit.id}.png`}
+          logoSvgContent={unit.logoSvgContent}
+          logoUnitAcronym={unit.logoUnitAcronym}
           onClick={() => router.push(`/units/${unit.id}`)}
         />
       ))}

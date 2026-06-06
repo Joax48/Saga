@@ -1,25 +1,12 @@
-import { useState } from 'react';
-
 /**
  * Props for the UnitCard component.
  */
 type UnitCardProps = {
   name: string;
   onClick?: () => void;
-  url?: string;
+  logoSvgContent?: string | null;
+  logoUnitAcronym?: string | null;
 };
-
-function getInitials(name: string): string {
-  return name
-    .replace(/\(.*?\)/g, '')
-    .split(' ')
-    .filter(
-      (word) =>
-        word.length > 0 && word[0] === word[0].toUpperCase() && isNaN(Number(word[0])),
-    )
-    .map((word) => word[0].toUpperCase())
-    .join('');
-}
 
 /**
  * UnitCard component.
@@ -29,25 +16,35 @@ function getInitials(name: string): string {
  * @example
  * <UnitCard name="Escuela de Estadística" />
  */
-export default function UnitCard({ name, onClick, url }: UnitCardProps) {
-  const [imgFailed, setImgFailed] = useState(false);
-  const showPlaceholder = !url || imgFailed;
-
+export default function UnitCard({
+  name,
+  onClick,
+  logoSvgContent,
+  logoUnitAcronym,
+}: UnitCardProps) {
   return (
     <div
       onClick={onClick}
-      className="flex flex-col items-center gap-3 cursor-pointer group"
+      className="flex flex-col items-center gap-4 cursor-pointer group w-full max-w-sm mx-auto bg-white border border-neutral-200/60 rounded-2xl p-4 transition-all duration-200 hover:border-blue-300 hover:bg-neutral-50/30 hover:shadow-md"
     >
-      <div className="w-32 h-32 rounded-md flex items-center justify-center bg-[var(--color-bg-brand-secondary)]">
-        {showPlaceholder ? (
-          <span className="text-5xl font-bold text-[var(--color-text-brand-primary)]">
-            {getInitials(name)}
-          </span>
+      <div className="w-full h-24 flex items-center justify-center bg-transparent overflow-hidden">
+        {logoSvgContent ? (
+          <div
+            className="w-full h-full flex items-center justify-center [&>svg]:!w-full [&>svg]:!h-full [&>svg]:object-fill"
+            dangerouslySetInnerHTML={{ __html: logoSvgContent }}
+          />
         ) : (
-          <img src={url} alt={name} onError={() => setImgFailed(true)} />
+          <div className="text-center">
+            <span className="text-2xl font-bold tracking-wider text-[var(--color-text-brand-primary)]">
+              {logoUnitAcronym ?? name.substring(0, 3).toUpperCase()}
+            </span>
+          </div>
         )}
       </div>
-      <p className="text-center text-[var(--color-text-brand-primary)] font-medium leading-snug group-hover:underline">
+
+      <div className="w-16 h-[2px] bg-neutral-200 group-hover:bg-blue-400 transition-colors" />
+
+      <p className="text-center text-[var(--color-text-brand-primary)] text-sm font-bold leading-relaxed line-clamp-2 px-2 min-h-[44px] flex items-center justify-center group-hover:text-blue-900">
         {name}
       </p>
     </div>

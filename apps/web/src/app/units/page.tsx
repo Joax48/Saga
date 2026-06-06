@@ -152,7 +152,7 @@ export default function UnitsPage() {
 
       <section
         ref={resultsRef}
-        className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14 scroll-mt-10 flex-1"
+        className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-8 scroll-mt-10 flex-1"
       >
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

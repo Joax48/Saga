@@ -6,7 +6,8 @@ import { request } from './api';
 export interface Unit {
   id: number;
   name: string;
-  imageUrl: string;
+  logoSvgContent: string | null;
+  logoUnitAcronym: string | null;
 }
 
 /**

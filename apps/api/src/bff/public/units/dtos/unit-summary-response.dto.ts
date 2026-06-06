@@ -1,5 +1,6 @@
 export class UnitSummaryResponseDto {
   id!: number;
   name!: string;
-  imageUrl!: string;
+  logoSvgContent!: string | null;
+  logoUnitAcronym!: string | null;
 }
