@@ -4,6 +4,7 @@ import type { Researcher } from '@/types/researcher-data';
 import type { ResearcherProfile } from '@/types/researcher-profile';
 
 import type {
+  FacetOption,
   PaginatedResearchers,
   ResearcherFilters,
   ResearcherQueryFilters,
@@ -89,6 +90,7 @@ export function getResearchers(
   searchQuery = '',
   units?: string[],
   profileType?: 'UCR' | 'EXTERNAL',
+  collaborationCountries?: string[],
 ): Promise<PaginatedResearchers> {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
 
@@ -99,6 +101,12 @@ export function getResearchers(
   }
 
   if (profileType) params.set('profileType', profileType);
+
+  if (collaborationCountries && collaborationCountries.length > 0) {
+    collaborationCountries.forEach((country) =>
+      params.append('collaborationCountry', country),
+    );
+  }
 
   return request<PaginatedListResponseDto<ResearcherSummaryApiDto>>(
     `/researchers?${params.toString()}`,
@@ -139,20 +147,38 @@ export function getResearcherProfile(id: string): Promise<ResearcherProfile> {
  * NOT zero out after the user picks one — they show the count they *would*
  * have if the user switched selection.
  */
-export async function getResearcherFilters(
-  searchQuery = '',
+function buildFilterParams(
+  searchQuery: string,
   units?: string[],
-): Promise<ResearcherFilters> {
+  collaborationCountries?: string[],
+): string {
   const params = new URLSearchParams();
   if (searchQuery) params.set('q', searchQuery);
   if (units && units.length > 0) {
     units.forEach((unit) => params.append('unit', unit));
   }
+  if (collaborationCountries && collaborationCountries.length > 0) {
+    collaborationCountries.forEach((country) =>
+      params.append('collaborationCountry', country),
+    );
+  }
   const qs = params.toString();
+  return qs ? `?${qs}` : '';
+}
 
-  const response = await request<{ baseUnit: Array<{ value: string; count: number }> }>(
-    `/researchers/filters${qs ? `?${qs}` : ''}`,
-  );
+/**
+ * Unit ("Unidad de Pago") facet only — fast and reliable. The collaboration
+ * facet is fetched separately (getResearcherCollaborationFacet) because it is
+ * slow and must never block this one.
+ */
+export async function getResearcherFilters(
+  searchQuery = '',
+  units?: string[],
+  collaborationCountries?: string[],
+): Promise<Pick<ResearcherFilters, 'baseUnit'>> {
+  const response = await request<{
+    baseUnit: Array<{ value: string; count: number }>;
+  }>(`/researchers/filters${buildFilterParams(searchQuery, units, collaborationCountries)}`);
 
   return {
     baseUnit: response.baseUnit.map(({ value, count }) => ({
@@ -161,4 +187,42 @@ export async function getResearcherFilters(
       count, // real number of researchers given the current search/filters
     })),
   };
+}
+
+/**
+ * Collaboration-country facet — separate (slow) endpoint. Loaded on its own so
+ * a slow/failed response never affects the unit filter.
+ */
+export async function getResearcherCollaborationFacet(
+  searchQuery = '',
+  units?: string[],
+  collaborationCountries?: string[],
+): Promise<FacetOption[]> {
+  const response = await request<{
+    collaborationCountry: Array<{ value: string; count: number }>;
+  }>(
+    `/researchers/filters/collaboration${buildFilterParams(
+      searchQuery,
+      units,
+      collaborationCountries,
+    )}`,
+  );
+
+  return (response.collaborationCountry ?? []).map(({ value, count }) => ({
+    value,
+    label: value, // the visible label is the country name itself
+    count,
+  }));
+}
+
+/**
+ * Collaboration-network countries for a single researcher (with a weight per
+ * country), used to render the real collaboration map on the profile page.
+ */
+export function getResearcherCollaborationCountries(
+  id: string,
+): Promise<{ country: string; count: number }[]> {
+  return request<{ country: string; count: number }[]>(
+    `/researchers/${id}/collaboration-countries`,
+  );
 }

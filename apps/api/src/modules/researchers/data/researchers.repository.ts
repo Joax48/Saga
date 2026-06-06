@@ -4,6 +4,15 @@ import {
   DATABASE_CLIENT,
   DatabaseClient,
 } from '../../../common/database/database-client.contract';
+import {
+  PROFILE_FULL_NAME_SQL,
+  PROJECT_PRIMARY_INVESTIGATOR_SUBQUERY,
+} from '../../projects/data/projects.queries';
+import {
+  AUTHORS_ALL_SUBQUERY,
+  BASE_FROM,
+  KEYWORDS_SUBQUERY,
+} from '../../scientific-productions/data/scientific-productions.queries';
 import type { Researcher } from '../researcher.entity';
 import type { ResearchersFiltersRequestDto } from '../researchers.reader.contract';
 
@@ -60,13 +69,14 @@ const RESEARCHER_PROFILE_TYPE_JOIN = `
  * Main SELECT joining tables from the PRODUCCION_CIENTIFICA schema:
  *  - PROFILE       → name and surnames (base table for every profile)
  *  - UCR_PROFILE   → internal contact info (orcid, linkedin, photo); NULL for externals
- *  - UNIT          → academic unit name
  *
  * UCR_PROFILE is LEFT JOINed because external profiles have no row there, so
  * their orcid/linkedin/photo come back NULL.
  *
- * The subquery inside the units LEFT JOIN picks ONE unit per researcher
- * (the one with the lowest UNIT_ID) to avoid duplicate rows.
+ * NOTE — the academic unit ("baseUnit") is intentionally NOT joined here.
+ * It is resolved through an independent query (findBaseUnitsByResearcherIds)
+ * and merged in the service layer, so the researcher query and the unit query
+ * stay decoupled and can evolve separately.
  *
  * IMPORTANT — Oracle with OUT_FORMAT_OBJECT returns column aliases in
  * UPPERCASE unless they are wrapped in double quotes. All aliases here
@@ -76,7 +86,6 @@ const BASE_RESEARCHERS_SELECT = `
   SELECT
     p.PROFILE_ID        AS "id",
     up.PROFILE_ID       AS "idUcrProfile",
-    u.UNIT_NAME         AS "baseUnit",
     p.PROFILE_NAME      AS "name",
     p.PROFILE_FIRST_SURNAME  AS "firstSurname",
     p.PROFILE_LAST_SURNAME   AS "secondSurname",
@@ -99,12 +108,6 @@ const BASE_RESEARCHERS_SELECT = `
   ) epi ON epi.PROFILE_ID = p.PROFILE_ID
   LEFT JOIN PRODUCCION_CIENTIFICA.INSTITUTION ext_inst ON ext_inst.INSTITUTION_ID = epi.INSTITUTION_ID
   LEFT JOIN PRODUCCION_CIENTIFICA.COUNTRY ext_c ON ext_c.COUNTRY_ID = ext_inst.INSTITUTION_COUNTRY
-  LEFT JOIN (
-    SELECT PROFILE_ID, MIN(UNIT_ID) AS UNIT_ID
-    FROM PRODUCCION_CIENTIFICA.UCR_PROFILE_PROJECT_UNIT
-    GROUP BY PROFILE_ID
-  ) uppu ON uppu.PROFILE_ID = p.PROFILE_ID
-  LEFT JOIN PRODUCCION_CIENTIFICA.UNIT u ON u.UNIT_ID = uppu.UNIT_ID
 `;
 
 /**
@@ -121,7 +124,9 @@ const COUNT_RESEARCHERS_QUERY = `
 
 type BuiltWhereClause = {
   clause: string; // SQL text with bind variables (:1, :2, ...)
-  params: unknown[]; // values in the same order as the bind variables
+  params: unknown[]; // values for WHERE clause bind variables
+  scoreExpr?: string; // relevance score expression for ORDER BY (uses scoreParams)
+  scoreParams?: unknown[]; // extra values for score bind variables (appended after params)
 };
 
 type FilterField = keyof ResearchersFiltersRequestDto;
@@ -172,14 +177,22 @@ export class ResearchersRepository {
     offset: number,
     builtWhereClause: BuiltWhereClause,
   ): Promise<Researcher[]> {
+    const nameOrder = `p.PROFILE_NAME ASC, p.PROFILE_FIRST_SURNAME ASC, p.PROFILE_LAST_SURNAME ASC`;
+    const orderBy = builtWhereClause.scoreExpr
+      ? `ORDER BY ${builtWhereClause.scoreExpr} DESC, ${nameOrder}`
+      : `ORDER BY ${nameOrder}`;
+    // Score bind variables extend beyond the WHERE clause params, so combine them
+    const queryParams = builtWhereClause.scoreParams
+      ? [...builtWhereClause.params, ...builtWhereClause.scoreParams]
+      : builtWhereClause.params;
     return this.databaseClient.query<Researcher>(
       `
         ${BASE_RESEARCHERS_SELECT}
         ${builtWhereClause.clause}
-        ORDER BY p.PROFILE_NAME ASC, p.PROFILE_FIRST_SURNAME ASC, p.PROFILE_LAST_SURNAME ASC
+        ${orderBy}
         OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
       `,
-      builtWhereClause.params,
+      queryParams,
     );
   }
 
@@ -251,6 +264,41 @@ export class ResearchersRepository {
     return excludedFilters.includes(field);
   }
 
+  /**
+   * EXISTS fragment that is true when the researcher identified by
+   * `profileColumn` co-authored a scientific output with an EXTERNAL profile
+   * whose institution belongs to one of the countries in `placeholders`
+   * (a comma-separated list of bind variables, already lower-cased values).
+   *
+   * The co-author's institution/country is resolved through
+   * UCR_PROFILE_EDUCATION — the same path the scientific-productions module
+   * uses (AFFILIATIONS_SUBQUERY) to attach external authors' affiliations.
+   * (EXTERNAL_PROFILE_INSTITUTION does not reference the co-author profiles in
+   * this dataset, so it cannot be used here.)
+   *
+   * Shared by the WHERE-clause filter and the per-profile collaboration query
+   * so both use exactly the same definition of "collaborates with a country".
+   */
+  private collaborationCountryExists(profileColumn: string, placeholders: string): string {
+    return `EXISTS (
+      SELECT 1
+      FROM PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_PROFILE sop_self
+      JOIN PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_PROFILE sop_co
+        ON sop_co.SCIENTIFIC_OUTPUT_ID = sop_self.SCIENTIFIC_OUTPUT_ID
+       AND sop_co.PROFILE_ID <> sop_self.PROFILE_ID
+      JOIN PRODUCCION_CIENTIFICA.EXTERNAL_PROFILE ep_co
+        ON ep_co.PROFILE_ID = sop_co.PROFILE_ID
+      JOIN PRODUCCION_CIENTIFICA.UCR_PROFILE_EDUCATION edu_co
+        ON edu_co.PROFILE_ID = sop_co.PROFILE_ID
+      JOIN PRODUCCION_CIENTIFICA.INSTITUTION inst_co
+        ON inst_co.INSTITUTION_ID = edu_co.INSTITUTION
+      JOIN PRODUCCION_CIENTIFICA.COUNTRY ctry_co
+        ON ctry_co.COUNTRY_ID = inst_co.INSTITUTION_COUNTRY
+      WHERE sop_self.PROFILE_ID = ${profileColumn}
+        AND LOWER(ctry_co.COUNTRY_NAME) IN (${placeholders})
+    )`;
+  }
+
   private buildWhereClause(
     searchTerm?: string | null,
     filters?: ResearchersFiltersRequestDto,
@@ -261,25 +309,38 @@ export class ResearchersRepository {
 
     const searchTokens = this.tokenizeSearchTerm(searchTerm);
     if (searchTokens.length > 0) {
-      // Each token must start at least one name field (name, first surname,
-      // or second surname). Tokens are AND-ed so multi-word queries work:
-      // "Kenneth Osorio" matches "Kenneth Santiago Osorio Masís" because
-      // "Kenneth" starts PROFILE_NAME and "Osorio" starts PROFILE_LAST_SURNAME.
+      // Each token must match at least one name field (primary OR alternative name).
+      // Tokens are AND-ed so multi-word queries work: "Kenneth Osorio" matches
+      // "Kenneth Santiago Osorio Masís" because "Kenneth" starts PROFILE_NAME
+      // and "Osorio" starts PROFILE_LAST_SURNAME.
       const tokenClauses = searchTokens.map((token) => {
         const b1 = this.addParam(params, token);
         const b2 = this.addParam(params, token);
         const b3 = this.addParam(params, token);
+        // alt NAME can be compound (e.g. "LUIS GUSTAVO"), so use a contains
+        // pattern (%token%) instead of starts-with; FIRST/LAST are single words
+        const a1 = this.addParam(params, `%${token}`);
+        const a2 = this.addParam(params, token);
+        const a3 = this.addParam(params, token);
         return (
           `(LOWER(p.PROFILE_NAME) LIKE LOWER(${b1}) ` +
           `OR LOWER(p.PROFILE_FIRST_SURNAME) LIKE LOWER(${b2}) ` +
-          `OR LOWER(p.PROFILE_LAST_SURNAME) LIKE LOWER(${b3}))`
+          `OR LOWER(p.PROFILE_LAST_SURNAME) LIKE LOWER(${b3}) ` +
+          `OR EXISTS (` +
+          `SELECT 1 FROM PRODUCCION_CIENTIFICA.UCR_PROFILE_ALTERNATIVE_NAME an ` +
+          `WHERE an.PROFILE_ID = p.PROFILE_ID ` +
+          `AND (LOWER(an.NAME) LIKE LOWER(${a1}) ` +
+          `OR LOWER(an.FIRST_SURNAME) LIKE LOWER(${a2}) ` +
+          `OR LOWER(an.LAST_SURNAME) LIKE LOWER(${a3}))))`
         );
       });
       clauses.push(`(${tokenClauses.join(' AND ')})`);
     }
 
     if (filters?.profileType && ['UCR', 'EXTERNAL'].includes(filters.profileType)) {
-      clauses.push(`profile_kind.PROFILE_TYPE = ${this.addParam(params, filters.profileType)}`);
+      clauses.push(
+        `profile_kind.PROFILE_TYPE = ${this.addParam(params, filters.profileType)}`,
+      );
     }
 
     const units = this.normalizeFilterValues(filters?.unit);
@@ -288,16 +349,59 @@ export class ResearchersRepository {
       const placeholders = units.map((unit) => this.addParam(params, unit)).join(', ');
       clauses.push(`EXISTS (
         SELECT 1
-        FROM PRODUCCION_CIENTIFICA.UCR_PROFILE_PROJECT_UNIT uppu2
+        FROM PRODUCCION_CIENTIFICA.UCR_PROFILE_WORK_UNIT uppu2
         JOIN PRODUCCION_CIENTIFICA.UNIT u2 ON u2.UNIT_ID = uppu2.UNIT_ID
         WHERE uppu2.PROFILE_ID = p.PROFILE_ID
+          AND uppu2.YEAR = EXTRACT(YEAR FROM SYSDATE)
           AND LOWER(u2.UNIT_NAME) IN (${placeholders})
       )`);
+    }
+
+    const collaborationCountries = this.normalizeFilterValues(filters?.collaborationCountry);
+    if (
+      !this.shouldSkipFilter('collaborationCountry', excludedFilters) &&
+      collaborationCountries.length > 0
+    ) {
+      // International collaboration: the researcher co-authored a scientific
+      // output with an EXTERNAL profile whose institution is in one of the
+      // selected countries. EXISTS keeps the row count one-per-researcher.
+      const placeholders = collaborationCountries
+        .map((country) => this.addParam(params, country))
+        .join(', ');
+      clauses.push(this.collaborationCountryExists('p.PROFILE_ID', placeholders));
+    }
+
+    // Score expression is built LAST so its bind variable indices start after
+    // all WHERE/filter params — avoiding collisions with the WHERE clause params.
+    // scoreParams is kept separate: COUNT and filter queries use only `params`;
+    // findItemsPage appends scoreParams for the ORDER BY expression.
+    let scoreExpr: string | undefined;
+    let scoreParams: unknown[] | undefined;
+    if (searchTokens.length > 0) {
+      const offset = params.length;
+      scoreParams = [];
+      const addScore = (value: unknown): string => {
+        scoreParams!.push(value);
+        return `:${offset + scoreParams!.length}`;
+      };
+      // Relevance score: count how many distinct primary name fields match any token.
+      // "Gutierrez Gutierrez" → score=2 for profiles where both FIRST and LAST
+      // match; score=1 for profiles where only one field matches.
+      const scoreCases = ['p.PROFILE_NAME', 'p.PROFILE_FIRST_SURNAME', 'p.PROFILE_LAST_SURNAME']
+        .map((field) => {
+          const orParts = searchTokens
+            .map((token) => `LOWER(${field}) LIKE LOWER(${addScore(token)})`)
+            .join(' OR ');
+          return `CASE WHEN ${orParts} THEN 1 ELSE 0 END`;
+        });
+      scoreExpr = `(${scoreCases.join(' + ')})`;
     }
 
     return {
       clause: clauses.length > 0 ? `WHERE ${clauses.join(' AND ')}` : '',
       params,
+      scoreExpr,
+      scoreParams,
     };
   }
 
@@ -317,6 +421,101 @@ export class ResearchersRepository {
     );
 
     return researchers[0] ?? null;
+  }
+
+  /**
+   * Updates the social/profile links for a UCR profile.
+   * If the UCR_PROFILE row does not exist, an insert is attempted.
+   * Accepts partial fields; fields with empty string are stored as NULL (to delete).
+   */
+  async updateLinks(
+    profileId: string,
+    fields: Partial<{
+      orcidId: string | null;
+      linkedin: string | null;
+      researchGate: string | null;
+      scopus: string | null;
+    }>,
+  ): Promise<void> {
+    // Separate fields that belong to UCR_PROFILE (orcid, linkedin, researchGate) and those that belong to PROFILE (scopus)
+    const ucrMap: Array<[keyof typeof fields, string]> = [
+      ['orcidId', 'ORCID_ID'],
+      ['linkedin', 'LINKEDIN_URL'],
+      ['researchGate', 'RESEARCH_GATE_URL'],
+    ];
+    const profileMap: Array<[keyof typeof fields, string]> = [
+      ['scopus', 'SCOPUS_PROFILE_LINK'],
+    ];
+
+    // Update PROFILE table (scopus)
+    const profileSet: string[] = [];
+    const profileParams: unknown[] = [];
+    for (const [key, column] of profileMap) {
+      if (Object.prototype.hasOwnProperty.call(fields, key)) {
+        const raw = fields[key as keyof typeof fields];
+        const value = raw === '' ? null : raw;
+        profileParams.push(value);
+        profileSet.push(`${column} = :${profileParams.length}`);
+      }
+    }
+
+    // If no PROFILE fields present, skip to UCR_PROFILE updates
+    if (profileSet.length > 0) {
+      profileParams.push(profileId);
+      const whereBind = `:${profileParams.length}`;
+      const sql = `UPDATE PRODUCCION_CIENTIFICA.PROFILE SET ${profileSet.join(', ')} WHERE PROFILE_ID = ${whereBind}`;
+      await this.databaseClient.query(sql, profileParams);
+    }
+
+    // Update or insert UCR_PROFILE for other links
+    const ucrSet: string[] = [];
+    const ucrParams: unknown[] = [];
+    for (const [key, column] of ucrMap) {
+      if (Object.prototype.hasOwnProperty.call(fields, key)) {
+        const raw = fields[key as keyof typeof fields];
+        const value = raw === '' ? null : raw;
+        ucrParams.push(value);
+        ucrSet.push(`${column} = :${ucrParams.length}`);
+      }
+    }
+
+    // If no UCR fields present, it's done
+    if (ucrSet.length === 0) return;
+
+    // Check if UCR_PROFILE row exists for this profileId to decide between UPDATE and INSERT
+    const existing = await this.databaseClient.query(
+      `SELECT PROFILE_ID FROM PRODUCCION_CIENTIFICA.UCR_PROFILE WHERE PROFILE_ID = :1 FETCH FIRST 1 ROWS ONLY`,
+      [profileId],
+    );
+
+    if (existing && existing.length > 0) {
+      // Perform update
+      ucrParams.push(profileId);
+      const whereBind = `:${ucrParams.length}`;
+      const sql = `UPDATE PRODUCCION_CIENTIFICA.UCR_PROFILE SET ${ucrSet.join(', ')} WHERE PROFILE_ID = ${whereBind}`;
+      await this.databaseClient.query(sql, ucrParams);
+    } else {
+      // Perform insert
+      const insertCols: string[] = ['PROFILE_ID'];
+      const insertBinds: string[] = [':1'];
+      const insertParams: unknown[] = [profileId];
+
+      // Search for all UCR_PROFILE fields in the input and prepare the insert statement dynamically
+      for (const [key, column] of ucrMap) {
+        if (Object.prototype.hasOwnProperty.call(fields, key)) {
+          insertCols.push(column);
+          insertParams.push(
+            fields[key as keyof typeof fields] === ''
+              ? null
+              : fields[key as keyof typeof fields],
+          );
+          insertBinds.push(`:${insertParams.length}`);
+        }
+      }
+
+      const insertSql = `INSERT INTO PRODUCCION_CIENTIFICA.UCR_PROFILE (${insertCols.join(', ')}) VALUES (${insertBinds.join(', ')})`;
+      await this.databaseClient.query(insertSql, insertParams);
+    }
   }
 
   // ── Profile sub-queries (per researcher) ──────────────────────────────────
@@ -424,7 +623,7 @@ export class ResearchersRepository {
 
   /** Official work units for a single profile, from UCR_PROFILE_WORK_UNIT. */
   async findWorkUnits(profileId: string): Promise<{ id: string; name: string }[]> {
-    return this.findProfileUnits('UCR_PROFILE_WORK_UNIT', profileId);
+    return this.findProfileUnits('UCR_PROFILE_WORK_UNIT', profileId, true);
   }
 
   /**
@@ -434,41 +633,46 @@ export class ResearchersRepository {
   async findWorkUnitsByResearcherIds(
     profileIds: string[],
   ): Promise<Map<string, { id: string; name: string }[]>> {
-    return this.findProfileUnitsByIds('UCR_PROFILE_WORK_UNIT', profileIds);
+    return this.findProfileUnitsByIds('UCR_PROFILE_WORK_UNIT', profileIds, true);
   }
 
-  /** All institutions for a set of external profiles, grouped by profile id. */
-  async findInstitutionsByResearcherIds(
-    profileIds: string[],
-  ): Promise<Map<string, { name: string; country: string | null }[]>> {
+  /**
+   * Independent "units" query that resolves each researcher's base unit.
+   *
+   * This used to be a LEFT JOIN inside BASE_RESEARCHERS_SELECT; it was split
+   * out so the researcher query and the unit query run separately and can
+   * evolve on their own. The base unit is the one with the lowest UNIT_ID for
+   * the current year — picking a single row per profile keeps the mapping
+   * one-to-one (no duplicate researchers).
+   *
+   * Returns a Map of profileId → unit name so the service can attach it.
+   */
+  async findBaseUnitsByResearcherIds(profileIds: string[]): Promise<Map<string, string>> {
     if (profileIds.length === 0) return new Map();
 
     const placeholders = profileIds.map((_, i) => `:${i + 1}`).join(', ');
     const rows = await this.databaseClient.query<{
       profileId: string;
-      name: string;
-      country: string | null;
+      baseUnit: string;
     }>(
       `
-        SELECT
-          epi.PROFILE_ID        AS "profileId",
-          inst.INSTITUTION_NAME AS "name",
-          c.COUNTRY_NAME        AS "country"
-        FROM PRODUCCION_CIENTIFICA.EXTERNAL_PROFILE_INSTITUTION epi
-        JOIN PRODUCCION_CIENTIFICA.INSTITUTION inst ON inst.INSTITUTION_ID = epi.INSTITUTION_ID
-        LEFT JOIN PRODUCCION_CIENTIFICA.COUNTRY c ON c.COUNTRY_ID = inst.INSTITUTION_COUNTRY
-        WHERE epi.PROFILE_ID IN (${placeholders})
-        ORDER BY epi.PROFILE_ID ASC, inst.INSTITUTION_NAME ASC
+        SELECT base.PROFILE_ID AS "profileId", u.UNIT_NAME AS "baseUnit"
+        FROM (
+          SELECT PROFILE_ID, MIN(UNIT_ID) AS UNIT_ID
+          FROM PRODUCCION_CIENTIFICA.UCR_PROFILE_WORK_UNIT
+          WHERE YEAR = EXTRACT(YEAR FROM SYSDATE)
+            AND PROFILE_ID IN (${placeholders})
+          GROUP BY PROFILE_ID
+        ) base
+        JOIN PRODUCCION_CIENTIFICA.UNIT u ON u.UNIT_ID = base.UNIT_ID
       `,
       profileIds,
     );
 
     return rows.reduce((acc, row) => {
-      const list = acc.get(String(row.profileId)) ?? [];
-      list.push({ name: row.name, country: row.country });
-      acc.set(String(row.profileId), list);
+      acc.set(String(row.profileId), row.baseUnit);
       return acc;
-    }, new Map<string, { name: string; country: string | null }[]>());
+    }, new Map<string, string>());
   }
 
   /** All institutions for a set of external profiles, grouped by profile id. */
@@ -524,7 +728,11 @@ export class ResearchersRepository {
   private async findProfileUnits(
     joinTable: ProfileUnitJoinTable,
     profileId: string,
+    currentYearOnly = false,
   ): Promise<{ id: string; name: string }[]> {
+    const yearClause = currentYearOnly
+      ? 'AND jt.YEAR = EXTRACT(YEAR FROM SYSDATE)'
+      : '';
     return this.databaseClient.query(
       `
         SELECT DISTINCT
@@ -532,7 +740,7 @@ export class ResearchersRepository {
           u.UNIT_NAME AS "name"
         FROM PRODUCCION_CIENTIFICA.${joinTable} jt
         JOIN PRODUCCION_CIENTIFICA.UNIT u ON u.UNIT_ID = jt.UNIT_ID
-        WHERE jt.PROFILE_ID = :1 AND u.UNIT_NAME IS NOT NULL
+        WHERE jt.PROFILE_ID = :1 AND u.UNIT_NAME IS NOT NULL ${yearClause}
         ORDER BY u.UNIT_NAME ASC
       `,
       [profileId],
@@ -543,10 +751,14 @@ export class ResearchersRepository {
   private async findProfileUnitsByIds(
     joinTable: ProfileUnitJoinTable,
     profileIds: string[],
+    currentYearOnly = false,
   ): Promise<Map<string, { id: string; name: string }[]>> {
     if (profileIds.length === 0) return new Map();
 
     const placeholders = profileIds.map((_, i) => `:${i + 1}`).join(', ');
+    const yearClause = currentYearOnly
+      ? 'AND jt.YEAR = EXTRACT(YEAR FROM SYSDATE)'
+      : '';
     const rows = await this.databaseClient.query<{
       profileId: string;
       id: string;
@@ -559,7 +771,7 @@ export class ResearchersRepository {
           u.UNIT_NAME   AS "name"
         FROM PRODUCCION_CIENTIFICA.${joinTable} jt
         JOIN PRODUCCION_CIENTIFICA.UNIT u ON u.UNIT_ID = jt.UNIT_ID
-        WHERE jt.PROFILE_ID IN (${placeholders}) AND u.UNIT_NAME IS NOT NULL
+        WHERE jt.PROFILE_ID IN (${placeholders}) AND u.UNIT_NAME IS NOT NULL ${yearClause}
         ORDER BY jt.PROFILE_ID ASC, u.UNIT_NAME ASC
       `,
       profileIds,
@@ -595,21 +807,25 @@ export class ResearchersRepository {
     return this.databaseClient.query(
       `
         SELECT
-          p.PROJECT_ID                AS "id",
-          p.PROJECT_ID                AS "code",
-          p.PROJECT_NAME              AS "name",
-          NULL                        AS "manager",
-          period.PROJECT_START_DATE   AS "startDate",
-          period.PROJECT_END_DATE     AS "endDate",
+          p.PROJECT_ID                   AS "id",
+          p.PROJECT_ID                   AS "code",
+          p.PROJECT_NAME                 AS "name",
+          ${PROFILE_FULL_NAME_SQL('manager_profile')} AS "manager",
+          period.PROJECT_START_DATE      AS "startDate",
+          period.PROJECT_END_DATE        AS "endDate",
           prt.PROJECT_RESEARCH_TYPE_NAME AS "researchType",
-          pt.PROJECT_TYPE_NAME        AS "projectType",
-          ps.PROJECT_STATUS_NAME      AS "status"
+          pt.PROJECT_TYPE_NAME           AS "projectType",
+          ps.PROJECT_STATUS_NAME         AS "status"
         FROM PRODUCCION_CIENTIFICA.PROJECT p
         JOIN (
           SELECT DISTINCT PROJECT_ID
           FROM PRODUCCION_CIENTIFICA.UCR_PROFILE_PROJECT_UNIT
           WHERE PROFILE_ID = :1
         ) up ON up.PROJECT_ID = p.PROJECT_ID
+        LEFT JOIN (${PROJECT_PRIMARY_INVESTIGATOR_SUBQUERY}) pi
+          ON pi.PROJECT_ID = p.PROJECT_ID
+        LEFT JOIN PRODUCCION_CIENTIFICA.PROFILE manager_profile
+          ON manager_profile.PROFILE_ID = pi.PROFILE_ID
         LEFT JOIN PRODUCCION_CIENTIFICA.PROJECT_TYPE pt ON pt.PROJECT_TYPE_ID = p.PROJECT_TYPE
         LEFT JOIN PRODUCCION_CIENTIFICA.PROJECT_RESEARCH_TYPE prt ON prt.PROJECT_RESEARCH_TYPE_ID = p.PROJECT_RESEARCH_TYPE
         LEFT JOIN PRODUCCION_CIENTIFICA.PROJECT_STATUS ps ON ps.PROJECT_STATUS_ID = p.PROJECT_STATUS
@@ -656,15 +872,15 @@ export class ResearchersRepository {
   }
 
   /**
-   * Scientific outputs authored by the researcher.
-   * Joins SCIENTIFIC_OUTPUT_PROFILE with SOURCE and the two type-specific tables
-   * (Scopus/Clarivate) which carry volume/issue/page metadata and the type id.
-   * COALESCE prefers Scopus values, falling back to Clarivate when missing.
+   * Scientific outputs authored by the researcher, with authors and keywords
+   * aggregated as JSON using the shared query fragments from the
+   * scientific-productions module.
    */
   async findScientificOutputs(profileId: string): Promise<
     {
       id: string;
       title: string;
+      authors: string | null;
       typeName: string | null;
       openAccess: number | null;
       publicationYear: number | null;
@@ -674,29 +890,35 @@ export class ResearchersRepository {
       issue: string | null;
       pages: string | null;
       citationCount: number | null;
+      keywords: string | null;
     }[]
   > {
     return this.databaseClient.query(
       `
         SELECT
-          so.SCIENTIFIC_OUTPUT_ID    AS "id",
-          so.TITLE                   AS "title",
-          sot.SCIENTIFIC_OUTPUT_TYPE_NAME AS "typeName",
-          scopus.OPEN_ACCESS         AS "openAccess",
-          so.PUBLICATION_YEAR        AS "publicationYear",
-          so.DOI                     AS "doi",
-          src.SOURCE_NAME            AS "journal",
-          COALESCE(scopus.VOLUME, clar.VOLUME)                       AS "volume",
-          COALESCE(scopus.ISSUE_IDENTIFIER, clar.ISSUE_IDENTIFIER)   AS "issue",
-          COALESCE(scopus.SCOPUS_PAGE_RANGE, clar.CLARIVATE_PAGE_RANGE) AS "pages",
-          COALESCE(scopus.SCOPUS_CITATION_COUNT, clar.CLARIVATE_CITATION_COUNT) AS "citationCount"
-        FROM PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_PROFILE sop
-        JOIN PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT so ON so.SCIENTIFIC_OUTPUT_ID = sop.SCIENTIFIC_OUTPUT_ID
-        LEFT JOIN PRODUCCION_CIENTIFICA.SOURCE src ON src.SOURCE_ID = so.SOURCE
-        LEFT JOIN PRODUCCION_CIENTIFICA.SCOPUS_SCIENTIFIC_OUTPUT scopus ON scopus.SCIENTIFIC_OUTPUT_ID = so.SCIENTIFIC_OUTPUT_ID
-        LEFT JOIN PRODUCCION_CIENTIFICA.CLARIVATE_SCIENTIFIC_OUTPUT clar ON clar.SCIENTIFIC_OUTPUT_ID = so.SCIENTIFIC_OUTPUT_ID
-        LEFT JOIN PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_TYPE sot
-          ON sot.SCIENTIFIC_OUTPUT_TYPE_ID = COALESCE(scopus.SCOPUS_TYPE, clar.CLARIVATE_TYPE)
+          so.SCIENTIFIC_OUTPUT_ID                                                    AS "id",
+          so.TITLE                                                                   AS "title",
+          authors_sub.authors                                                        AS "authors",
+          sot.SCIENTIFIC_OUTPUT_TYPE_NAME                                            AS "typeName",
+          CASE WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN sc.OPEN_ACCESS
+               ELSE NULL END                                                         AS "openAccess",
+          so.PUBLICATION_YEAR                                                        AS "publicationYear",
+          so.DOI                                                                     AS "doi",
+          src.SOURCE_NAME                                                            AS "journal",
+          CASE WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN sc.VOLUME
+               ELSE cl.VOLUME END                                                    AS "volume",
+          CASE WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN sc.ISSUE_IDENTIFIER
+               ELSE cl.ISSUE_IDENTIFIER END                                          AS "issue",
+          CASE WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN sc.SCOPUS_PAGE_RANGE
+               ELSE cl.CLARIVATE_PAGE_RANGE END                                      AS "pages",
+          CASE WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN sc.SCOPUS_CITATION_COUNT
+               ELSE cl.CLARIVATE_CITATION_COUNT END                                  AS "citationCount",
+          keywords_sub.keywords                                                      AS "keywords"
+        ${BASE_FROM}
+        JOIN PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_PROFILE sop
+          ON sop.SCIENTIFIC_OUTPUT_ID = so.SCIENTIFIC_OUTPUT_ID
+        ${AUTHORS_ALL_SUBQUERY}
+        ${KEYWORDS_SUBQUERY}
         WHERE sop.PROFILE_ID = :1
         ORDER BY so.PUBLICATION_YEAR DESC NULLS LAST, so.TITLE ASC
       `,
@@ -722,68 +944,6 @@ export class ResearchersRepository {
 
     const value = rows[0]?.hIndex;
     return value == null ? null : Number(value);
-  }
-
-  /** Co-authors per scientific output (used to render the authors line). */
-  async findAuthorsByOutputIds(outputIds: string[]): Promise<Map<string, string[]>> {
-    if (outputIds.length === 0) {
-      return new Map();
-    }
-
-    const placeholders = outputIds.map((_, i) => `:${i + 1}`).join(', ');
-    const rows = await this.databaseClient.query<{
-      outputId: string;
-      fullName: string;
-    }>(
-      `
-        SELECT
-          sop.SCIENTIFIC_OUTPUT_ID AS "outputId",
-          TRIM(p.PROFILE_NAME || ' ' || p.PROFILE_FIRST_SURNAME ||
-               CASE WHEN p.PROFILE_LAST_SURNAME IS NULL THEN ''
-                    ELSE ' ' || p.PROFILE_LAST_SURNAME END) AS "fullName"
-        FROM PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_PROFILE sop
-        JOIN PRODUCCION_CIENTIFICA.PROFILE p ON p.PROFILE_ID = sop.PROFILE_ID
-        WHERE sop.SCIENTIFIC_OUTPUT_ID IN (${placeholders})
-        ORDER BY sop.SCIENTIFIC_OUTPUT_ID ASC, p.PROFILE_FIRST_SURNAME ASC
-      `,
-      outputIds,
-    );
-
-    return rows.reduce((acc, row) => {
-      const list = acc.get(row.outputId) ?? [];
-      list.push(row.fullName);
-      acc.set(row.outputId, list);
-      return acc;
-    }, new Map<string, string[]>());
-  }
-
-  /** Keywords per scientific output, grouped by output id. */
-  async findKeywordsByOutputIds(outputIds: string[]): Promise<Map<string, string[]>> {
-    if (outputIds.length === 0) {
-      return new Map();
-    }
-
-    const placeholders = outputIds.map((_, i) => `:${i + 1}`).join(', ');
-    const rows = await this.databaseClient.query<{
-      outputId: string;
-      keyword: string;
-    }>(
-      `
-        SELECT sok.SCIENTIFIC_OUTPUT_ID AS "outputId", k.KEYWORD AS "keyword"
-        FROM PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_KEYWORD sok
-        JOIN PRODUCCION_CIENTIFICA.KEYWORD k ON k.KEYWORD_ID = sok.KEYWORD_ID
-        WHERE sok.SCIENTIFIC_OUTPUT_ID IN (${placeholders})
-        ORDER BY sok.SCIENTIFIC_OUTPUT_ID ASC, k.KEYWORD ASC
-      `,
-      outputIds,
-    );
-
-    return rows.reduce((acc, row) => {
-      const list = acc.get(row.outputId) ?? [];
-      list.push(row.keyword);
-      acc.set(row.outputId, list);
-      return acc;
-    }, new Map<string, string[]>());
   }
 
   // ── Researcher count per unit (for filters) ───────────────────────────────
@@ -814,14 +974,99 @@ export class ResearchersRepository {
         SELECT u.UNIT_NAME AS "baseUnit", COUNT(DISTINCT p.PROFILE_ID) AS "count"
         FROM PRODUCCION_CIENTIFICA.PROFILE p
         ${RESEARCHER_PROFILE_TYPE_JOIN}
-        JOIN PRODUCCION_CIENTIFICA.UCR_PROFILE_PROJECT_UNIT uppu ON uppu.PROFILE_ID = p.PROFILE_ID
+        JOIN PRODUCCION_CIENTIFICA.UCR_PROFILE_WORK_UNIT uppu ON uppu.PROFILE_ID = p.PROFILE_ID
         JOIN PRODUCCION_CIENTIFICA.UNIT u ON u.UNIT_ID = uppu.UNIT_ID
         WHERE u.UNIT_NAME IS NOT NULL
+          AND uppu.YEAR = EXTRACT(YEAR FROM SYSDATE)
         ${extraConditions}
         GROUP BY u.UNIT_NAME
         ORDER BY u.UNIT_NAME ASC
       `,
       builtWhereClause.params,
+    );
+  }
+
+  // ── Collaboration network (per country) ───────────────────────────────────
+
+  /**
+   * Returns how many researchers collaborate with each country, recalculated
+   * from the current search term and the rest of the filters. Mirrors
+   * getBaseUnitCounts: the `collaborationCountry` facet is excluded from the
+   * WHERE clause so its own options do not zero out once the user picks one.
+   *
+   * "Collaborates with a country" = co-authored a scientific output with an
+   * external profile whose institution is in that country.
+   */
+  async getCollaborationCountryCounts(
+    searchTerm?: string | null,
+    filters?: ResearchersFiltersRequestDto,
+  ): Promise<BaseUnitCountRow[]> {
+    const builtWhereClause = this.buildWhereClause(searchTerm, filters, [
+      'collaborationCountry',
+    ]);
+    const extraConditions = builtWhereClause.clause
+      ? `AND ${builtWhereClause.clause.replace(/^WHERE\s+/i, '')}`
+      : '';
+
+    return this.databaseClient.query<BaseUnitCountRow>(
+      `
+        SELECT ctry.COUNTRY_NAME AS "baseUnit", COUNT(DISTINCT p.PROFILE_ID) AS "count"
+        FROM PRODUCCION_CIENTIFICA.PROFILE p
+        ${RESEARCHER_PROFILE_TYPE_JOIN}
+        JOIN PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_PROFILE sop_self
+          ON sop_self.PROFILE_ID = p.PROFILE_ID
+        JOIN PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_PROFILE sop_co
+          ON sop_co.SCIENTIFIC_OUTPUT_ID = sop_self.SCIENTIFIC_OUTPUT_ID
+         AND sop_co.PROFILE_ID <> sop_self.PROFILE_ID
+        JOIN PRODUCCION_CIENTIFICA.EXTERNAL_PROFILE ep_co
+          ON ep_co.PROFILE_ID = sop_co.PROFILE_ID
+        JOIN PRODUCCION_CIENTIFICA.UCR_PROFILE_EDUCATION edu_co
+          ON edu_co.PROFILE_ID = sop_co.PROFILE_ID
+        JOIN PRODUCCION_CIENTIFICA.INSTITUTION inst_co
+          ON inst_co.INSTITUTION_ID = edu_co.INSTITUTION
+        JOIN PRODUCCION_CIENTIFICA.COUNTRY ctry
+          ON ctry.COUNTRY_ID = inst_co.INSTITUTION_COUNTRY
+        WHERE ctry.COUNTRY_NAME IS NOT NULL
+        ${extraConditions}
+        GROUP BY ctry.COUNTRY_NAME
+        ORDER BY ctry.COUNTRY_NAME ASC
+      `,
+      builtWhereClause.params,
+    );
+  }
+
+  /**
+   * Distinct collaboration countries for a single researcher, weighted by the
+   * number of co-authored outputs with that country. Feeds the collaboration
+   * map on the researcher profile, using the same co-authorship definition as
+   * the list filter so both stay consistent.
+   */
+  async findCollaborationCountriesByProfileId(
+    profileId: string,
+  ): Promise<{ country: string; count: number }[]> {
+    return this.databaseClient.query<{ country: string; count: number }>(
+      `
+        SELECT
+          ctry.COUNTRY_NAME AS "country",
+          COUNT(DISTINCT sop_self.SCIENTIFIC_OUTPUT_ID) AS "count"
+        FROM PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_PROFILE sop_self
+        JOIN PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_PROFILE sop_co
+          ON sop_co.SCIENTIFIC_OUTPUT_ID = sop_self.SCIENTIFIC_OUTPUT_ID
+         AND sop_co.PROFILE_ID <> sop_self.PROFILE_ID
+        JOIN PRODUCCION_CIENTIFICA.EXTERNAL_PROFILE ep_co
+          ON ep_co.PROFILE_ID = sop_co.PROFILE_ID
+        JOIN PRODUCCION_CIENTIFICA.UCR_PROFILE_EDUCATION edu_co
+          ON edu_co.PROFILE_ID = sop_co.PROFILE_ID
+        JOIN PRODUCCION_CIENTIFICA.INSTITUTION inst_co
+          ON inst_co.INSTITUTION_ID = edu_co.INSTITUTION
+        JOIN PRODUCCION_CIENTIFICA.COUNTRY ctry
+          ON ctry.COUNTRY_ID = inst_co.INSTITUTION_COUNTRY
+        WHERE sop_self.PROFILE_ID = :1
+          AND ctry.COUNTRY_NAME IS NOT NULL
+        GROUP BY ctry.COUNTRY_NAME
+        ORDER BY COUNT(DISTINCT sop_self.SCIENTIFIC_OUTPUT_ID) DESC, ctry.COUNTRY_NAME ASC
+      `,
+      [profileId],
     );
   }
 }

@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import type {
+  ResearcherCollaborationCountryDto,
   ResearcherListItemDto,
   ResearcherProfileDto,
   ResearcherScientificOutputDto,
+  ResearchersCollaborationFacetDto,
+  ResearchersFiltersDto,
   ResearchersFiltersRequestDto,
   ResearchersPaginatedListDto,
   ResearchersReader,
@@ -35,13 +38,20 @@ export class ResearchersReaderService implements ResearchersReader {
 
     // Fetch every researcher's linked units in a single batch query so the
     // card can show all units (with a tooltip when there are more than one).
+    // baseUnit is resolved here too (independent "units" query) now that it is
+    // no longer joined inside the main researcher query.
     const researcherIds = researchersPage.items.map((r) => r.id);
-    const [linkedUnitsByResearcherId, workUnitsByResearcherId, institutionsByResearcherId] =
-      await Promise.all([
-        this.researchersRepository.findLinkedUnitsByResearcherIds(researcherIds),
-        this.researchersRepository.findWorkUnitsByResearcherIds(researcherIds),
-        this.researchersRepository.findInstitutionsByResearcherIds(researcherIds),
-      ]);
+    const [
+      linkedUnitsByResearcherId,
+      workUnitsByResearcherId,
+      institutionsByResearcherId,
+      baseUnitByResearcherId,
+    ] = await Promise.all([
+      this.researchersRepository.findLinkedUnitsByResearcherIds(researcherIds),
+      this.researchersRepository.findWorkUnitsByResearcherIds(researcherIds),
+      this.researchersRepository.findInstitutionsByResearcherIds(researcherIds),
+      this.researchersRepository.findBaseUnitsByResearcherIds(researcherIds),
+    ]);
 
     return {
       // Maps each Researcher entity to the DTO exposed by the API
@@ -49,7 +59,7 @@ export class ResearchersReaderService implements ResearchersReader {
         (researcher): ResearcherListItemDto => ({
           id: researcher.id,
           idUcrProfile: researcher.idUcrProfile,
-          baseUnit: researcher.baseUnit,
+          baseUnit: baseUnitByResearcherId.get(String(researcher.id)) ?? '',
           name: researcher.name,
           firstSurname: researcher.firstSurname,
           secondSurname: researcher.secondSurname,
@@ -82,15 +92,16 @@ export class ResearchersReaderService implements ResearchersReader {
       return null;
     }
 
-    const [linkedUnits, workUnitsRows] = await Promise.all([
+    const [linkedUnits, workUnitsRows, baseUnitByResearcherId] = await Promise.all([
       this.researchersRepository.findLinkedUnits(id),
       this.researchersRepository.findWorkUnits(id),
+      this.researchersRepository.findBaseUnitsByResearcherIds([id]),
     ]);
 
     return {
       id: researcher.id,
       idUcrProfile: researcher.idUcrProfile,
-      baseUnit: researcher.baseUnit,
+      baseUnit: baseUnitByResearcherId.get(String(id)) ?? '',
       name: researcher.name,
       firstSurname: researcher.firstSurname,
       secondSurname: researcher.secondSurname,
@@ -133,6 +144,7 @@ export class ResearchersReaderService implements ResearchersReader {
       outputsRows,
       institutionsMap,
       hIndex,
+      baseUnitByResearcherId,
     ] = await Promise.all([
       this.researchersRepository.findAlternativeNames(id),
       this.researchersRepository.findLinkedUnits(id),
@@ -144,23 +156,19 @@ export class ResearchersReaderService implements ResearchersReader {
       this.researchersRepository.findScientificOutputs(id),
       this.researchersRepository.findInstitutionsByResearcherIds([id]),
       this.researchersRepository.findHIndexByProfileId(id),
+      this.researchersRepository.findBaseUnitsByResearcherIds([id]),
     ]);
     const institutionsRows = institutionsMap.get(id) ?? [];
 
     const projectIds = projectsRows.map((row) => row.id);
-    const outputIds = outputsRows.map((row) => row.id);
 
-    const [projectKeywordsByProjectId, authorsByOutputId, keywordsByOutputId] =
-      await Promise.all([
-        this.researchersRepository.findKeywordsByProjectIds(projectIds),
-        this.researchersRepository.findAuthorsByOutputIds(outputIds),
-        this.researchersRepository.findKeywordsByOutputIds(outputIds),
-      ]);
+    const projectKeywordsByProjectId =
+      await this.researchersRepository.findKeywordsByProjectIds(projectIds);
 
     const scientificOutputs: ResearcherScientificOutputDto[] = outputsRows.map((row) => ({
       id: String(row.id),
       title: row.title,
-      authors: authorsByOutputId.get(String(row.id)) ?? [],
+      authors: this.parseJsonSafely<{ name: string }[]>(row.authors, []).map((a) => a.name),
       type: {
         category: row.typeName ?? 'Producción científica',
         subcategory: row.typeName ?? '',
@@ -174,13 +182,13 @@ export class ResearchersReaderService implements ResearchersReader {
       issue: row.issue,
       pages: row.pages,
       citationCount: row.citationCount == null ? null : Number(row.citationCount),
-      keywords: keywordsByOutputId.get(String(row.id)) ?? [],
+      keywords: this.parseJsonSafely<{ value: string }[]>(row.keywords, []).map((k) => k.value),
     }));
 
     return {
       id: researcher.id,
       idUcrProfile: researcher.idUcrProfile,
-      baseUnit: researcher.baseUnit,
+      baseUnit: baseUnitByResearcherId.get(String(id)) ?? '',
       name: researcher.name,
       firstSurname: researcher.firstSurname,
       secondSurname: researcher.secondSurname,
@@ -238,6 +246,16 @@ export class ResearchersReaderService implements ResearchersReader {
     };
   }
 
+  private parseJsonSafely<T>(value: unknown, fallback: T): T {
+    if (value === null || value === undefined || value === '') return fallback;
+    if (typeof value !== 'string') return value as T;
+    try {
+      return JSON.parse(value) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
   // ── Filters with count ────────────────────────────────────────────────────
 
   /**
@@ -255,7 +273,7 @@ export class ResearchersReaderService implements ResearchersReader {
   async getFilters(
     query?: string,
     filters?: ResearchersFiltersRequestDto,
-  ): Promise<{ baseUnit: { value: string; count: number }[] }> {
+  ): Promise<ResearchersFiltersDto> {
     const units = await this.researchersRepository.getBaseUnitCounts(query, filters);
 
     return {
@@ -264,5 +282,43 @@ export class ResearchersReaderService implements ResearchersReader {
         count: Number(count),
       })),
     };
+  }
+
+  /**
+   * Collaboration-country facet, served on its own endpoint. The query is
+   * expensive (~5s over the co-authorship graph), so it is kept separate from
+   * getFilters to never block the fast unit filter.
+   */
+  async getCollaborationFacet(
+    query?: string,
+    filters?: ResearchersFiltersRequestDto,
+  ): Promise<ResearchersCollaborationFacetDto> {
+    const rows = await this.researchersRepository.getCollaborationCountryCounts(
+      query,
+      filters,
+    );
+
+    return {
+      // getCollaborationCountryCounts reuses the BaseUnitCountRow shape, so the
+      // country name comes back under the `baseUnit` key.
+      collaborationCountry: rows.map(({ baseUnit, count }) => ({
+        value: baseUnit,
+        count: Number(count),
+      })),
+    };
+  }
+
+  // ── Collaboration countries (for the profile map) ─────────────────────────
+
+  async getCollaborationCountries(
+    id: string,
+  ): Promise<ResearcherCollaborationCountryDto[]> {
+    const rows =
+      await this.researchersRepository.findCollaborationCountriesByProfileId(id);
+
+    return rows.map(({ country, count }) => ({
+      country,
+      count: Number(count),
+    }));
   }
 }

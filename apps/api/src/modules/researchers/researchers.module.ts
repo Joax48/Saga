@@ -17,6 +17,6 @@ import { ResearchersRepository } from './data/researchers.repository';
       useExisting: ResearchersReaderService,
     },
   ],
-  exports: [RESEARCHERS_READER],
+  exports: [RESEARCHERS_READER, ResearchersRepository],
 })
 export class ResearchersModule {}

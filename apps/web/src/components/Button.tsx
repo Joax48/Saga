@@ -28,6 +28,9 @@ type ButtonProps = {
   /** HTML button type attribute */
   type?: 'button' | 'submit' | 'reset';
 
+  /** Disables the button: blocks clicks and dims the styling */
+  disabled?: boolean;
+
   /** Additional CSS classes for custom styling */
   className?: string;
 
@@ -74,6 +77,7 @@ export default function Button({
   variant = 'primary',
   size = 'md',
   type = 'button',
+  disabled = false,
   className = '',
   'aria-label': ariaLabel,
   'aria-controls': ariaControls,
@@ -123,9 +127,14 @@ export default function Button({
   };
 
   /**
+   * Disabled styling — dims the button and blocks pointer interaction.
+   */
+  const disabledStyles = disabled ? 'opacity-50 cursor-not-allowed' : '';
+
+  /**
    * Computed class string combining base, variant, size, and custom styles.
    */
-  const classes = `${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`;
+  const classes = `${baseStyles} ${variants[variant]} ${sizes[size]} ${disabledStyles} ${className}`;
 
   /**
    * If `href` is provided, render as a Next.js Link.
@@ -146,6 +155,7 @@ export default function Button({
     <button
       type={type}
       onClick={onClick}
+      disabled={disabled}
       className={classes}
       aria-label={ariaLabel}
       aria-controls={ariaControls}

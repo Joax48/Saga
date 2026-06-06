@@ -21,10 +21,11 @@ describe('ResearchersReaderService', () => {
       findProjects: jest.fn(),
       findScientificOutputs: jest.fn(),
       findKeywordsByProjectIds: jest.fn(),
-      findAuthorsByOutputIds: jest.fn(),
-      findKeywordsByOutputIds: jest.fn(),
       findHIndexByProfileId: jest.fn().mockResolvedValue(null),
+      findBaseUnitsByResearcherIds: jest.fn().mockResolvedValue(new Map()),
       getBaseUnitCounts: jest.fn(),
+      getCollaborationCountryCounts: jest.fn().mockResolvedValue([]),
+      findCollaborationCountriesByProfileId: jest.fn().mockResolvedValue([]),
     } as unknown as jest.Mocked<ResearchersRepository>;
 
     service = new ResearchersReaderService(repository);
@@ -118,6 +119,10 @@ describe('ResearchersReaderService', () => {
             ],
           ],
         ]),
+      );
+      // baseUnit now comes from the independent units query, not the main row.
+      repository.findBaseUnitsByResearcherIds.mockResolvedValue(
+        new Map([['g7h8i9', 'CIPRONA']]),
       );
 
       const result = await service.getPaginatedList(1, 10);
@@ -349,8 +354,6 @@ describe('ResearchersReaderService', () => {
       repository.findProjects.mockResolvedValueOnce([]);
       repository.findScientificOutputs.mockResolvedValueOnce([]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
-      repository.findAuthorsByOutputIds.mockResolvedValueOnce(new Map());
-      repository.findKeywordsByOutputIds.mockResolvedValueOnce(new Map());
     }
 
     it('should return null when researcher is not found', async () => {
@@ -379,6 +382,9 @@ describe('ResearchersReaderService', () => {
     it('should map basic researcher fields', async () => {
       repository.findById.mockResolvedValueOnce(baseResearcher);
       mockEmptySubQueries();
+      repository.findBaseUnitsByResearcherIds.mockResolvedValueOnce(
+        new Map([['1', 'CIMPA']]),
+      );
 
       const result = await service.getProfile('1');
 
@@ -404,6 +410,7 @@ describe('ResearchersReaderService', () => {
         {
           id: 'out-1',
           title: 'Paper',
+          authors: null,
           typeName: null,
           openAccess: 1,
           publicationYear: 2022,
@@ -413,11 +420,10 @@ describe('ResearchersReaderService', () => {
           issue: null,
           pages: null,
           citationCount: null,
+          keywords: null,
         },
       ]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
-      repository.findAuthorsByOutputIds.mockResolvedValueOnce(new Map());
-      repository.findKeywordsByOutputIds.mockResolvedValueOnce(new Map());
 
       const result = await service.getProfile('1');
 
@@ -436,6 +442,7 @@ describe('ResearchersReaderService', () => {
         {
           id: 'out-1',
           title: 'Paper',
+          authors: null,
           typeName: null,
           openAccess: 0,
           publicationYear: 2022,
@@ -445,11 +452,10 @@ describe('ResearchersReaderService', () => {
           issue: null,
           pages: null,
           citationCount: null,
+          keywords: null,
         },
       ]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
-      repository.findAuthorsByOutputIds.mockResolvedValueOnce(new Map());
-      repository.findKeywordsByOutputIds.mockResolvedValueOnce(new Map());
 
       const result = await service.getProfile('1');
 
@@ -468,6 +474,7 @@ describe('ResearchersReaderService', () => {
         {
           id: 'out-1',
           title: 'Paper',
+          authors: null,
           typeName: null,
           openAccess: null,
           publicationYear: 2022,
@@ -477,11 +484,10 @@ describe('ResearchersReaderService', () => {
           issue: null,
           pages: null,
           citationCount: null,
+          keywords: null,
         },
       ]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
-      repository.findAuthorsByOutputIds.mockResolvedValueOnce(new Map());
-      repository.findKeywordsByOutputIds.mockResolvedValueOnce(new Map());
 
       const result = await service.getProfile('1');
 
@@ -508,8 +514,6 @@ describe('ResearchersReaderService', () => {
       repository.findProjects.mockResolvedValueOnce([]);
       repository.findScientificOutputs.mockResolvedValueOnce([]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
-      repository.findAuthorsByOutputIds.mockResolvedValueOnce(new Map());
-      repository.findKeywordsByOutputIds.mockResolvedValueOnce(new Map());
 
       const result = await service.getProfile('1');
 
@@ -534,8 +538,6 @@ describe('ResearchersReaderService', () => {
       repository.findProjects.mockResolvedValueOnce([]);
       repository.findScientificOutputs.mockResolvedValueOnce([]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
-      repository.findAuthorsByOutputIds.mockResolvedValueOnce(new Map());
-      repository.findKeywordsByOutputIds.mockResolvedValueOnce(new Map());
 
       const result = await service.getProfile('1');
 
@@ -561,8 +563,6 @@ describe('ResearchersReaderService', () => {
       repository.findProjects.mockResolvedValueOnce([]);
       repository.findScientificOutputs.mockResolvedValueOnce([]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
-      repository.findAuthorsByOutputIds.mockResolvedValueOnce(new Map());
-      repository.findKeywordsByOutputIds.mockResolvedValueOnce(new Map());
 
       const result = await service.getProfile('1');
 
@@ -601,7 +601,7 @@ describe('ResearchersReaderService', () => {
       expect(result!.projects[0].keywords).toEqual(['AI', 'ML']);
     });
 
-    it('should map scientific output authors from the authors map', async () => {
+    it('should map scientific output authors from the aggregated JSON', async () => {
       repository.findById.mockResolvedValueOnce(baseResearcher);
       repository.findAlternativeNames.mockResolvedValueOnce([]);
       repository.findLinkedUnits.mockResolvedValueOnce([]);
@@ -613,6 +613,10 @@ describe('ResearchersReaderService', () => {
         {
           id: 'out-1',
           title: 'A Study',
+          authors: JSON.stringify([
+            { id: '1', name: 'Juan Perez' },
+            { id: '2', name: 'Maria Lopez' },
+          ]),
           typeName: null,
           openAccess: 0,
           publicationYear: 2022,
@@ -622,13 +626,10 @@ describe('ResearchersReaderService', () => {
           issue: null,
           pages: null,
           citationCount: null,
+          keywords: null,
         },
       ]);
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
-      repository.findAuthorsByOutputIds.mockResolvedValueOnce(
-        new Map([['out-1', ['Juan Perez', 'Maria Lopez']]]),
-      );
-      repository.findKeywordsByOutputIds.mockResolvedValueOnce(new Map());
 
       const result = await service.getProfile('1');
 
@@ -699,6 +700,43 @@ describe('ResearchersReaderService', () => {
       repository.getBaseUnitCounts.mockRejectedValue(new Error('DB error'));
 
       await expect(service.getFilters()).rejects.toThrow('DB error');
+    });
+
+  });
+
+  describe('getCollaborationFacet', () => {
+    it('should return collaboration country counts from its own method', async () => {
+      repository.getCollaborationCountryCounts.mockResolvedValue([
+        { baseUnit: 'ESTADOS UNIDOS', count: 12 },
+        { baseUnit: 'ESPAÑA', count: '4' as unknown as number },
+      ]);
+
+      const result = await service.getCollaborationFacet('Ana', { unit: ['CIMPA'] });
+
+      expect(repository.getCollaborationCountryCounts).toHaveBeenCalledWith('Ana', {
+        unit: ['CIMPA'],
+      });
+      expect(result.collaborationCountry).toEqual([
+        { value: 'ESTADOS UNIDOS', count: 12 },
+        { value: 'ESPAÑA', count: 4 },
+      ]);
+    });
+  });
+
+  describe('getCollaborationCountries', () => {
+    it('should map and numeric-coerce the per-profile collaboration rows', async () => {
+      repository.findCollaborationCountriesByProfileId.mockResolvedValue([
+        { country: 'ESTADOS UNIDOS', count: 9 },
+        { country: 'BRASIL', count: '3' as unknown as number },
+      ]);
+
+      const result = await service.getCollaborationCountries('1');
+
+      expect(repository.findCollaborationCountriesByProfileId).toHaveBeenCalledWith('1');
+      expect(result).toEqual([
+        { country: 'ESTADOS UNIDOS', count: 9 },
+        { country: 'BRASIL', count: 3 },
+      ]);
     });
   });
 });

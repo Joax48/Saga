@@ -28,6 +28,9 @@ import { GetScientificProductionDetailUseCase } from './application/use-cases/ge
 import { GetResearcherDetailUseCase } from './application/use-cases/get-public-researcher-detail.use-case';
 import { GetResearcherProfileUseCase } from './application/use-cases/get-public-researcher-profile.use-case';
 import { GetResearchersFiltersUseCase } from './application/use-cases/get-public-researchers-filters.use-case';
+import { GetResearcherCollaborationCountriesUseCase } from './application/use-cases/get-public-researcher-collaboration-countries.use-case';
+import { GetResearchersCollaborationFacetUseCase } from './application/use-cases/get-public-researchers-collaboration-facet.use-case';
+import { UpdateResearcherLinksUseCase } from './application/use-cases/update-researcher-links.use-case';
 import { GetProjectDetailUseCase } from './application/use-cases/get-public-project-detail.use-case';
 import { GetScientificProductionsFiltersUseCase } from './application/use-cases/get-public-scientific-production-filters.use-case';
 
@@ -80,6 +83,9 @@ const validateEnvironment = (env: Record<string, string | undefined>) => {
     GetResearcherDetailUseCase,
     GetResearcherProfileUseCase,
     GetResearchersFiltersUseCase,
+    GetResearcherCollaborationCountriesUseCase,
+    GetResearchersCollaborationFacetUseCase,
+    UpdateResearcherLinksUseCase,
     GetUnitsPaginatedListUseCase,
     GetPublicUnitDetailUseCase,
     GetUnitsFiltersUseCase,

@@ -8,7 +8,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { getResearcherProfile } from '../../../services/researchers';
+import {
+  getResearcherProfile,
+  getResearcherCollaborationCountries,
+} from '../../../services/researchers';
+import CollaborationMapPreview, {
+  buildCollaborationPoints,
+} from '@/components/CollaborationMapPreview';
 import { ResearcherDetailSkeleton } from '@/components/skeletons/DetailPageSkeleton';
 import ProfileTypeBadge from '@/components/ProfileTypeBadge';
 import { ProductionCard } from '../../scientific-productions/components';
@@ -294,6 +300,9 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
   const [productionPage, setProductionPage] = useState(1);
   const [projectsPage, setProjectsPage] = useState(1);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
+  const [collaborationCountries, setCollaborationCountries] = useState<
+    { country: string; count: number }[]
+  >([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -309,6 +318,20 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
     }
 
     fetchData();
+  }, [params.id]);
+
+  // Collaboration network for the profile map. Loaded separately so a slow or
+  // failing call never blocks the main profile render.
+  useEffect(() => {
+    let cancelled = false;
+    getResearcherCollaborationCountries(params.id)
+      .then((countries) => {
+        if (!cancelled) setCollaborationCountries(countries);
+      })
+      .catch((error) => console.error('Error loading collaboration countries:', error));
+    return () => {
+      cancelled = true;
+    };
   }, [params.id]);
 
   useEffect(() => {
@@ -546,11 +569,11 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                         className="text-xs font-semibold uppercase tracking-wide"
                         style={{ color: 'var(--color-text-neutral-secondary)' }}
                       >
-                        {profile.workUnits.length === 1 ? 'Unidad base' : 'Unidades base'}
+                        {profile.workUnits.length === 1 ? 'Unidad de pago' : 'Unidades de pago'}
                       </p>
                       <UnitsList
                         units={profile.workUnits}
-                        emptyText="Sin unidad base registrada"
+                        emptyText="Sin unidad de pago registrada"
                         ulClassName="list-disc pl-5 text-sm sm:text-[16px] space-y-1"
                         emptyClassName="text-sm sm:text-[16px]"
                       />
@@ -784,6 +807,18 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                       </p>
                     )}
                   </div>
+
+                  <CollaborationMapPreview
+                    title="Redes de colaboración"
+                    scopeLabel="Perfil"
+                    simulation={false}
+                    subtitle={
+                      collaborationCountries.length > 0
+                        ? 'Países con los que este investigador mantiene colaboraciones internacionales, según coautorías con perfiles externos.'
+                        : 'Este investigador no tiene colaboraciones internacionales registradas.'
+                    }
+                    points={buildCollaborationPoints(collaborationCountries)}
+                  />
                 </>
               )}
             </section>
@@ -833,9 +868,11 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                 </div>
               )}
               {productions.length > 0 ? (
-                <div className="space-y-4">
+                <div className="divide-y divide-gray-200 space-y-0">
                   {paginatedProductions.map((production) => (
-                    <ProductionCard key={production.id} production={production} />
+                    <div key={production.id} className="py-4 first:pt-0 last:pb-0">
+                      <ProductionCard production={production} />
+                    </div>
                   ))}
                   <Pagination
                     currentPage={safeProductionPage}

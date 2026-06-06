@@ -51,6 +51,7 @@ export default function ResearchersList({
           searchQuery,
           filters.baseUnit,
           profileType,
+          filters.collaborationCountry,
         );
 
         if (cancelled) return;
@@ -76,9 +77,13 @@ export default function ResearchersList({
   }, [currentPage, searchQuery, filters, profileType, onTotalChange]);
 
   const emptyMessage =
-    searchQuery && !isLoading && researchers.length === 0
-      ? `No se encontraron perfiles para \`${searchQuery}\``
+    !isLoading && researchers.length === 0
+      ? searchQuery
+        ? `No se encontraron perfiles para \`${searchQuery}\``
+        : 'No se encontraron perfiles para los filtros aplicados'
       : null;
+
+  const activeBaseUnits = (filters.baseUnit ?? []).map((unit) => unit.toLowerCase());
 
   return (
     <div className="flex flex-col gap-8">
@@ -86,6 +91,7 @@ export default function ResearchersList({
         researchers={researchers}
         isLoading={isLoading}
         pageSize={PAGE_SIZE}
+        activeBaseUnits={activeBaseUnits}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={onPageChange}

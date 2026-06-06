@@ -2,6 +2,8 @@
 
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
 
+import { lookupCountryCoordinates } from '@/data/country-coordinates';
+
 type CollaborationPoint = {
   id: string;
   lat: number;
@@ -10,11 +12,62 @@ type CollaborationPoint = {
   tooltip: string;
 };
 
+// Costa Rica is always the central node of a researcher's network.
+const COSTA_RICA_NODE: CollaborationPoint = {
+  id: 'cr',
+  lat: 9.7489,
+  lng: -83.7534,
+  tone: 'accent',
+  tooltip: 'Nodo principal: Costa Rica',
+};
+
+/**
+ * Builds real map markers from the backend collaboration-country list. Costa
+ * Rica anchors the network; every country with known coordinates becomes a
+ * node whose tone reflects how strong the collaboration is (by output count).
+ * Countries without coordinates are skipped (the list filter still covers them).
+ */
+export function buildCollaborationPoints(
+  countries: { country: string; count: number }[],
+): CollaborationPoint[] {
+  const maxCount = countries.reduce((max, c) => Math.max(max, c.count), 0);
+
+  const points: CollaborationPoint[] = [];
+  for (const { country, count } of countries) {
+    if (normalize(country) === 'costa rica') continue;
+    const coords = lookupCountryCoordinates(country);
+    if (!coords) continue;
+    // Top third of the range → primary (strongest), rest → secondary.
+    const tone: CollaborationPoint['tone'] =
+      maxCount > 0 && count >= maxCount * (2 / 3) ? 'primary' : 'secondary';
+    points.push({
+      id: normalize(country),
+      lat: coords.lat,
+      lng: coords.lng,
+      tone,
+      tooltip: `Colaboración con ${country} (${count})`,
+    });
+  }
+
+  return [COSTA_RICA_NODE, ...points];
+}
+
+function normalize(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
 type CollaborationMapPreviewProps = {
   title?: string;
   subtitle?: string;
   scopeLabel?: string;
   points?: CollaborationPoint[];
+  // When true (default) shows the "Simulación visual" badge used by the mock
+  // placeholders. Pass false when feeding real backend data.
+  simulation?: boolean;
 };
 
 const DEFAULT_POINTS: CollaborationPoint[] = [
@@ -120,6 +173,7 @@ export default function CollaborationMapPreview({
   subtitle = 'Vista de ejemplo para la capa visual. Luego se conectara con datos reales desde backend por perfil, unidad y produccion cientifica.',
   scopeLabel = 'Mapa general',
   points = DEFAULT_POINTS,
+  simulation = true,
 }: CollaborationMapPreviewProps) {
   return (
     <section className="mt-10">
@@ -180,14 +234,16 @@ export default function CollaborationMapPreview({
           })}
         </ComposableMap>
 
-        <div className="absolute bottom-4 left-4 rounded-xl border border-[var(--color-gray-300)] bg-white/95 px-3 py-2 text-body-sm text-[var(--color-text-neutral-secondary)]">
-          <p>
-            <span className="font-medium text-[var(--color-text-neutral-primary)]">
-              Simulacion visual
-            </span>{' '}
-            de nodos de colaboracion.
-          </p>
-        </div>
+        {simulation && (
+          <div className="absolute bottom-4 left-4 rounded-xl border border-[var(--color-gray-300)] bg-white/95 px-3 py-2 text-body-sm text-[var(--color-text-neutral-secondary)]">
+            <p>
+              <span className="font-medium text-[var(--color-text-neutral-primary)]">
+                Simulacion visual
+              </span>{' '}
+              de nodos de colaboracion.
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );

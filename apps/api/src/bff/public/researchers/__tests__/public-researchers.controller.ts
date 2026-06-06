@@ -4,6 +4,9 @@ import { GetResearchersPaginatedListUseCase } from '../../../../application/use-
 import { GetResearcherDetailUseCase } from '../../../../application/use-cases/get-public-researcher-detail.use-case';
 import { GetResearcherProfileUseCase } from '../../../../application/use-cases/get-public-researcher-profile.use-case';
 import { GetResearchersFiltersUseCase } from '../../../../application/use-cases/get-public-researchers-filters.use-case';
+import { GetResearcherCollaborationCountriesUseCase } from '../../../../application/use-cases/get-public-researcher-collaboration-countries.use-case';
+import { GetResearchersCollaborationFacetUseCase } from '../../../../application/use-cases/get-public-researchers-collaboration-facet.use-case';
+import { UpdateResearcherLinksUseCase } from '../../../../application/use-cases/update-researcher-links.use-case';
 import { ResearchersListRequestDto } from '../dtos/researchers-list-request.dto';
 import { ResearchersFiltersRequestQueryDto } from '../dtos/researchers-filters-request.dto';
 
@@ -13,6 +16,9 @@ describe('PublicResearchersController', () => {
   let detailUseCase: jest.Mocked<GetResearcherDetailUseCase>;
   let profileUseCase: jest.Mocked<GetResearcherProfileUseCase>;
   let filtersUseCase: jest.Mocked<GetResearchersFiltersUseCase>;
+  let collaborationCountriesUseCase: jest.Mocked<GetResearcherCollaborationCountriesUseCase>;
+  let collaborationFacetUseCase: jest.Mocked<GetResearchersCollaborationFacetUseCase>;
+  let updateLinksUseCase: jest.Mocked<UpdateResearcherLinksUseCase>;
 
   beforeEach(() => {
     useCase = {
@@ -28,12 +34,24 @@ describe('PublicResearchersController', () => {
     filtersUseCase = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<GetResearchersFiltersUseCase>;
+    collaborationCountriesUseCase = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<GetResearcherCollaborationCountriesUseCase>;
+    collaborationFacetUseCase = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<GetResearchersCollaborationFacetUseCase>;
+    updateLinksUseCase = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<UpdateResearcherLinksUseCase>;
 
     controller = new PublicResearchersController(
       useCase,
       detailUseCase,
       profileUseCase,
       filtersUseCase,
+      collaborationCountriesUseCase,
+      collaborationFacetUseCase,
+      updateLinksUseCase,
     );
   });
 
@@ -197,13 +215,20 @@ describe('PublicResearchersController', () => {
       expect(filtersUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('should forward q and unit parameters to the use case', async () => {
+    it('should forward q, unit and collaborationCountry parameters to the use case', async () => {
       filtersUseCase.execute.mockResolvedValue({ baseUnit: [] });
 
-      const query = { q: 'Luis', unit: ['CIMPA'] } as ResearchersFiltersRequestQueryDto;
+      const query = {
+        q: 'Luis',
+        unit: ['CIMPA'],
+        collaborationCountry: ['ESTADOS UNIDOS'],
+      } as ResearchersFiltersRequestQueryDto;
       await controller.getFilters(query);
 
-      expect(filtersUseCase.execute).toHaveBeenCalledWith('Luis', { unit: ['CIMPA'] });
+      expect(filtersUseCase.execute).toHaveBeenCalledWith('Luis', {
+        unit: ['CIMPA'],
+        collaborationCountry: ['ESTADOS UNIDOS'],
+      });
     });
 
     it('should pass undefined q when not provided', async () => {
@@ -212,7 +237,10 @@ describe('PublicResearchersController', () => {
       const query = { unit: ['CIMPA'] } as ResearchersFiltersRequestQueryDto;
       await controller.getFilters(query);
 
-      expect(filtersUseCase.execute).toHaveBeenCalledWith(undefined, { unit: ['CIMPA'] });
+      expect(filtersUseCase.execute).toHaveBeenCalledWith(undefined, {
+        unit: ['CIMPA'],
+        collaborationCountry: undefined,
+      });
     });
 
     it('should propagate errors from the use case', async () => {
@@ -340,6 +368,29 @@ describe('PublicResearchersController', () => {
       profileUseCase.execute.mockRejectedValue(new Error('DB error'));
 
       await expect(controller.getResearcherProfile('1')).rejects.toThrow('DB error');
+    });
+  });
+
+  describe('getResearcherCollaborationCountries', () => {
+    it('should return the collaboration countries from the use case', async () => {
+      const mockCountries = [
+        { country: 'ESTADOS UNIDOS', count: 9 },
+        { country: 'BRASIL', count: 3 },
+      ];
+      collaborationCountriesUseCase.execute.mockResolvedValue(mockCountries);
+
+      const result = await controller.getResearcherCollaborationCountries('1');
+
+      expect(result).toEqual(mockCountries);
+      expect(collaborationCountriesUseCase.execute).toHaveBeenCalledWith('1');
+    });
+
+    it('should propagate errors from the use case', async () => {
+      collaborationCountriesUseCase.execute.mockRejectedValue(new Error('DB error'));
+
+      await expect(
+        controller.getResearcherCollaborationCountries('1'),
+      ).rejects.toThrow('DB error');
     });
   });
 });

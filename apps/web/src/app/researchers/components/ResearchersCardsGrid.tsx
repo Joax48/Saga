@@ -10,6 +10,7 @@ interface ResearchersCardsGridProps {
   researchers: Researcher[];
   isLoading?: boolean;
   pageSize?: number;
+  activeBaseUnits?: string[];
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -31,6 +32,7 @@ export default function ResearchersCardsGrid({
   researchers,
   isLoading = false,
   pageSize = 18,
+  activeBaseUnits = [],
   currentPage,
   totalPages,
   onPageChange,
@@ -55,7 +57,20 @@ export default function ResearchersCardsGrid({
               <ResearcherCardSkeleton key={i} />
             ))
           : researchers.map((researcher) => {
-              const workUnits = researcher.workUnits ?? [];
+              const allWorkUnits = researcher.workUnits ?? [];
+              // When filtering by unit, show the matched unit first so the card
+              // always displays the unit the user is currently filtering by.
+              const workUnits =
+                activeBaseUnits.length > 0
+                  ? [
+                      ...allWorkUnits.filter((unit) =>
+                        activeBaseUnits.includes(unit.name.toLowerCase()),
+                      ),
+                      ...allWorkUnits.filter(
+                        (unit) => !activeBaseUnits.includes(unit.name.toLowerCase()),
+                      ),
+                    ]
+                  : allWorkUnits;
               const primaryWorkUnit = workUnits[0];
               const extraWorkUnits = workUnits.slice(1);
 
@@ -72,7 +87,7 @@ export default function ResearchersCardsGrid({
                         className="text-xs font-medium uppercase tracking-wide"
                         style={{ color: 'var(--color-text-neutral-secondary)' }}
                       >
-                        {workUnits.length === 1 ? 'Unidad base' : 'Unidades base'}
+                        {workUnits.length === 1 ? 'Unidad de pago' : 'Unidades de pago'}
                       </span>
                       {primaryWorkUnit ? (
                         <span className="relative z-[1] inline-flex flex-wrap items-center gap-1.5">
@@ -93,7 +108,7 @@ export default function ResearchersCardsGrid({
                                 role="tooltip"
                               >
                                 <span className="mb-1 block font-semibold">
-                                  Todas las unidades base
+                                  Todas las unidades de pago
                                 </span>
                                 <ul className="space-y-0.5">
                                   {workUnits.map((u) => (
@@ -106,7 +121,7 @@ export default function ResearchersCardsGrid({
                         </span>
                       ) : (
                         <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
-                          Sin unidad base registrada
+                          Sin unidad de pago registrada
                         </span>
                       )}
                     </span>

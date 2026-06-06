@@ -28,4 +28,10 @@ export class ResearchersListRequestDto extends PaginatedListRequestDto {
   @IsString()
   @IsIn(['UCR', 'EXTERNAL'])
   profileType?: 'UCR' | 'EXTERNAL';
+
+  @IsOptional()
+  @Transform(({ value }) => normalizeQueryArray(value))
+  @IsArray()
+  @IsString({ each: true })
+  collaborationCountry?: string[];
 }

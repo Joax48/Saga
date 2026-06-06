@@ -48,6 +48,18 @@ export class OracleDatabaseProvider
       await connection.execute(`ALTER SESSION SET NLS_SORT=SPANISH_M_AI;`);
 
       const result = await connection.execute(statement, params as BindParameters);
+
+      // Commit when the statement is a DML operation so callers don't need to manage transactions manually
+      const stmt = statement.trim().toUpperCase();
+      if (
+        stmt.startsWith('INSERT') ||
+        stmt.startsWith('UPDATE') ||
+        stmt.startsWith('DELETE') ||
+        stmt.startsWith('MERGE')
+      ) {
+        await connection.commit();
+      }
+
       return this.extractRows(result);
     } finally {
       await connection.close();

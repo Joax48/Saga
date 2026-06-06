@@ -10,7 +10,10 @@ import Button from '../../components/Button';
 import ResearchersList from './components/ResearchersList';
 import FilterSection from './components/FilterSection';
 
-import { getResearcherFilters } from '@/services/researchers';
+import {
+  getResearcherFilters,
+  getResearcherCollaborationFacet,
+} from '@/services/researchers';
 import type { ResearcherFilters } from '@/services/researchers';
 import type { ResearcherQueryFilters } from '@/services/researchers';
 
@@ -18,6 +21,7 @@ const BREADCRUMB_ITEMS = [{ label: 'Perfiles' }];
 
 const DEFAULT_FILTERS: ResearcherQueryFilters = {
   baseUnit: [],
+  collaborationCountry: [],
 };
 
 function toggleValue(values: string[] | undefined, value: string): string[] {
@@ -34,6 +38,7 @@ function ResearchersPageContent() {
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') ?? '');
   const [filters, setFilters] = useState<ResearcherQueryFilters>(() => ({
     baseUnit: searchParams.getAll('unit'),
+    collaborationCountry: searchParams.getAll('collaborationCountry'),
   }));
   const [currentPage, setCurrentPage] = useState(() => {
     const p = parseInt(searchParams.get('page') ?? '1', 10);
@@ -41,7 +46,10 @@ function ResearchersPageContent() {
   });
   const listContainerRef = useRef<HTMLDivElement>(null);
   const isFirstPageRender = useRef(true);
-  const [filterOptions, setFilterOptions] = useState<ResearcherFilters>({ baseUnit: [] });
+  const [filterOptions, setFilterOptions] = useState<ResearcherFilters>({
+    baseUnit: [],
+    collaborationCountry: [],
+  });
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
   const [total, setTotal] = useState<number | null>(null);
@@ -108,6 +116,8 @@ function ResearchersPageContent() {
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
     for (const unit of filters.baseUnit ?? []) params.append('unit', unit);
+    for (const country of filters.collaborationCountry ?? [])
+      params.append('collaborationCountry', country);
     if (currentPage > 1) params.set('page', String(currentPage));
     const qs = params.toString();
     router.replace(`/researchers${qs ? `?${qs}` : ''}`, { scroll: false });
@@ -122,7 +132,12 @@ function ResearchersPageContent() {
   const handleToggleFilter = useCallback(
     (key: keyof ResearcherQueryFilters, value: string) => {
       shouldScrollToListRef.current = true;
-      setFilters((prev) => ({ ...prev, [key]: toggleValue(prev[key], value) }));
+      // Only array-valued filters (baseUnit, collaborationCountry) are toggled
+      // through this handler, so the value is always a string[].
+      setFilters((prev) => ({
+        ...prev,
+        [key]: toggleValue(prev[key] as string[] | undefined, value),
+      }));
       setCurrentPage(1);
     },
     [],
@@ -156,9 +171,31 @@ function ResearchersPageContent() {
   // The `cancelled` flag discards stale responses if the user types quickly.
   useEffect(() => {
     let cancelled = false;
-    getResearcherFilters(searchQuery, filters.baseUnit).then((options) => {
-      if (!cancelled) setFilterOptions(options);
-    });
+    // Unit facet ("Unidad de Pago"): fast and reliable.
+    getResearcherFilters(searchQuery, filters.baseUnit, filters.collaborationCountry)
+      .then((options) => {
+        if (!cancelled) {
+          setFilterOptions((prev) => ({ ...prev, baseUnit: options.baseUnit }));
+        }
+      })
+      .catch(() => {
+        /* keep previous unit options on failure */
+      });
+    // Collaboration facet ("Redes de colaboración"): separate, slow endpoint —
+    // loaded independently so it never blocks or breaks the unit filter.
+    getResearcherCollaborationFacet(
+      searchQuery,
+      filters.baseUnit,
+      filters.collaborationCountry,
+    )
+      .then((collaborationCountry) => {
+        if (!cancelled) {
+          setFilterOptions((prev) => ({ ...prev, collaborationCountry }));
+        }
+      })
+      .catch(() => {
+        /* keep previous collaboration options on failure */
+      });
     return () => {
       cancelled = true;
     };

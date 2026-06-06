@@ -27,11 +27,19 @@ export default function FilterSection({
     return [
       {
         kind: 'options',
-        title: 'Unidad Base',
+        title: 'Unidad de Pago',
         groupKey: 'base-unit',
         options: filterOptions.baseUnit,
         selectedValues: filters.baseUnit ?? [],
         onToggle: (value) => onToggleFilter('baseUnit', value),
+      },
+      {
+        kind: 'options',
+        title: 'Redes de colaboración',
+        groupKey: 'collaboration-country',
+        options: filterOptions.collaborationCountry,
+        selectedValues: filters.collaborationCountry ?? [],
+        onToggle: (value) => onToggleFilter('collaborationCountry', value),
       },
     ];
   }, [filterOptions, filters, onToggleFilter]);

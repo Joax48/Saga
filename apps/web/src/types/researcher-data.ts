@@ -51,9 +51,11 @@ export interface FacetOption {
 
 export interface ResearcherFilters {
   baseUnit: FacetOption[];
+  collaborationCountry: FacetOption[];
 }
 
 export interface ResearcherQueryFilters {
   baseUnit?: string[];
   profileType?: 'UCR' | 'EXTERNAL';
+  collaborationCountry?: string[];
 }

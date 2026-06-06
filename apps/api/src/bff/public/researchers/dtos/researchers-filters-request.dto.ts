@@ -25,4 +25,10 @@ export class ResearchersFiltersRequestQueryDto {
   @IsArray()
   @IsString({ each: true })
   unit?: string[];
+
+  @IsOptional()
+  @Transform(({ value }) => normalizeQueryArray(value))
+  @IsArray()
+  @IsString({ each: true })
+  collaborationCountry?: string[];
 }

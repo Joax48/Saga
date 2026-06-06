@@ -129,6 +129,16 @@ export interface ResearchersPaginatedListDto {
 export interface ResearchersFiltersRequestDto {
   unit?: string[];
   profileType?: 'UCR' | 'EXTERNAL';
+  // Country names of the researcher's international collaboration network.
+  // A researcher matches when they co-authored a scientific output with an
+  // external profile whose institution belongs to one of these countries.
+  collaborationCountry?: string[];
+}
+
+/** A single collaboration country with its weight (for the profile map). */
+export interface ResearcherCollaborationCountryDto {
+  country: string;
+  count: number;
 }
 
 /**
@@ -151,6 +161,15 @@ export interface ResearchersFiltersDto {
   baseUnit: ResearcherUnitFacet[];
 }
 
+/**
+ * Response for the collaboration-country facet. Kept on a SEPARATE endpoint
+ * from baseUnit because computing it over the co-authorship graph is slow
+ * (~5s); decoupling means the fast unit filter is never blocked by it.
+ */
+export interface ResearchersCollaborationFacetDto {
+  collaborationCountry: ResearcherUnitFacet[];
+}
+
 // ─── Reader service contract ──────────────────────────────────────────────────
 
 /** Interface that any researchers reader service must implement */
@@ -168,4 +187,9 @@ export interface ResearchersReader {
     query?: string,
     filters?: ResearchersFiltersRequestDto,
   ): Promise<ResearchersFiltersDto>;
+  getCollaborationFacet(
+    query?: string,
+    filters?: ResearchersFiltersRequestDto,
+  ): Promise<ResearchersCollaborationFacetDto>;
+  getCollaborationCountries(id: string): Promise<ResearcherCollaborationCountryDto[]>;
 }
