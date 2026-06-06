@@ -52,6 +52,7 @@ export class GetScientificProductionPaginatedListUseCase {
         volume: scientificProduction.volume,
         issue: scientificProduction.issue,
         pages: scientificProduction.pages,
+        source: scientificProduction.source,
         keywords: scientificProduction.keywords,
       })),
       page: scientificProductions.page,

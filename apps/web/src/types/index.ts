@@ -26,6 +26,7 @@ export interface SummaryScientificProduction {
   volume?: number;
   issue?: number;
   pages?: string;
+  source?: string;
   keywords: KeywordReference[];
 }
 export interface ScientificProduction {
@@ -45,6 +46,7 @@ export interface ScientificProduction {
   issue?: number;
   pages?: string;
   citation_count: number;
+  source: string;
   keywords: string[];
 }
 

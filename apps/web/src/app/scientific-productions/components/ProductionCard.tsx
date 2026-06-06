@@ -43,6 +43,7 @@ export function ProductionCard({ production }: ProductionCardProps) {
     volume,
     issue,
     pages,
+    source,
     keywords,
   } = production;
 
@@ -59,6 +60,13 @@ export function ProductionCard({ production }: ProductionCardProps) {
   const metaSuffix = [String(publication_year), ...journalParts]
     .filter(Boolean)
     .join(', ');
+
+  const excerptNode = (
+    <>
+      <span>Producción científica: {type || 'Sin tipo registrado'}</span>
+      {source && <span className="block">Fuente: {source}</span>}
+    </>
+  );
 
   // keywords ahora son KeywordReference[] — usar .value para el tag label
   const keywordTags = Array.from(keywords).map((kw) => kw.value);
@@ -96,7 +104,7 @@ export function ProductionCard({ production }: ProductionCardProps) {
       title={title}
       href={`/scientific-productions/${id}`}
       description={authorsNode}
-      excerpt={type ? `Producción científica: ${type}` : 'Producción científica'}
+      excerpt={excerptNode}
       tags={allTags}
       hideImage
       chromeless

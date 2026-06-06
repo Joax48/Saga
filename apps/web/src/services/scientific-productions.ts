@@ -46,6 +46,7 @@ interface ApiSummaryScientificProduction {
   volume: string | null;
   issue: string | null;
   pages: string | null;
+  source: string | null ;
   keywords: KeywordReference[] | null;
 }
 
@@ -66,6 +67,7 @@ interface ApiDetailScientificProduction {
   issue: string | null;
   pages: string | null;
   citationCount: number | null;
+  source: string | null;
   keywords: KeywordReference[] | null;
 }
 
@@ -98,6 +100,7 @@ function parseSummaryScientificProduction(
     volume: item.volume != null ? Number(item.volume) : undefined,
     issue: item.issue != null ? Number(item.issue) : undefined,
     pages: item.pages ?? undefined,
+    source: item.source ?? '',
     keywords: item.keywords ?? [],
   };
 }
@@ -123,6 +126,7 @@ function parseDetailScientificProduction(
     issue: item.issue != null ? Number(item.issue) : undefined,
     pages: item.pages ?? undefined,
     citation_count: item.citationCount ?? 0,
+    source: item.source ?? '',
     keywords: item.keywords?.map((k) => k.value) ?? [],
   };
 }

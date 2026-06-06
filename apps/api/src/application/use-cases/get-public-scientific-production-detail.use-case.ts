@@ -38,6 +38,7 @@ export class GetScientificProductionDetailUseCase {
       issue: item.issue,
       pages: item.pages,
       citationCount: item.citationCount,
+      source: item.source,
       keywords: item.keywords,
     };
   }

@@ -28,6 +28,10 @@ const SUMMARY_SELECT = `
       WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN sc.SCOPUS_PAGE_RANGE
       ELSE cl.CLARIVATE_PAGE_RANGE
     END                                                           AS "pages",
+    CASE
+      WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN 'Scopus'
+      ELSE 'Clarivate'
+    END                                                           AS "source",
     keywords_sub.keywords                                         AS "keywords"
 `;
 
@@ -64,6 +68,10 @@ const DETAIL_SELECT = `
       WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN sc.SCOPUS_CITATION_COUNT
       ELSE cl.CLARIVATE_CITATION_COUNT
     END                                                           AS "citationCount",
+    CASE
+      WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN 'Scopus'
+      ELSE 'Clarivate'
+    END                                                           AS "source",
     keywords_sub.keywords                                         AS "keywords"
 `;
 

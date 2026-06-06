@@ -13,6 +13,7 @@ export interface ScientificProductionSummary {
   volume: string | null;
   issue: string | null;
   pages: string | null;
+  source: string | null;
   keywords: string | null; // JSON string → [{ id, value }]
 }
 
@@ -34,5 +35,6 @@ export interface ScientificProductionDetail {
   issue: string | null;
   pages: string | null;
   citationCount: number | null;
+  source: string | null;
   keywords: string | null;
 }

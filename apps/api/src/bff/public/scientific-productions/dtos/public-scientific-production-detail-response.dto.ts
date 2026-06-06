@@ -23,5 +23,6 @@ export class ScientificProductionDetailResponseDto {
   issue!: string | null;
   pages!: string | null;
   citationCount!: number | null;
+  source!: string | null;
   keywords!: KeywordReference[] | null;
 }

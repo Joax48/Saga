@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 
 /* ─── Types ──────────────────────────────────────────────────────────── */
 
@@ -16,9 +17,9 @@ export interface CardProps {
    * richer layouts (e.g. mixed-colour inline content, links inside the body).
    * When omitted the body area is not rendered.
    */
-  description?: React.ReactNode;
+  description?: ReactNode;
   /** Optional italic secondary text (e.g. citation, author note) */
-  excerpt?: string;
+  excerpt?: ReactNode;
   /** Keyword/topic badges rendered below the body */
   tags?: string[];
   /** URL of the cover image; falls back to a placeholder when omitted */

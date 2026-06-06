@@ -71,6 +71,7 @@ export class ScientificProductionsService implements ScientificProductionsReader
           volume: scientificProduction.volume,
           issue: scientificProduction.issue,
           pages: scientificProduction.pages,
+          source: scientificProduction.source,
           keywords: this.parseJsonSafely<KeywordReference[]>(
             scientificProduction.keywords,
             [],
@@ -116,6 +117,7 @@ export class ScientificProductionsService implements ScientificProductionsReader
       issue: row.issue,
       pages: row.pages,
       citationCount: row.citationCount,
+      source: row.source,
       keywords: this.parseJsonSafely<KeywordReference[]>(row.keywords, []),
     };
   }
