@@ -308,21 +308,11 @@ export function ScientificProductionsView({
                     <ProductionCard key={production.id} production={production} />
                   ))
                 ) : (
-                  <div
-                    className="flex flex-col items-center justify-center py-16 text-center"
-                    role="status"
-                    aria-live="polite"
-                  >
-                    <p
-                      className="text-base font-medium"
-                      style={{ color: 'var(--color-text-neutral-secondary)' }}
-                    >
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
                       No se encontraron resultados.
                     </p>
-                    <p
-                      className="mt-1 text-sm"
-                      style={{ color: 'var(--color-text-neutral-tertiary)' }}
-                    >
+                    <p className="mt-1 text-sm text-[var(--color-text-neutral-tertiary)]">
                       Intenta ajustar los filtros o el término de búsqueda.
                     </p>
                   </div>

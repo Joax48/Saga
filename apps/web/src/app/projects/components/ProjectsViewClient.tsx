@@ -282,7 +282,7 @@ export default function ProjectsViewClient({
     (filters.keywords?.length ?? 0) > 0;
 
   return (
-    <main className="bg-[var(--color-bg-neutral-secondary)] min-h-screen">
+    <main className="bg-[var(--color-bg-neutral-secondary)] min-h-screen flex flex-col">
       <PageHeroSearch
         items={BREADCRUMB_ITEMS}
         title="Proyectos"
@@ -293,7 +293,7 @@ export default function ProjectsViewClient({
 
       <section
         ref={resultsRef}
-        className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14 scroll-mt-10"
+        className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14 scroll-mt-10 flex-1"
       >
         <div className="max-w-6xl mx-auto">
           <div className="mb-4 lg:hidden">
@@ -376,15 +376,11 @@ export default function ProjectsViewClient({
                     );
                   })
                 ) : (
-                  <div
-                    className="flex flex-col items-center justify-center py-16 text-center"
-                    role="status"
-                    aria-live="polite"
-                  >
-                    <p className="text-base font-medium text-gray-500">
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
                       No se encontraron resultados.
                     </p>
-                    <p className="mt-1 text-sm text-gray-400">
+                    <p className="mt-1 text-sm text-[var(--color-text-neutral-tertiary)]">
                       Intenta ajustar los filtros o el término de búsqueda.
                     </p>
                   </div>

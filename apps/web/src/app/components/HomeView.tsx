@@ -51,10 +51,12 @@ export function HomeView() {
                 role="status"
                 aria-live="polite"
               >
-                <p className="text-base font-medium text-gray-500">
+                <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
                   No se encontraron resultados.
                 </p>
-                <p className="mt-1 text-sm text-gray-400">Intenta nuevamente más tarde.</p>
+                <p className="mt-1 text-sm text-[var(--color-text-neutral-tertiary)]">
+                  Intenta ajustar los filtros o el término de búsqueda.
+                </p>
               </div>
             </div>
           </div>

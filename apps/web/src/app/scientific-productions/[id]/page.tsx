@@ -363,17 +363,25 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
                 >
                   Categoría
                 </h3>
-                <div className="flex flex-wrap gap-2 pb-8">
-                  {production.keywords.map((keyword) => (
-                    <span
-                      key={keyword}
-                      className="rounded-full px-4 py-1.5 text-xs font-medium text-white"
-                      style={{ backgroundColor: 'var(--color-bg-info-subtle)' }}
-                    >
-                      {keyword}
-                    </span>
-                  ))}
-                </div>
+                {production.keywords.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 pb-8">
+                    {production.keywords.map((keyword) => (
+                      <span
+                        key={keyword}
+                        className="rounded-full px-4 py-1.5 text-xs font-medium text-white"
+                        style={{ backgroundColor: 'var(--color-bg-info-subtle)' }}
+                      >
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-16">
+                    <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                      No hay palabras clave asociadas.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

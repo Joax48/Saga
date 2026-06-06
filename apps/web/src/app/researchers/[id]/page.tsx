@@ -352,11 +352,23 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
   if (loading) return <ResearcherDetailSkeleton />;
 
   if (loadError) {
-    return <div className="p-6">{loadError}</div>;
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <p className="text-[18px] text-(--color-text-neutral-secondary)">
+          {loadError}
+        </p>
+      </main>
+    );
   }
 
   if (!profile) {
-    return <div className="p-6">Perfil no encontrado.</div>;
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <p className="text-[18px] text-(--color-text-neutral-secondary)">
+          Perfil no encontrado.
+        </p>
+      </main>
+    );
   }
 
   const fullName = [profile.name, profile.firstSurname, profile.secondSurname]
@@ -407,7 +419,8 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
   // others alphabetically) and then alphabetically by project name within each
   // status group.
   const projects = [...filteredProjects].sort((a, b) => {
-    const priorityDiff = getProjectStatusPriority(a.status) - getProjectStatusPriority(b.status);
+    const priorityDiff =
+      getProjectStatusPriority(a.status) - getProjectStatusPriority(b.status);
     if (priorityDiff !== 0) return priorityDiff;
 
     const statusA = (a.status ?? '').toLowerCase();
@@ -417,7 +430,10 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
     return a.name.localeCompare(b.name, 'es');
   });
 
-  const productionTotalPages = Math.max(1, Math.ceil(productions.length / DETAIL_PAGE_SIZE));
+  const productionTotalPages = Math.max(
+    1,
+    Math.ceil(productions.length / DETAIL_PAGE_SIZE),
+  );
   const safeProductionPage = Math.min(productionPage, productionTotalPages);
   const paginatedProductions = productions.slice(
     (safeProductionPage - 1) * DETAIL_PAGE_SIZE,
@@ -529,11 +545,12 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                   )}
                 </div>
 
-                {(!EXTERNAL_PROFILES_ENABLED || profile.profileType !== 'EXTERNAL') && profile.ceaCategory && (
-                  <p className="text-sm sm:text-[16px] text-[var(--color-text-neutral-secondary)]">
-                    {profile.ceaCategory}
-                  </p>
-                )}
+                {(!EXTERNAL_PROFILES_ENABLED || profile.profileType !== 'EXTERNAL') &&
+                  profile.ceaCategory && (
+                    <p className="text-sm sm:text-[16px] text-[var(--color-text-neutral-secondary)]">
+                      {profile.ceaCategory}
+                    </p>
+                  )}
 
                 {EXTERNAL_PROFILES_ENABLED && profile.profileType === 'EXTERNAL' ? (
                   <div className="space-y-1">
@@ -546,10 +563,17 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                     {profile.institutions.length > 0 ? (
                       <ul className="list-disc pl-5 text-sm sm:text-[16px] space-y-2">
                         {profile.institutions.map((inst, idx) => (
-                          <li key={idx} className="break-words" style={{ color: 'var(--color-text-neutral-primary)' }}>
+                          <li
+                            key={idx}
+                            className="break-words"
+                            style={{ color: 'var(--color-text-neutral-primary)' }}
+                          >
                             {inst.name}
                             {inst.country ? (
-                              <span className="block text-xs mt-0.5" style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                              <span
+                                className="block text-xs mt-0.5"
+                                style={{ color: 'var(--color-text-neutral-secondary)' }}
+                              >
                                 {inst.country}
                               </span>
                             ) : null}
@@ -557,7 +581,10 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-sm sm:text-[16px]" style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                      <p
+                        className="text-sm sm:text-[16px]"
+                        style={{ color: 'var(--color-text-neutral-secondary)' }}
+                      >
                         Sin institución registrada
                       </p>
                     )}
@@ -569,7 +596,9 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                         className="text-xs font-semibold uppercase tracking-wide"
                         style={{ color: 'var(--color-text-neutral-secondary)' }}
                       >
-                        {profile.workUnits.length === 1 ? 'Unidad de pago' : 'Unidades de pago'}
+                        {profile.workUnits.length === 1
+                          ? 'Unidad de pago'
+                          : 'Unidades de pago'}
                       </p>
                       <UnitsList
                         units={profile.workUnits}
@@ -647,7 +676,11 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
               ? profileSections.filter((s) => s.id !== 'projects' && s.id !== 'personal')
               : profileSections
           }
-          defaultActive={EXTERNAL_PROFILES_ENABLED && profile.profileType === 'EXTERNAL' ? 'production' : 'personal'}
+          defaultActive={
+            EXTERNAL_PROFILES_ENABLED && profile.profileType === 'EXTERNAL'
+              ? 'production'
+              : 'personal'
+          }
           onCategoryChange={setActiveSection}
         />
 
@@ -664,10 +697,17 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                     {profile.institutions.length > 0 ? (
                       <ul className="list-disc pl-5 space-y-3 text-sm sm:text-[16px]">
                         {profile.institutions.map((inst, idx) => (
-                          <li key={idx} className="break-words" style={{ color: 'var(--color-text-neutral-primary)' }}>
+                          <li
+                            key={idx}
+                            className="break-words"
+                            style={{ color: 'var(--color-text-neutral-primary)' }}
+                          >
                             {inst.name}
                             {inst.country && (
-                              <span className="block text-xs mt-0.5" style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                              <span
+                                className="block text-xs mt-0.5"
+                                style={{ color: 'var(--color-text-neutral-secondary)' }}
+                              >
                                 {inst.country}
                               </span>
                             )}
@@ -675,7 +715,10 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-sm sm:text-[16px]" style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                      <p
+                        className="text-sm sm:text-[16px]"
+                        style={{ color: 'var(--color-text-neutral-secondary)' }}
+                      >
                         Sin instituciones registradas.
                       </p>
                     )}
@@ -688,7 +731,10 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                     {profile.education.length > 0 ? (
                       <ul className="space-y-3 text-sm sm:text-[16px] text-[var(--color-text-neutral-primary)]">
                         {profile.education.map((edu, idx) => (
-                          <li key={`${edu.degree}-${edu.institution}-${idx}`} className="break-words">
+                          <li
+                            key={`${edu.degree}-${edu.institution}-${idx}`}
+                            className="break-words"
+                          >
                             <span className="font-bold">
                               {edu.degree}
                               {edu.fieldOfStudy ? ` en ${edu.fieldOfStudy}` : ''}
@@ -700,7 +746,10 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-sm sm:text-[16px]" style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                      <p
+                        className="text-sm sm:text-[16px]"
+                        style={{ color: 'var(--color-text-neutral-secondary)' }}
+                      >
                         No hay formación académica registrada para este perfil.
                       </p>
                     )}
@@ -723,7 +772,9 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                         </p>
                         <p className="text-[var(--color-text-neutral-primary)] break-words">
                           {profile.ceaCategory ?? (
-                            <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                            <span
+                              style={{ color: 'var(--color-text-neutral-secondary)' }}
+                            >
                               No disponible
                             </span>
                           )}
@@ -739,7 +790,9 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                         </p>
                         <p className="text-[var(--color-text-neutral-primary)] break-all">
                           {profile.orcidId ?? (
-                            <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                            <span
+                              style={{ color: 'var(--color-text-neutral-secondary)' }}
+                            >
                               No disponible
                             </span>
                           )}
@@ -838,9 +891,11 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                   ))}
                 </div>
               ) : (
-                <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
-                  No hay palabras clave registradas para este perfil.
-                </p>
+                <div className="flex items-center justify-center py-16">
+                  <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                    No hay palabras clave asociadas.
+                  </p>
+                </div>
               )}
             </section>
           )}
@@ -888,124 +943,125 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                   <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
                     {selectedYearFilter
                       ? `No hay publicaciones registradas para ${selectedYearFilter}.`
-                      : 'No hay producción científica registrada.'}
+                      : 'No hay producción científica asociada.'}
                   </p>
                 </div>
               )}
             </section>
           )}
 
-          {activeSection === 'projects' && (!EXTERNAL_PROFILES_ENABLED || profile.profileType !== 'EXTERNAL') && (
-            <section className="space-y-4">
-              {statusGroups.length > 0 && (
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2">
-                    {statusGroups.map((group) => {
-                      const isActive = selectedStatusFilter.includes(group.key);
-                      return (
-                        <button
-                          key={group.key || 'sin-estado'}
-                          type="button"
-                          onClick={() =>
-                            setSelectedStatusFilter((prev) =>
-                              isActive
-                                ? prev.filter((k) => k !== group.key)
-                                : [...prev, group.key],
-                            )
-                          }
-                          aria-pressed={isActive}
-                          className={`flex-1 min-w-[110px] px-3 py-2 rounded-sm text-center cursor-pointer transition-all duration-200 ease-out hover:scale-[1.03] ${
-                            isActive
-                              ? 'bg-[var(--color-text-brand-primary)]/10 ring-1 ring-[var(--color-text-brand-primary)]/30 shadow-sm'
-                              : 'bg-white ring-1 ring-gray-200 hover:ring-gray-300'
-                          }`}
-                        >
-                          <div className="text-4xl font-bold leading-none text-[var(--color-text-brand-primary)]">
-                            {group.count}
-                          </div>
-                          <div
-                            className={
-                              isActive
-                                ? 'mt-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-brand-primary)] leading-tight'
-                                : 'mt-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-text-neutral-secondary)] leading-tight'
+          {activeSection === 'projects' &&
+            (!EXTERNAL_PROFILES_ENABLED || profile.profileType !== 'EXTERNAL') && (
+              <section className="space-y-4">
+                {statusGroups.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {statusGroups.map((group) => {
+                        const isActive = selectedStatusFilter.includes(group.key);
+                        return (
+                          <button
+                            key={group.key || 'sin-estado'}
+                            type="button"
+                            onClick={() =>
+                              setSelectedStatusFilter((prev) =>
+                                isActive
+                                  ? prev.filter((k) => k !== group.key)
+                                  : [...prev, group.key],
+                              )
                             }
-                          >
-                            {group.label}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {selectedStatusFilter.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedStatusFilter([])}
-                      className="text-sm text-[var(--color-text-neutral-secondary)] hover:underline cursor-pointer"
-                    >
-                      Limpiar filtro
-                    </button>
-                  )}
-                </div>
-              )}
-              {projects.length > 0 ? (
-                <div className="space-y-4">
-                  {paginatedProjects.map((project, index) => {
-                    const prev = index > 0 ? paginatedProjects[index - 1] : null;
-                    const isNewGroup =
-                      !prev ||
-                      (prev.status ?? '').trim().toLowerCase() !==
-                        (project.status ?? '').trim().toLowerCase();
-
-                    return (
-                      <div key={project.id} className="space-y-4">
-                        {isNewGroup && (
-                          <h3
-                            className={`text-xl sm:text-[22px] font-normal text-[var(--color-text-neutral-primary)] border-b border-[var(--color-border-neutral)] pb-2 ${
-                              index === 0 ? '' : 'pt-4'
+                            aria-pressed={isActive}
+                            className={`flex-1 min-w-[110px] px-3 py-2 rounded-sm text-center cursor-pointer transition-all duration-200 ease-out hover:scale-[1.03] ${
+                              isActive
+                                ? 'bg-[var(--color-text-brand-primary)]/10 ring-1 ring-[var(--color-text-brand-primary)]/30 shadow-sm'
+                                : 'bg-white ring-1 ring-gray-200 hover:ring-gray-300'
                             }`}
                           >
-                            {formatProjectStatusLabel(project.status)}
-                          </h3>
-                        )}
-                        <ProjectListItem
-                          code={project.code}
-                          title={project.name}
-                          href={`/projects/${project.id}`}
-                          manager={project.manager || 'Sin asignar'}
-                          managerHref={
-                            project.manager
-                              ? `/researchers?q=${encodeURIComponent(project.manager)}`
-                              : undefined
-                          }
-                          startDate={formatDateOnly(project.startDate)}
-                          endDate={formatDateOnly(project.endDate)}
-                          researchType={project.researchType ?? '—'}
-                          actionType={project.projectType ?? '—'}
-                          keywords={project.keywords}
-                        />
-                      </div>
-                    );
-                  })}
-                  <Pagination
-                    currentPage={safeProjectsPage}
-                    totalPages={projectsTotalPages}
-                    onPageChange={(page) => {
-                      setProjectsPage(page);
-                      scrollNavbarIntoView();
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="flex items-center justify-center py-16">
-                  <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
-                    {selectedStatusFilter.length > 0
-                      ? 'No hay proyectos registrados con el estado seleccionado.'
-                      : 'No hay proyectos registrados.'}
-                  </p>
-                </div>
-              )}
-            </section>
-          )}
+                            <div className="text-4xl font-bold leading-none text-[var(--color-text-brand-primary)]">
+                              {group.count}
+                            </div>
+                            <div
+                              className={
+                                isActive
+                                  ? 'mt-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-brand-primary)] leading-tight'
+                                  : 'mt-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-text-neutral-secondary)] leading-tight'
+                              }
+                            >
+                              {group.label}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {selectedStatusFilter.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedStatusFilter([])}
+                        className="text-sm text-[var(--color-text-neutral-secondary)] hover:underline cursor-pointer"
+                      >
+                        Limpiar filtro
+                      </button>
+                    )}
+                  </div>
+                )}
+                {projects.length > 0 ? (
+                  <div className="space-y-4">
+                    {paginatedProjects.map((project, index) => {
+                      const prev = index > 0 ? paginatedProjects[index - 1] : null;
+                      const isNewGroup =
+                        !prev ||
+                        (prev.status ?? '').trim().toLowerCase() !==
+                          (project.status ?? '').trim().toLowerCase();
+
+                      return (
+                        <div key={project.id} className="space-y-4">
+                          {isNewGroup && (
+                            <h3
+                              className={`text-xl sm:text-[22px] font-normal text-[var(--color-text-neutral-primary)] border-b border-[var(--color-border-neutral)] pb-2 ${
+                                index === 0 ? '' : 'pt-4'
+                              }`}
+                            >
+                              {formatProjectStatusLabel(project.status)}
+                            </h3>
+                          )}
+                          <ProjectListItem
+                            code={project.code}
+                            title={project.name}
+                            href={`/projects/${project.id}`}
+                            manager={project.manager || 'Sin asignar'}
+                            managerHref={
+                              project.manager
+                                ? `/researchers?q=${encodeURIComponent(project.manager)}`
+                                : undefined
+                            }
+                            startDate={formatDateOnly(project.startDate)}
+                            endDate={formatDateOnly(project.endDate)}
+                            researchType={project.researchType ?? '—'}
+                            actionType={project.projectType ?? '—'}
+                            keywords={project.keywords}
+                          />
+                        </div>
+                      );
+                    })}
+                    <Pagination
+                      currentPage={safeProjectsPage}
+                      totalPages={projectsTotalPages}
+                      onPageChange={(page) => {
+                        setProjectsPage(page);
+                        scrollNavbarIntoView();
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-16">
+                    <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                      {selectedStatusFilter.length > 0
+                        ? 'No hay proyectos asociados con el estado seleccionado.'
+                        : 'No hay proyectos asociados.'}
+                    </p>
+                  </div>
+                )}
+              </section>
+            )}
         </div>
       </div>
 

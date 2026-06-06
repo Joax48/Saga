@@ -151,7 +151,7 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
   if (!project) {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        <p className="text-[25px] text-[var(--color-text-neutral-secondary)]">
+        <p className="text-[18px] text-(--color-text-neutral-secondary)">
           Proyecto no encontrado.
         </p>
       </main>
@@ -283,9 +283,11 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
                   onPageChange={setProfilesPage}
                 />
               ) : (
-                <p className="text-base font-medium text-center text-[var(--color-text-neutral-secondary)]">
-                  No hay perfiles asociados.
-                </p>
+                <div className="flex items-center justify-center py-16">
+                  <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                    No hay perfiles asociados.
+                  </p>
+                </div>
               )}
             </>
           )}
@@ -304,9 +306,11 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
                   ))}
                 </div>
               ) : (
-                <p className="text-base font-medium text-center text-[var(--color-text-neutral-secondary)]">
-                  Este proyecto no tiene palabras clave registradas.
-                </p>
+                <div className="flex items-center justify-center py-16">
+                  <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                    No hay palabras clave asociadas.
+                  </p>
+                </div>
               )}
             </div>
           )}

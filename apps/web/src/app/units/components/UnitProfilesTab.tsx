@@ -33,13 +33,9 @@ export function UnitProfilesTab({ profiles }: UnitProfilesTabProps) {
 
   if (profiles.length === 0) {
     return (
-      <div
-        className="flex flex-col items-center justify-center py-16 text-center"
-        role="status"
-        aria-live="polite"
-      >
-        <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
-          No hay perfiles asociados a esta unidad.
+      <div className="flex items-center justify-center py-16">
+        <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+          No hay perfiles asociados.
         </p>
       </div>
     );

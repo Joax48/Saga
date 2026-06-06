@@ -101,9 +101,14 @@ export default function ResearchersList({
       />
 
       {emptyMessage && (
-        <p className="text-center text-base font-medium text-[var(--color-text-neutral-secondary)]">
-          {emptyMessage}
-        </p>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
+            No se encontraron resultados.
+          </p>
+          <p className="mt-1 text-sm text-[var(--color-text-neutral-tertiary)]">
+            Intenta ajustar los filtros o el término de búsqueda.
+          </p>
+        </div>
       )}
     </div>
   );

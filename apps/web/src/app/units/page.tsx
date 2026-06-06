@@ -142,7 +142,7 @@ export default function UnitsPage() {
   const hasActiveFilters = selectedResearcherIds.length > 0;
 
   return (
-    <main className="bg-[var(--color-bg-neutral-secondary)] min-h-screen">
+    <main className="bg-[var(--color-bg-neutral-secondary)] min-h-screen flex flex-col">
       <PageHeroSearch
         items={[{ label: 'Unidades' }]}
         title="Unidades"
@@ -152,7 +152,7 @@ export default function UnitsPage() {
 
       <section
         ref={resultsRef}
-        className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14 scroll-mt-10"
+        className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14 scroll-mt-10 flex-1"
       >
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -208,11 +208,11 @@ export default function UnitsPage() {
                   </>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <p className="text-base font-medium text-gray-500">
-                      No se encontraron unidades asociadas.
+                    <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
+                      No se encontraron resultados.
                     </p>
-                    <p className="mt-1 text-sm text-gray-400">
-                      Intenta ajustar los criterios de búsqueda o limpia los filtros.
+                    <p className="mt-1 text-sm text-[var(--color-text-neutral-tertiary)]">
+                      Intenta ajustar los filtros o el término de búsqueda.
                     </p>
                   </div>
                 )}
