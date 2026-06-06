@@ -122,6 +122,7 @@ function parseDetailScientificProduction(
     title: item.title,
     ucrAuthors: item.ucrAuthors ?? [],
     externalAuthors: item.externalAuthors ?? [],
+    authors: allAuthors ?? [],
     unit: item.unit?.map((u) => u.unit).join(', ') ?? '',
     affiliations: item.affiliations?.map((a) => a.affiliation) ?? [],
     type: item.type ?? '',

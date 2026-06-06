@@ -34,6 +34,7 @@ export interface ScientificProduction {
   title: string;
   ucrAuthors: AuthorReference[];
   externalAuthors: AuthorReference[];
+  authors: AuthorReference[];
   unit: string;
   affiliations: string[];
   type: string;

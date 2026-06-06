@@ -392,7 +392,10 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
                   title="Colaboradores por país"
                   subtitle="Distribución geográfica de los autores colaboradores de esta producción científica."
                   scopeLabel={`${production.authors.length} autor${production.authors.length !== 1 ? 'es' : ''}`}
-                  points={countriesToCollaborationPoints(MOCK_COLLABORATION_COUNTRIES, production.authors.length)}
+                  points={countriesToCollaborationPoints(
+                    MOCK_COLLABORATION_COUNTRIES,
+                    production.authors.length,
+                  )}
                 />
               </div>
             )}
