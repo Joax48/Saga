@@ -1,0 +1,141 @@
+'use client';
+
+import Link from 'next/link';
+import Pagination from '@/components/Pagination';
+import Card from '@/components/Card';
+import { ResearcherCardSkeleton } from '@/components/skeletons/CardSkeleton';
+import type { Researcher } from '@/types/researcher-data';
+
+interface ResearchersCardsGridProps {
+  researchers: Researcher[];
+  isLoading?: boolean;
+  pageSize?: number;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  onCardClick?: () => void;
+}
+
+function getAvatarUrl(...nameParts: (string | null | undefined)[]): string {
+  const fullName = nameParts.filter(Boolean).join(' ');
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0D8ABC&color=fff&size=200`;
+}
+
+function buildFullName(researcher: Researcher): string {
+  return [researcher.name, researcher.firstSurname, researcher.secondSurname]
+    .filter(Boolean)
+    .join(' ');
+}
+
+export default function ResearchersCardsGrid({
+  researchers,
+  isLoading = false,
+  pageSize = 18,
+  currentPage,
+  totalPages,
+  onPageChange,
+  onCardClick,
+}: ResearchersCardsGridProps) {
+  const cardsCount = isLoading ? pageSize : researchers.length;
+
+  // Adapts the layout so a small result set fills the container width nicely
+  // instead of leaving empty columns on the right.
+  const layoutClass =
+    cardsCount === 1
+      ? 'grid grid-cols-1 gap-x-8 gap-y-10 items-stretch'
+      : cardsCount === 2
+        ? 'grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10 items-stretch'
+        : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 items-stretch';
+
+  return (
+    <div className="flex flex-col gap-8">
+      <div className={layoutClass}>
+        {isLoading
+          ? Array.from({ length: pageSize }).map((_, i) => (
+              <ResearcherCardSkeleton key={i} />
+            ))
+          : researchers.map((researcher) => {
+              const workUnits = researcher.workUnits ?? [];
+              const primaryWorkUnit = workUnits[0];
+              const extraWorkUnits = workUnits.slice(1);
+
+              return (
+                <Card
+                  key={researcher.id}
+                  onClick={onCardClick}
+                  title={buildFullName(researcher)}
+                  titleClassName="text-sm font-bold leading-snug text-[var(--color-text-neutral-primary)]"
+                  titleLinkClassName="after:absolute after:inset-0 after:z-[0]"
+                  description={
+                    <span className="flex flex-col gap-0.5">
+                      <span
+                        className="text-xs font-medium uppercase tracking-wide"
+                        style={{ color: 'var(--color-text-neutral-secondary)' }}
+                      >
+                        {workUnits.length === 1 ? 'Unidad base' : 'Unidades base'}
+                      </span>
+                      {primaryWorkUnit ? (
+                        <span className="relative z-[1] inline-flex flex-wrap items-center gap-1.5">
+                          <Link
+                            href={`/units?q=${encodeURIComponent(primaryWorkUnit.name)}`}
+                            className="hover:underline"
+                            style={{ color: 'var(--color-text-brand-primary)' }}
+                          >
+                            {primaryWorkUnit.name}
+                          </Link>
+                          {extraWorkUnits.length > 0 && (
+                            <span className="group relative z-[1] inline-block">
+                              <span className="inline-flex cursor-help items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] px-2 py-0.5 text-xs font-medium text-white">
+                                +{extraWorkUnits.length}
+                              </span>
+                              <span
+                                className="pointer-events-none absolute left-0 top-full z-50 mt-1 hidden w-max max-w-xs rounded-md bg-gray-900 px-3 py-2 text-xs text-white shadow-lg group-hover:block"
+                                role="tooltip"
+                              >
+                                <span className="mb-1 block font-semibold">
+                                  Todas las unidades base
+                                </span>
+                                <ul className="space-y-0.5">
+                                  {workUnits.map((u) => (
+                                    <li key={u.id}>• {u.name}</li>
+                                  ))}
+                                </ul>
+                              </span>
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
+                          Sin unidad base registrada
+                        </span>
+                      )}
+                    </span>
+                  }
+                  excerpt={researcher.ceaCategory ?? 'Sin categoría registrada'}
+                  imageSrc={
+                    researcher.photoUrl ||
+                    getAvatarUrl(
+                      researcher.name,
+                      researcher.firstSurname,
+                      researcher.secondSurname,
+                    )
+                  }
+                  imageShape="circle"
+                  href={`/researchers/${researcher.id}`}
+                  chromeless
+                  className="relative z-0 hover:z-10 flex items-start gap-4 h-full transition-transform duration-200 hover:scale-[1.02] cursor-pointer"
+                />
+              );
+            })}
+      </div>
+
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
+      )}
+    </div>
+  );
+}

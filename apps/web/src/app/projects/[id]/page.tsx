@@ -6,7 +6,11 @@ import Breadcrumb from '@/components/Breadcrumb';
 import CategoriesNavigation, { Category } from '@/components/DetailNavbar';
 import { getProjectById } from '@/services/projects';
 import type { Project } from '@/services/projects';
+import type { Researcher } from '@/types/researcher-data';
 import { DetailPageSkeleton } from '@/components/skeletons/DetailPageSkeleton';
+import ResearchersCardsGrid from '../../researchers/components/ResearchersCardsGrid';
+
+const PROFILES_PAGE_SIZE = 18;
 
 interface ProjectsDetailPageProps {
   params: { id: string };
@@ -72,8 +76,34 @@ function formatParticipationPeriod(startDate?: string, endDate?: string): string
   return null;
 }
 
+function mapAssociatedProfileToResearcher(
+  profile: Project['associatedProfiles'][number],
+): Researcher {
+  return {
+    id: profile.id,
+    idUcrProfile: null,
+    baseUnit: '',
+    name: profile.name,
+    firstSurname: '',
+    secondSurname: '',
+    ceaCategory: null,
+    institution: null,
+    country: null,
+    institutions: [],
+    orcidId: null,
+    linkedin: null,
+    researchGate: null,
+    scopus: null,
+    photoUrl: null,
+    profileType: 'UCR',
+    linkedUnits: [],
+    workUnits: [],
+  };
+}
+
 export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) {
   const [activeTab, setActiveTab] = useState('general');
+  const [profilesPage, setProfilesPage] = useState(1);
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -92,6 +122,10 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
     };
 
     fetchProject();
+  }, [params.id]);
+
+  useEffect(() => {
+    setProfilesPage(1);
   }, [params.id]);
 
   const categories: Category[] = [
@@ -136,10 +170,19 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
     project.disciplines.length > 0
       ? project.disciplines.join(', ')
       : 'Sin disciplinas registradas';
-  const associatedProfiles = project.associatedProfiles.map((profile) => ({
-    ...profile,
-    href: `/researchers/${profile.id}`,
-  }));
+
+  const associatedResearchers: Researcher[] = project.associatedProfiles.map(
+    mapAssociatedProfileToResearcher,
+  );
+  const totalProfilePages = Math.max(
+    1,
+    Math.ceil(associatedResearchers.length / PROFILES_PAGE_SIZE),
+  );
+  const safeProfilesPage = Math.min(Math.max(1, profilesPage), totalProfilePages);
+  const paginatedAssociatedResearchers = associatedResearchers.slice(
+    (safeProfilesPage - 1) * PROFILES_PAGE_SIZE,
+    safeProfilesPage * PROFILES_PAGE_SIZE,
+  );
 
   return (
     <main className="bg-base-100 min-h-screen flex flex-col">
@@ -231,87 +274,40 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
           )}
 
           {activeTab === 'profiles' && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              {associatedProfiles.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
-                  {associatedProfiles.map((profile) => {
-                    const participationPeriod = formatParticipationPeriod(
-                      profile.participationStartDate,
-                      profile.participationEndDate,
-                    );
-
-                    return (
-                      <div key={profile.id} className="flex items-start gap-4">
-                        <figure
-                          className="relative shrink-0 overflow-hidden rounded-full"
-                          style={{ width: '3.5rem', height: '3.5rem' }}
-                        >
-                          <img
-                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-                              profile.name,
-                            )}&background=0D8ABC&color=fff&size=200`}
-                            alt={profile.name}
-                            className="object-cover w-full h-full"
-                          />
-                        </figure>
-
-                        <div className="space-y-1.5">
-                          <a
-                            href={profile.href}
-                            className="block text-h5 leading-tight text-[var(--color-text-brand-primary)] hover:underline"
-                          >
-                            {profile.name}
-                          </a>
-                          <p className="text-body-sm text-[var(--color-text-neutral-secondary)]">
-                            UNIDAD BASE
-                          </p>
-                          <p className="text-body text-[var(--color-text-neutral-secondary)]">
-                            {project.institute}
-                          </p>
-
-                          <p className="text-body text-[var(--color-text-neutral-secondary)]">
-                            {disciplinesText}
-                          </p>
-
-                          {profile.role && (
-                            <p className="text-body text-[var(--color-text-neutral-secondary)] italic">
-                              Rol: {profile.role}
-                            </p>
-                          )}
-
-                          {participationPeriod && (
-                            <p className="text-body-md text-[var(--color-text-neutral-secondary)]">
-                              Colaboraci&oacute;n: {participationPeriod}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+            <>
+              {associatedResearchers.length > 0 ? (
+                <ResearchersCardsGrid
+                  researchers={paginatedAssociatedResearchers}
+                  currentPage={safeProfilesPage}
+                  totalPages={totalProfilePages}
+                  onPageChange={setProfilesPage}
+                />
               ) : (
-                <p
-                  className="text-base font-medium"
-                  style={{ color: 'var(--color-text-neutral-secondary)' }}
-                >
-                  No hay perfiles asociados registrados.
+                <p className="text-base font-medium text-center text-[var(--color-text-neutral-secondary)]">
+                  No hay perfiles asociados.
                 </p>
               )}
-            </div>
+            </>
           )}
 
           {activeTab === 'keywords' && (
             <div className="space-y-10">
-              <div className="flex flex-wrap gap-3">
-                {project.keywords.map((keyword) => (
-                  <span
-                    key={keyword}
-                    className="inline-flex items-center rounded-full bg-[var(--color-bg-info-subtle)] px-4 py-2 text-body-md text-white"
-                  >
-                    {keyword}
-                  </span>
-                ))}
-              </div>
+              {project.keywords.length > 0 ? (
+                <div className="flex flex-wrap gap-3">
+                  {project.keywords.map((keyword) => (
+                    <span
+                      key={keyword}
+                      className="inline-flex items-center rounded-full bg-[var(--color-bg-info-subtle)] px-4 py-2 text-body-md text-white"
+                    >
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-base font-medium text-center text-[var(--color-text-neutral-secondary)]">
+                  Este proyecto no tiene palabras clave registradas.
+                </p>
+              )}
             </div>
           )}
         </div>
