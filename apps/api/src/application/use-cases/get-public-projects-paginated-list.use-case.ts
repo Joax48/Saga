@@ -8,6 +8,7 @@ import {
   PROJECTS_READER,
   type ProjectsPaginatedListDto,
   type ProjectsFiltersRequestDto,
+  type ProjectsSortRequestDto,
   type ProjectsReader,
 } from '../../modules/projects/projects.reader.contract';
 
@@ -29,12 +30,17 @@ export class GetProjectsPaginatedListUseCase {
       participants: input.participants,
       keywords: input.keywords,
     };
+    const sort: ProjectsSortRequestDto = {
+      sortBy: input.sortBy,
+      sortOrder: input.sortOrder,
+    };
 
     const projects = await this.projectsReader.getPaginatedList(
       input.page,
       input.limit,
       input.q,
       filters,
+      sort,
     );
 
     return this.mapToResponseDto(projects);

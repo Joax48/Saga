@@ -6,6 +6,7 @@ import type {
   ProjectsFiltersDto,
   ProjectsFiltersRequestDto,
   ProjectsPaginatedListDto,
+  ProjectsSortRequestDto,
   ProjectsReader,
 } from '../projects.reader.contract';
 import { ProjectsRepository } from './projects.repository';
@@ -19,12 +20,14 @@ export class ProjectsReaderService implements ProjectsReader {
     limit: number,
     query?: string,
     filters?: ProjectsFiltersRequestDto,
+    sort?: ProjectsSortRequestDto,
   ): Promise<ProjectsPaginatedListDto> {
     const projectsPage = await this.projectsRepository.findPaginated(
       page,
       limit,
       query,
       filters,
+      sort,
     );
 
     let effectivePage = page;
@@ -40,6 +43,7 @@ export class ProjectsReaderService implements ProjectsReader {
         limit,
         query,
         filters,
+        sort,
       );
       effectiveItems = lastPage.items;
     }

@@ -1,5 +1,6 @@
 import ProjectsViewClient from './components/ProjectsViewClient';
 import type { ProjectQueryFilters } from '@/services/projects';
+import type { ProjectSortBy, ProjectSortOrder } from '@/types/projects.types';
 
 interface PageProps {
   searchParams: {
@@ -12,6 +13,8 @@ interface PageProps {
     status?: string;
     participants?: string;
     keywords?: string;
+    sortBy?: string;
+    sortOrder?: string;
   };
 }
 
@@ -21,6 +24,14 @@ function parseFilterParam(value?: string): string[] {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function parseSortBy(value?: string): ProjectSortBy {
+  return value === 'year' || value === 'code' ? value : 'title';
+}
+
+function parseSortOrder(value?: string): ProjectSortOrder {
+  return value === 'desc' ? 'desc' : 'asc';
 }
 
 export default async function ProjectsPage({ searchParams }: PageProps) {
@@ -34,6 +45,8 @@ export default async function ProjectsPage({ searchParams }: PageProps) {
     participants: parseFilterParam(searchParams.participants),
     keywords: parseFilterParam(searchParams.keywords),
   };
+  const initialSortBy = parseSortBy(searchParams.sortBy);
+  const initialSortOrder = parseSortOrder(searchParams.sortOrder);
 
   return (
     <ProjectsViewClient
@@ -43,6 +56,8 @@ export default async function ProjectsPage({ searchParams }: PageProps) {
       initialSearchQuery={searchParams.q ?? ''}
       initialPage={page}
       initialFilters={initialFilters}
+      initialSortBy={initialSortBy}
+      initialSortOrder={initialSortOrder}
     />
   );
 }

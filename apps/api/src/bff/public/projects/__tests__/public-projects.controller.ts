@@ -2,7 +2,6 @@ import { PublicProjectsController } from '../public-projects.controller';
 import { GetProjectDetailUseCase } from '../../../../application/use-cases/get-public-project-detail.use-case';
 import { GetProjectsFiltersUseCase } from '../../../../application/use-cases/get-public-projects-filters.use-case';
 import { GetProjectsPaginatedListUseCase } from '../../../../application/use-cases/get-public-projects-paginated-list.use-case';
-import { GetProjectsFiltersUseCase } from '../../../../application/use-cases/get-public-projects-filters.use-case';
 import { ProjectsListRequestDto } from '../dtos/projects-list-request.dto';
 import { ProjectsFiltersRequestDto } from '../dtos/projects-filters-request.dto';
 
@@ -37,6 +36,8 @@ describe('PublicProjectsController', () => {
       const mockQuery = new ProjectsListRequestDto();
       mockQuery.page = 1;
       mockQuery.limit = 10;
+      mockQuery.sortBy = 'title';
+      mockQuery.sortOrder = 'asc';
       const mockResponse = {
         items: [
           {
@@ -79,6 +80,8 @@ describe('PublicProjectsController', () => {
       const mockQuery = new ProjectsListRequestDto();
       mockQuery.page = 1;
       mockQuery.limit = 10;
+      mockQuery.sortBy = 'year';
+      mockQuery.sortOrder = 'desc';
       listUseCase.execute.mockResolvedValue({
         items: [],
         page: 1,
@@ -96,6 +99,8 @@ describe('PublicProjectsController', () => {
       const mockQuery = new ProjectsListRequestDto();
       mockQuery.page = 1;
       mockQuery.limit = 10;
+      mockQuery.sortBy = 'code';
+      mockQuery.sortOrder = 'asc';
       listUseCase.execute.mockRejectedValue(new Error('Connection to database lost'));
 
       await expect(controller.getProjectsPaginatedList(mockQuery)).rejects.toThrow(

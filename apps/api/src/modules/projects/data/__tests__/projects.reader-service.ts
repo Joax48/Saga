@@ -66,7 +66,13 @@ describe('ProjectsReaderService', () => {
       expect(result.limit).toBe(10);
       expect(result.total).toBe(12);
       expect(result.items).toHaveLength(2);
-      expect(repository.findPaginated).toHaveBeenCalledWith(1, 10, undefined, undefined);
+      expect(repository.findPaginated).toHaveBeenCalledWith(
+        1,
+        10,
+        undefined,
+        undefined,
+        undefined,
+      );
     });
 
     it('should expose the summary fields expected by the public list view', async () => {
@@ -154,7 +160,13 @@ describe('ProjectsReaderService', () => {
       expect(result.limit).toBe(10);
       expect(result.total).toBe(1);
       expect(result.items).toHaveLength(1);
-      expect(repository.findPaginated).toHaveBeenCalledWith(1, 10, 'costo', undefined);
+      expect(repository.findPaginated).toHaveBeenCalledWith(
+        1,
+        10,
+        'costo',
+        undefined,
+        undefined,
+      );
     });
 
     it('should delegate filter options query and filters to repository unchanged', async () => {
@@ -216,12 +228,14 @@ describe('ProjectsReaderService', () => {
         2,
         'biodiversidad',
         undefined,
+        undefined,
       );
       expect(repository.findPaginated).toHaveBeenNthCalledWith(
         2,
         2,
         2,
         'biodiversidad',
+        undefined,
         undefined,
       );
     });

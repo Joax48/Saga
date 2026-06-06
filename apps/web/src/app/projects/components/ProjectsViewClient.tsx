@@ -6,6 +6,7 @@ import { ChevronUp } from 'lucide-react';
 import PageHeroSearch from '@/components/PageHeroSearch';
 import Pagination from '@/components/Pagination';
 import Button from '@/components/Button';
+import { SortControls } from '@/components/SortControls';
 import {
   FacetOption,
   FilterSidebar,
@@ -21,6 +22,7 @@ import {
   type ProjectFilters,
   type ProjectQueryFilters,
 } from '@/services/projects';
+import type { ProjectSortBy, ProjectSortOrder } from '@/types/projects.types';
 
 const PAGE_SIZE = 10;
 const BREADCRUMB_ITEMS = [{ label: 'Proyectos' }];
@@ -33,6 +35,11 @@ const DEFAULT_FILTERS: ProjectQueryFilters = {
   participants: [],
   keywords: [],
 };
+
+const DEFAULT_SORT_BY: ProjectSortBy = 'title';
+const DEFAULT_SORT_ORDER: ProjectSortOrder = 'asc';
+
+type ProjectFilterKey = Exclude<keyof ProjectQueryFilters, 'sortBy' | 'sortOrder'>;
 
 function toggleValue(values: string[] | undefined, value: string): string[] {
   const currentValues = values ?? [];
@@ -66,6 +73,8 @@ interface Props {
   initialSearchQuery: string;
   initialPage: number;
   initialFilters: ProjectQueryFilters;
+  initialSortBy: ProjectSortBy;
+  initialSortOrder: ProjectSortOrder;
 }
 
 export default function ProjectsViewClient({
@@ -75,6 +84,8 @@ export default function ProjectsViewClient({
   initialSearchQuery,
   initialPage,
   initialFilters,
+  initialSortBy,
+  initialSortOrder,
 }: Props) {
   const [projects, setProjects] = useState<ProjectSummaryItem[]>(initialProjects);
   const [totalResults, setTotalResults] = useState(initialTotal);
@@ -83,6 +94,8 @@ export default function ProjectsViewClient({
   );
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [filters, setFilters] = useState<ProjectQueryFilters>(initialFilters);
+  const [sortBy, setSortBy] = useState<ProjectSortBy>(initialSortBy);
+  const [sortOrder, setSortOrder] = useState<ProjectSortOrder>(initialSortOrder);
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
   const [currentPage, setCurrentPage] = useState(initialPage);
@@ -106,7 +119,7 @@ export default function ProjectsViewClient({
   );
 
   const handleToggleFilter = useCallback(
-    (key: keyof ProjectQueryFilters, value: string) => {
+    (key: ProjectFilterKey, value: string) => {
       setFilters((prev) => ({
         ...prev,
         [key]: toggleValue(prev[key], value),
@@ -119,8 +132,28 @@ export default function ProjectsViewClient({
 
   const handleClearAll = useCallback(() => {
     setFilters(DEFAULT_FILTERS);
+    setSortBy(DEFAULT_SORT_BY);
+    setSortOrder(DEFAULT_SORT_ORDER);
     setCurrentPage(1);
   }, []);
+
+  const handleSortByChange = useCallback(
+    (value: ProjectSortBy) => {
+      setSortBy(value);
+      setCurrentPage(1);
+      scrollToResults();
+    },
+    [scrollToResults],
+  );
+
+  const handleSortOrderChange = useCallback(
+    (value: ProjectSortOrder) => {
+      setSortOrder(value);
+      setCurrentPage(1);
+      scrollToResults();
+    },
+    [scrollToResults],
+  );
 
   const handlePageChange = useCallback(
     (page: number) => {
@@ -156,12 +189,11 @@ export default function ProjectsViewClient({
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const projectsResponse = await getProjects(
-          currentPage,
-          PAGE_SIZE,
-          searchQuery,
-          filters,
-        );
+        const projectsResponse = await getProjects(currentPage, PAGE_SIZE, searchQuery, {
+          ...filters,
+          sortBy,
+          sortOrder,
+        });
         setProjects(projectsResponse.data);
         setTotalResults(projectsResponse.total);
         setTotalPages(
@@ -175,7 +207,7 @@ export default function ProjectsViewClient({
     };
 
     fetchData();
-  }, [currentPage, searchQuery, filters]);
+  }, [currentPage, searchQuery, filters, sortBy, sortOrder]);
 
   const filterGroups = useMemo<FilterGroupConfig[]>(() => {
     if (!filterOptions) return [];
@@ -282,6 +314,23 @@ export default function ProjectsViewClient({
           >
             {totalResults} resultado{totalResults !== 1 ? 's' : ''}
           </p>
+
+          <SortControls
+            className="mb-4"
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSortByChange={handleSortByChange}
+            onSortOrderChange={handleSortOrderChange}
+            sortByOptions={[
+              { value: 'title', label: 'Título del proyecto' },
+              { value: 'year', label: 'Año del proyecto' },
+              { value: 'code', label: 'Código del proyecto' },
+            ]}
+            sortOrderOptions={[
+              { value: 'asc', label: 'Ascendente' },
+              { value: 'desc', label: 'Descendente' },
+            ]}
+          />
 
           <div className="flex flex-col gap-8 lg:flex-row">
             <div

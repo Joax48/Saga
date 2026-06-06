@@ -144,6 +144,9 @@ describe('ProjectsRepository', () => {
 
       const projectTypeQuery = mockDatabaseClient.query.mock.calls[1][0] as string;
       expect(projectTypeQuery).toContain(
+        "TO_CHAR(project_start_dates.PROJECT_START_DATE, 'YYYY') IN (:startYear",
+      );
+      expect(projectTypeQuery).not.toContain(
         'LOWER(project_type_lookup.PROJECT_TYPE_NAME) IN (:projectType',
       );
     });
@@ -308,18 +311,12 @@ describe('ProjectsRepository', () => {
       await repository.findPaginated(1, 10);
 
       const itemsQuery = mockDatabaseClient.query.mock.calls[0][0] as string;
-      expect(itemsQuery).toContain(
-        'LEFT JOIN PROJECT_TYPE project_type_lookup',
-      );
-      expect(itemsQuery).toContain(
-        'LEFT JOIN PROJECT_FUNDING_TYPE funding_type_lookup',
-      );
+      expect(itemsQuery).toContain('LEFT JOIN PROJECT_TYPE project_type_lookup');
+      expect(itemsQuery).toContain('LEFT JOIN PROJECT_FUNDING_TYPE funding_type_lookup');
       expect(itemsQuery).toContain(
         'LEFT JOIN PROJECT_RESEARCH_TYPE research_type_lookup',
       );
-      expect(itemsQuery).toContain(
-        'LEFT JOIN PROJECT_STATUS status_lookup',
-      );
+      expect(itemsQuery).toContain('LEFT JOIN PROJECT_STATUS status_lookup');
     });
 
     it('should order results alphabetically by project name', async () => {
@@ -330,7 +327,7 @@ describe('ProjectsRepository', () => {
       await repository.findPaginated(1, 10);
 
       const itemsQuery = mockDatabaseClient.query.mock.calls[0][0] as string;
-      expect(itemsQuery).toContain('ORDER BY "name" ASC');
+      expect(itemsQuery).toContain('ORDER BY UPPER(research_project.PROJECT_NAME) ASC');
     });
 
     it('should return matching projects when a search term is provided', async () => {
@@ -399,6 +396,36 @@ describe('ProjectsRepository', () => {
         offset: 0,
         limit: 10,
       });
+    });
+
+    it('should order results by year when requested', async () => {
+      mockDatabaseClient.query
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([{ totalCount: 0 }]);
+
+      await repository.findPaginated(1, 10, undefined, undefined, {
+        sortBy: 'year',
+        sortOrder: 'desc',
+      });
+
+      const itemsQuery = mockDatabaseClient.query.mock.calls[0][0] as string;
+      expect(itemsQuery).toContain(
+        'ORDER BY EXTRACT(YEAR FROM project_period_aggregate.AGGREGATE_START_DATE) DESC NULLS LAST, research_project.PROJECT_ID ASC',
+      );
+    });
+
+    it('should order results by project code when requested', async () => {
+      mockDatabaseClient.query
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([{ totalCount: 0 }]);
+
+      await repository.findPaginated(1, 10, undefined, undefined, {
+        sortBy: 'code',
+        sortOrder: 'asc',
+      });
+
+      const itemsQuery = mockDatabaseClient.query.mock.calls[0][0] as string;
+      expect(itemsQuery).toContain('ORDER BY research_project.PROJECT_ID ASC');
     });
 
     it('should apply correct offset when navigating to page 2', async () => {
@@ -557,7 +584,9 @@ describe('ProjectsRepository', () => {
       expect(mockDatabaseClient.query.mock.calls[1][1]).toEqual({ projectId: 'C3992' });
 
       const disciplinesQuery = mockDatabaseClient.query.mock.calls[2][0] as string;
-      expect(disciplinesQuery).toContain('FROM PROJECT_DISCIPLINE project_discipline_link');
+      expect(disciplinesQuery).toContain(
+        'FROM PROJECT_DISCIPLINE project_discipline_link',
+      );
       expect(mockDatabaseClient.query.mock.calls[2][1]).toEqual({ projectId: 'C3992' });
 
       const keywordsQuery = mockDatabaseClient.query.mock.calls[3][0] as string;
@@ -679,43 +708,43 @@ describe('ProjectsRepository', () => {
         'LOWER(research_type_lookup.PROJECT_RESEARCH_TYPE_NAME) IN (:researchType0, :researchType1)',
       );
       expect(itemsQuery).toContain(
-        'LOWER(project_type_lookup.PROJECT_TYPE_NAME) IN (:projectType0)',
+        'LOWER(project_type_lookup.PROJECT_TYPE_NAME) IN (:projectType',
       );
       expect(itemsQuery).toContain(
-        "TO_CHAR(project_period_aggregate.AGGREGATE_START_DATE, 'YYYY') IN (:startYear0)",
+        "TO_CHAR(project_period_aggregate.AGGREGATE_START_DATE, 'YYYY') IN (:startYear",
       );
       expect(itemsQuery).toContain(
-        'LOWER(status_lookup.PROJECT_STATUS_NAME) IN (:status0)',
+        'LOWER(status_lookup.PROJECT_STATUS_NAME) IN (:status',
       );
 
       expect(countQuery).toContain(
         'LOWER(research_type_lookup.PROJECT_RESEARCH_TYPE_NAME) IN (:researchType0, :researchType1)',
       );
       expect(countQuery).toContain(
-        'LOWER(project_type_lookup.PROJECT_TYPE_NAME) IN (:projectType0)',
+        'LOWER(project_type_lookup.PROJECT_TYPE_NAME) IN (:projectType',
       );
       expect(countQuery).toContain(
-        "TO_CHAR(project_period_aggregate.AGGREGATE_START_DATE, 'YYYY') IN (:startYear0)",
+        "TO_CHAR(project_period_aggregate.AGGREGATE_START_DATE, 'YYYY') IN (:startYear",
       );
       expect(countQuery).toContain(
-        'LOWER(status_lookup.PROJECT_STATUS_NAME) IN (:status0)',
+        'LOWER(status_lookup.PROJECT_STATUS_NAME) IN (:status',
       );
 
       expect(mockDatabaseClient.query.mock.calls[0][1]).toEqual({
         researchType0: 'basica',
         researchType1: 'aplicada',
-        projectType0: 'interdisciplinario',
-        startYear0: '2024',
-        status0: 'in-progress',
+        projectType2: 'interdisciplinario',
+        startYear3: '2024',
+        status4: 'in-progress',
         offset: 0,
         limit: 10,
       });
       expect(mockDatabaseClient.query.mock.calls[1][1]).toEqual({
         researchType0: 'basica',
         researchType1: 'aplicada',
-        projectType0: 'interdisciplinario',
-        startYear0: '2024',
-        status0: 'in-progress',
+        projectType2: 'interdisciplinario',
+        startYear3: '2024',
+        status4: 'in-progress',
       });
     });
 
@@ -796,18 +825,18 @@ describe('ProjectsRepository', () => {
       expect(itemsQuery).toContain(
         'LOWER(research_type_lookup.PROJECT_RESEARCH_TYPE_NAME) IN (:researchType0)',
       );
-      expect(itemsQuery).toContain('(LOWER(keyword.KEYWORD) LIKE :keyword0)');
+      expect(itemsQuery).toContain('(LOWER(keyword.KEYWORD) LIKE :keyword1)');
       expect(mockDatabaseClient.query.mock.calls[0][1]).toEqual({
         searchTerm: '%eco%',
         researchType0: 'basica',
-        keyword0: '%clima%',
+        keyword1: '%clima%',
         offset: 0,
         limit: 10,
       });
       expect(mockDatabaseClient.query.mock.calls[1][1]).toEqual({
         searchTerm: '%eco%',
         researchType0: 'basica',
-        keyword0: '%clima%',
+        keyword1: '%clima%',
       });
     });
   });

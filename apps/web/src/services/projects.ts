@@ -9,6 +9,8 @@ import type {
   Project,
   ProjectDetailApiDto,
   ProjectFilters,
+  ProjectSortBy,
+  ProjectSortOrder,
   ProjectQueryFilters,
   ProjectSummaryApiDto,
   ProjectSummaryItem,
@@ -55,6 +57,14 @@ export async function getProjects(
   appendArrayFilter('status', queryFilters.status);
   appendArrayFilter('participants', queryFilters.participants);
   appendArrayFilter('keywords', queryFilters.keywords);
+
+  if (queryFilters.sortBy) {
+    params.set('sortBy', queryFilters.sortBy);
+  }
+
+  if (queryFilters.sortOrder) {
+    params.set('sortOrder', queryFilters.sortOrder);
+  }
 
   const endpoint = `/projects?${params.toString()}`;
   const response =

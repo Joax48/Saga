@@ -47,7 +47,12 @@ export interface ProjectQueryFilters {
   status?: string[];
   participants?: string[];
   keywords?: string[];
+  sortBy?: ProjectSortBy;
+  sortOrder?: ProjectSortOrder;
 }
+
+export type ProjectSortBy = 'title' | 'year' | 'code';
+export type ProjectSortOrder = 'asc' | 'desc';
 
 export interface ManagerReferenceApiDto {
   id: number;

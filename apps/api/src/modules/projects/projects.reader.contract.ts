@@ -1,5 +1,8 @@
 export const PROJECTS_READER = Symbol('PROJECTS_READER');
 
+export type ProjectsSortBy = 'title' | 'year' | 'code';
+export type ProjectsSortOrder = 'asc' | 'desc';
+
 export interface ManagerReferenceDto {
   id: number;
   name: string;
@@ -81,12 +84,18 @@ export interface ProjectsFiltersRequestDto {
   keywords?: string[];
 }
 
+export interface ProjectsSortRequestDto {
+  sortBy?: ProjectsSortBy;
+  sortOrder?: ProjectsSortOrder;
+}
+
 export interface ProjectsReader {
   getPaginatedList(
     page: number,
     limit: number,
     query?: string,
     filters?: ProjectsFiltersRequestDto,
+    sort?: ProjectsSortRequestDto,
   ): Promise<ProjectsPaginatedListDto>;
 
   getFilterOptions(

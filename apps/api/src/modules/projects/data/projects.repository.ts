@@ -9,6 +9,7 @@ import type {
   ProjectsFilterOptionDto,
   ProjectsFiltersDto,
   ProjectsFiltersRequestDto,
+  ProjectsSortRequestDto,
 } from '../projects.reader.contract';
 import type { Project, ProjectAssociatedProfile, ProjectDetail } from '../project.entity';
 import {
@@ -157,6 +158,7 @@ export class ProjectsRepository {
     limit: number,
     searchTerm?: string | null,
     filters?: ProjectsFiltersRequestDto,
+    sort?: ProjectsSortRequestDto,
   ): Promise<PaginatedResult<Project>> {
     const offset = this.calculateOffset(page, limit);
     const builtWhereClause = this.sqlFilterBuilder.buildPaginatedProjectsWhereClause(
@@ -164,7 +166,7 @@ export class ProjectsRepository {
       filters,
     );
     const [items, total] = await Promise.all([
-      this.findItemsPage(limit, offset, builtWhereClause),
+      this.findItemsPage(limit, offset, builtWhereClause, sort),
       this.countProjects(builtWhereClause),
     ]);
 
@@ -204,13 +206,14 @@ export class ProjectsRepository {
     limit: number,
     offset: number,
     builtWhereClause: BuiltPaginatedProjectsWhereClause,
+    sort?: ProjectsSortRequestDto,
   ): Promise<Project[]> {
     const rows = await this.databaseClient.query<ProjectRow>(
       `
         ${PROJECT_BASE_SELECT}
         ${PROJECT_BASE_FROM}
         ${builtWhereClause.clause}
-        ORDER BY "name" ASC
+        ${this.buildOrderClause(sort)}
         OFFSET :offset ROWS
         FETCH NEXT :limit ROWS ONLY
       `,
@@ -232,6 +235,20 @@ export class ProjectsRepository {
     return rows.map((row) =>
       this.mapper.mapProject(row, keywordsByProjectId.get(row.id) ?? []),
     );
+  }
+
+  private buildOrderClause(sort?: ProjectsSortRequestDto): string {
+    const direction = sort?.sortOrder === 'desc' ? 'DESC' : 'ASC';
+
+    switch (sort?.sortBy) {
+      case 'year':
+        return `ORDER BY EXTRACT(YEAR FROM project_period_aggregate.AGGREGATE_START_DATE) ${direction} NULLS LAST, research_project.PROJECT_ID ASC`;
+      case 'code':
+        return `ORDER BY research_project.PROJECT_ID ${direction}`;
+      case 'title':
+      default:
+        return `ORDER BY UPPER(research_project.PROJECT_NAME) ${direction}, research_project.PROJECT_ID ASC`;
+    }
   }
 
   private async countProjects(

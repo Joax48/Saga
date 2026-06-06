@@ -63,14 +63,23 @@ describe('GetProjectsPaginatedListUseCase', () => {
       expect(result.page).toBe(1);
       expect(result.limit).toBe(10);
       expect(result.total).toBe(12);
-      expect(projectsReader.getPaginatedList).toHaveBeenCalledWith(1, 10, undefined, {
-        researchType: undefined,
-        projectType: undefined,
-        startYear: undefined,
-        status: undefined,
-        participants: undefined,
-        keywords: undefined,
-      });
+      expect(projectsReader.getPaginatedList).toHaveBeenCalledWith(
+        1,
+        10,
+        undefined,
+        {
+          researchType: undefined,
+          projectType: undefined,
+          startYear: undefined,
+          status: undefined,
+          participants: undefined,
+          keywords: undefined,
+        },
+        {
+          sortBy: undefined,
+          sortOrder: undefined,
+        },
+      );
     });
 
     it('should map each item to the ProjectSummaryResponseDto format', async () => {
@@ -135,14 +144,23 @@ describe('GetProjectsPaginatedListUseCase', () => {
         keywords: ['clima'],
       });
 
-      expect(projectsReader.getPaginatedList).toHaveBeenCalledWith(3, 5, 'clima', {
-        researchType: ['basica'],
-        projectType: ['proyecto'],
-        startYear: ['2024'],
-        status: ['activo'],
-        participants: ['shu wei chou chen'],
-        keywords: ['clima'],
-      });
+      expect(projectsReader.getPaginatedList).toHaveBeenCalledWith(
+        3,
+        5,
+        'clima',
+        {
+          researchType: ['basica'],
+          projectType: ['proyecto'],
+          startYear: ['2024'],
+          status: ['activo'],
+          participants: ['shu wei chou chen'],
+          keywords: ['clima'],
+        },
+        {
+          sortBy: undefined,
+          sortOrder: undefined,
+        },
+      );
       expect(projectsReader.getPaginatedList).toHaveBeenCalledTimes(1);
     });
 
@@ -156,14 +174,23 @@ describe('GetProjectsPaginatedListUseCase', () => {
 
       await useCase.execute({ page: 1, limit: 10, q: 'clima' });
 
-      expect(projectsReader.getPaginatedList).toHaveBeenCalledWith(1, 10, 'clima', {
-        researchType: undefined,
-        projectType: undefined,
-        startYear: undefined,
-        status: undefined,
-        participants: undefined,
-        keywords: undefined,
-      });
+      expect(projectsReader.getPaginatedList).toHaveBeenCalledWith(
+        1,
+        10,
+        'clima',
+        {
+          researchType: undefined,
+          projectType: undefined,
+          startYear: undefined,
+          status: undefined,
+          participants: undefined,
+          keywords: undefined,
+        },
+        {
+          sortBy: undefined,
+          sortOrder: undefined,
+        },
+      );
       expect(projectsReader.getPaginatedList).toHaveBeenCalledTimes(1);
     });
 
@@ -187,14 +214,23 @@ describe('GetProjectsPaginatedListUseCase', () => {
         keywords: ['impacto'],
       });
 
-      expect(projectsReader.getPaginatedList).toHaveBeenCalledWith(1, 10, 'clima', {
-        researchType: ['Basica'],
-        projectType: ['Interdisciplinario'],
-        startYear: ['2024'],
-        status: ['in-progress'],
-        participants: ['Alice Manager'],
-        keywords: ['impacto'],
-      });
+      expect(projectsReader.getPaginatedList).toHaveBeenCalledWith(
+        1,
+        10,
+        'clima',
+        {
+          researchType: ['Basica'],
+          projectType: ['Interdisciplinario'],
+          startYear: ['2024'],
+          status: ['in-progress'],
+          participants: ['Alice Manager'],
+          keywords: ['impacto'],
+        },
+        {
+          sortBy: undefined,
+          sortOrder: undefined,
+        },
+      );
       expect(projectsReader.getPaginatedList).toHaveBeenCalledTimes(1);
     });
 
