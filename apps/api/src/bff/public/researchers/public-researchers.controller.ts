@@ -7,7 +7,10 @@ import {
   Body,
   HttpCode,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 import { PaginatedListResponseDto } from '../common/dtos/paginated-list-response.dto';
 import { ResearcherProfileResponseDto } from './dtos/researcher-profile-response.dto';
@@ -19,9 +22,10 @@ import { GetResearchersPaginatedListUseCase } from '../../../application/use-cas
 import { GetResearcherDetailUseCase } from '../../../application/use-cases/get-public-researcher-detail.use-case';
 import { GetResearcherProfileUseCase } from '../../../application/use-cases/get-public-researcher-profile.use-case';
 import { GetResearchersFiltersUseCase } from '../../../application/use-cases/get-public-researchers-filters.use-case';
+import { UpdateResearcherLinksUseCase } from '../../../application/use-cases/update-researcher-links.use-case';
+import { UpdateResearcherPhotoUseCase } from '../../../application/use-cases/update-researcher-photo.use-case';
 import { GetResearcherCollaborationCountriesUseCase } from '../../../application/use-cases/get-public-researcher-collaboration-countries.use-case';
 import { GetResearchersCollaborationFacetUseCase } from '../../../application/use-cases/get-public-researchers-collaboration-facet.use-case';
-import { UpdateResearcherLinksUseCase } from '../../../application/use-cases/update-researcher-links.use-case';
 import { UpdateResearcherLinksDto } from './dtos/researcher-update-links.dto';
 
 @Controller('researchers')
@@ -31,6 +35,7 @@ export class PublicResearchersController {
     private readonly getResearcherDetailUseCase: GetResearcherDetailUseCase,
     private readonly getResearcherProfileUseCase: GetResearcherProfileUseCase,
     private readonly getResearchersFiltersUseCase: GetResearchersFiltersUseCase,
+    private readonly updateResearcherPhotoUseCase: UpdateResearcherPhotoUseCase,
     private readonly getResearcherCollaborationCountriesUseCase: GetResearcherCollaborationCountriesUseCase,
     private readonly getResearchersCollaborationFacetUseCase: GetResearchersCollaborationFacetUseCase,
     private readonly updateResearcherLinksUseCase: UpdateResearcherLinksUseCase,
@@ -88,6 +93,17 @@ export class PublicResearchersController {
     @Param('id') id: string,
   ): Promise<ResearcherSummaryResponseDto> {
     return await this.getResearcherDetailUseCase.execute(id);
+  }
+
+  @Patch(':id/photo')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileInterceptor('photo'))
+  async updateResearcherPhoto(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<ResearcherProfileResponseDto> {
+    await this.updateResearcherPhotoUseCase.execute(id, file);
+    return await this.getResearcherProfileUseCase.execute(id);
   }
 
   @Patch(':id/links')

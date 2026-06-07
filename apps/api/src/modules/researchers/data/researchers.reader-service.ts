@@ -13,6 +13,16 @@ import type {
 import { ResearchersRepository } from './researchers.repository';
 
 /**
+ * Converts the photo BLOB to a base64 data URL, or null if no photo is stored.
+ * Every photo is stored as JPEG (see UpdateResearcherPhotoUseCase), so the mime
+ * type is fixed and no per-buffer format detection is needed.
+ */
+function resolvePhotoUrl(photoData: Buffer | null): string | null {
+  if (!photoData?.length) return null;
+  return `data:image/jpeg;base64,${photoData.toString('base64')}`;
+}
+
+/**
  * Service layer between the repository and the use cases.
  * Its responsibility is to transform raw database records (entities)
  * into the format the application expects (DTOs).
@@ -71,7 +81,7 @@ export class ResearchersReaderService implements ResearchersReader {
           linkedin: researcher.linkedin,
           researchGate: researcher.researchGate,
           scopus: researcher.scopus,
-          photoUrl: researcher.photoUrl,
+          photo: resolvePhotoUrl(researcher.photoData),
           profileType: researcher.profileType,
           linkedUnits: linkedUnitsByResearcherId.get(researcher.id) ?? [],
           workUnits: workUnitsByResearcherId.get(String(researcher.id)) ?? [],
@@ -113,7 +123,7 @@ export class ResearchersReaderService implements ResearchersReader {
       linkedin: researcher.linkedin,
       researchGate: researcher.researchGate,
       scopus: researcher.scopus,
-      photoUrl: researcher.photoUrl,
+      photo: resolvePhotoUrl(researcher.photoData),
       profileType: researcher.profileType,
       linkedUnits: linkedUnits.map((u) => ({ id: String(u.id), name: u.name })),
       workUnits: workUnitsRows.map((u) => ({ id: String(u.id), name: u.name })),
@@ -200,7 +210,7 @@ export class ResearchersReaderService implements ResearchersReader {
       linkedin: researcher.linkedin,
       researchGate: researcher.researchGate,
       scopus: researcher.scopus,
-      photoUrl: researcher.photoUrl,
+      photo: resolvePhotoUrl(researcher.photoData),
       profileType: researcher.profileType,
       alternativeNames: alternativeNamesRows.map((row) => ({
         name: row.name,

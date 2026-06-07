@@ -5,7 +5,7 @@ export class UpdateResearcherLinksDto {
   @IsString()
   @MaxLength(255)
   @ValidateIf((o) => o.orcidId !== '')
-  @Matches(/^https?:\/\/(?:www\.)?orcid\.org\/\d{4}-\d{4}-\d{4}-\d{4}\/?$/, {
+  @Matches(/^https?:\/\/(?:www\.)?orcid\.org\/\d{4}-\d{4}-\d{4}-\d{3}[\dX]\/?$/i, {
     message: 'orcidId must be an ORCID URL like https://orcid.org/0000-0000-0000-0000',
   })
   orcidId?: string;

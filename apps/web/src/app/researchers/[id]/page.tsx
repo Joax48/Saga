@@ -355,8 +355,8 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
 
   if (loadError) {
     return (
-      <main className="min-h-screen flex items-center justify-center px-6">
-        <ApiErrorMessage message={loadError} />
+      <main className="min-h-screen flex items-center justify-center">
+        <p className="text-[18px] text-(--color-text-neutral-secondary)">{loadError}</p>
       </main>
     );
   }
@@ -378,7 +378,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
   const profileLinks = buildProfileLinks(profile);
 
   const photo =
-    profile.photoUrl ||
+    profile.photo ||
     getAvatarUrl(profile.name, profile.firstSurname, profile.secondSurname);
 
   const allProductions = profile.scientificOutputs.map(toSummaryScientificProduction);

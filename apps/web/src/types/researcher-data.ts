@@ -20,7 +20,7 @@ export interface Researcher {
   linkedin: string | null;
   researchGate: string | null;
   scopus: string | null;
-  photoUrl: string | null;
+  photo: string | null;
   profileType: ProfileType;
   linkedUnits: ResearcherListLinkedUnit[];
   workUnits: ResearcherListLinkedUnit[];

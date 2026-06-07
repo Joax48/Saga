@@ -189,24 +189,29 @@ describe('ResearchersService', () => {
 
 ### 2.2 Template: Repository
 
-**Reference file:** `modules/researchers/researchers.repository.ts`  
-**Test file:** `modules/researchers/__tests__/researchers.repository.ts`
+**Reference file:** `modules/researchers/data/researchers.repository.ts`  
+**Test file:** `modules/researchers/data/__tests__/researchers.repository.ts`
 
-The repository accesses the database directly using raw SQL with `pg`. The `pg` pool/client is mocked — never a real database.
+The repository accesses the Oracle database directly using raw SQL through the `DatabaseClient` contract (`OracleDatabaseProvider`). The database client is mocked — never a real database.
 
-**What to mock:** the `pg` pool or client (the object with the `query` method).
+**What to mock:** the `DatabaseClient` (the object with the `query` method), typed as `DatabaseServiceMock`.
 
 ```typescript
 import { ResearchersRepository } from '../researchers.repository';
+import type { DatabaseClient } from '../../../../common/database/database-client.contract';
+
+type DatabaseServiceMock = {
+  query: jest.Mock;
+};
 
 describe('ResearchersRepository', () => {
   let repository: ResearchersRepository;
-  let mockDb: { query: jest.Mock };
+  let mockDb: DatabaseServiceMock;
 
   // --- ARRANGE (shared setup) ---
   beforeEach(() => {
     mockDb = { query: jest.fn() };
-    repository = new ResearchersRepository(mockDb as any);
+    repository = new ResearchersRepository(mockDb as unknown as DatabaseClient);
   });
 
   afterEach(() => {
@@ -214,56 +219,73 @@ describe('ResearchersRepository', () => {
   });
 
   // --- Happy path ---
-  describe('findAll', () => {
-    it('should return all researchers', async () => {
+  describe('findPaginated', () => {
+    it('should return items and total count', async () => {
       // Arrange
-      const mockRows = [
-        { id: '1', name: 'Ana Pérez' },
-        { id: '2', name: 'Luis Mora' },
+      const mockItems = [
+        { id: 'a1b2c3', name: 'Ana', firstSurname: 'Pérez', secondSurname: 'Mora' },
+        { id: 'd4e5f6', name: 'Luis', firstSurname: 'Solano', secondSurname: null },
       ];
-      mockDb.query.mockResolvedValue({ rows: mockRows });
+      const mockCount = [{ totalCount: 30 }];
+      // findPaginated runs two queries in parallel: items first, count second
+      mockDb.query.mockResolvedValueOnce(mockItems).mockResolvedValueOnce(mockCount);
 
       // Act
-      const result = await repository.findAll();
+      const result = await repository.findPaginated(1, 10);
 
       // Assert
-      expect(result).toEqual(mockRows);
-      expect(mockDb.query).toHaveBeenCalledTimes(1);
+      expect(result.items).toEqual(mockItems);
+      expect(result.total).toBe(30);
+      expect(mockDb.query).toHaveBeenCalledTimes(2);
     });
   });
 
-  // --- Edge case: empty result ---
-  describe('findByName', () => {
-    it('should return an empty list if there are no matches', async () => {
+  // --- Oracle pagination syntax ---
+  describe('findPaginated — Oracle pagination', () => {
+    it('should use FETCH NEXT / OFFSET syntax (Oracle SQL:2011)', async () => {
       // Arrange
-      mockDb.query.mockResolvedValue({ rows: [] });
+      mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
 
       // Act
-      const result = await repository.findByName('non-existent-name');
+      await repository.findPaginated(2, 10);
 
       // Assert
-      expect(result).toEqual([]);
+      const itemsQuery = mockDb.query.mock.calls[0][0] as string;
+      expect(itemsQuery).toContain('FETCH NEXT 10 ROWS ONLY');
+      expect(itemsQuery).toContain('OFFSET 10 ROWS');
     });
+  });
 
-    it('should pass the name as a parameterized argument ($1)', async () => {
+  // --- Bind variables ---
+  describe('findById', () => {
+    it('should pass the id as the :1 Oracle bind variable', async () => {
       // Arrange
-      mockDb.query.mockResolvedValue({ rows: [] });
-      const name = 'Ana';
+      mockDb.query.mockResolvedValue([]);
 
       // Act
-      await repository.findByName(name);
+      await repository.findById('target-id');
 
-      // Assert — verifies safe SQL usage ($1, not string concatenation)
-      expect(mockDb.query).toHaveBeenCalledWith(
-        expect.stringContaining('$1'),
-        [name],
-      );
+      // Assert — verifies safe SQL usage (:1, not string concatenation)
+      expect(mockDb.query.mock.calls[0][1]).toEqual(['target-id']);
+      const query = mockDb.query.mock.calls[0][0] as string;
+      expect(query).toContain('PROFILE_ID = :1');
+    });
+
+    it('should return null when the database returns an empty array', async () => {
+      // Arrange
+      mockDb.query.mockResolvedValue([]);
+
+      // Act
+      const result = await repository.findById('nonexistent-id');
+
+      // Assert
+      expect(result).toBeNull();
     });
   });
 });
 ```
 
-> **Security note:** the third test case (`$1`) verifies that the SQL uses parameterized placeholders and not string concatenation. This enforces the project rule that prohibits dynamic literals in queries.
+> **Security note:** bind-variable tests (`:1`) verify that the SQL uses positional Oracle placeholders and not string concatenation. This enforces the project rule that prohibits dynamic literals in queries.
 
 ---
 
@@ -414,7 +436,7 @@ describe('GetPublicResearcherProfileQuery', () => {
 | Layer             | Class under test                              | What is mocked                            |
 |-------------------|-----------------------------------------------|-------------------------------------------|
 | Service           | `researchers.service.ts`                      | Injected repository                       |
-| Repository        | `researchers.repository.ts`                   | `pg` client (`query` method)              |
+| Repository        | `researchers.repository.ts`                   | `DatabaseClient` contract (`query` method) — returns `T[]` directly, Oracle bind vars (`:1`, `:2`, …) |
 | Controller (BFF)  | `public-researchers.controller.ts`            | Query or service from `application/`      |
 | Application Query | `get-public-researcher-profile.query.ts`      | All coordinated services                  |
 

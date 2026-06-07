@@ -47,11 +47,13 @@ describe('ResearchersReaderService', () => {
             firstSurname: 'Mora',
             secondSurname: 'Jimenez',
             ceaCategory: 'Investigador Asociado',
+            institution: null,
+            country: null,
             orcidId: '0000-0001-2345-6789',
             linkedin: null,
             researchGate: null,
             scopus: null,
-            photoUrl: null,
+            photoData: null,
             profileType: 'UCR' as const,
           },
           {
@@ -62,11 +64,13 @@ describe('ResearchersReaderService', () => {
             firstSurname: 'Vargas',
             secondSurname: 'Solano',
             ceaCategory: null,
+            institution: null,
+            country: null,
             orcidId: null,
             linkedin: 'https://linkedin.com/in/ana-vargas',
             researchGate: null,
             scopus: null,
-            photoUrl: 'https://example.com/photo.jpg',
+            photoData: null,
             profileType: 'EXTERNAL' as const,
           },
         ],
@@ -102,7 +106,7 @@ describe('ResearchersReaderService', () => {
             linkedin: 'https://linkedin.com/in/carlos-solano',
             researchGate: 'https://researchgate.net/profile/carlos-solano',
             scopus: '123456789',
-            photoUrl: 'https://example.com/carlos.jpg',
+            photoData: Buffer.from([0xff, 0xd8, 0xff]),
             profileType: 'UCR' as const,
           },
         ],
@@ -142,7 +146,7 @@ describe('ResearchersReaderService', () => {
         linkedin: 'https://linkedin.com/in/carlos-solano',
         researchGate: 'https://researchgate.net/profile/carlos-solano',
         scopus: '123456789',
-        photoUrl: 'https://example.com/carlos.jpg',
+        photo: 'data:image/jpeg;base64,/9j/',
         profileType: 'UCR',
         linkedUnits: [
           { id: '1', name: 'CIPRONA' },
@@ -233,11 +237,13 @@ describe('ResearchersReaderService', () => {
         firstSurname: 'Mora',
         secondSurname: 'Jimenez',
         ceaCategory: null,
+        institution: null,
+        country: null,
         orcidId: null,
         linkedin: null,
         researchGate: null,
         scopus: null,
-        photoUrl: null,
+        photoData: null,
         profileType: 'UCR' as const,
       });
       repository.findLinkedUnits.mockResolvedValue([]);
@@ -257,11 +263,13 @@ describe('ResearchersReaderService', () => {
         firstSurname: 'Mora',
         secondSurname: 'Jimenez',
         ceaCategory: null,
+        institution: null,
+        country: null,
         orcidId: null,
         linkedin: null,
         researchGate: null,
         scopus: null,
-        photoUrl: null,
+        photoData: null,
         profileType: 'UCR' as const,
       });
       repository.findLinkedUnits.mockResolvedValue([
@@ -286,11 +294,13 @@ describe('ResearchersReaderService', () => {
         firstSurname: 'Mora',
         secondSurname: 'Jimenez',
         ceaCategory: null,
+        institution: null,
+        country: null,
         orcidId: null,
         linkedin: null,
         researchGate: null,
         scopus: null,
-        photoUrl: null,
+        photoData: null,
         profileType: 'UCR' as const,
       });
       repository.findLinkedUnits.mockResolvedValue([{ id: 99, name: 'CIGEFI' }]);
@@ -315,11 +325,13 @@ describe('ResearchersReaderService', () => {
         firstSurname: 'Mora',
         secondSurname: 'Jimenez',
         ceaCategory: null,
+        institution: null,
+        country: null,
         orcidId: null,
         linkedin: null,
         researchGate: null,
         scopus: null,
-        photoUrl: null,
+        photoData: null,
         profileType: 'UCR' as const,
       });
       repository.findLinkedUnits.mockRejectedValue(new Error('Units query failed'));
@@ -337,11 +349,13 @@ describe('ResearchersReaderService', () => {
       firstSurname: 'Perez',
       secondSurname: 'Mora',
       ceaCategory: null,
+      institution: null,
+      country: null,
       orcidId: null,
       linkedin: null,
       researchGate: null,
       scopus: null,
-      photoUrl: null,
+      photoData: null,
       profileType: 'UCR' as const,
     };
 
@@ -593,8 +607,6 @@ describe('ResearchersReaderService', () => {
       repository.findKeywordsByProjectIds.mockResolvedValueOnce(
         new Map([['proj-1', ['AI', 'ML']]]),
       );
-      repository.findAuthorsByOutputIds.mockResolvedValueOnce(new Map());
-      repository.findKeywordsByOutputIds.mockResolvedValueOnce(new Map());
 
       const result = await service.getProfile('1');
 

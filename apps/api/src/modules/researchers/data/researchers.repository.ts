@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import oracledb from 'oracledb';
 
 import {
   DATABASE_CLIENT,
@@ -15,6 +16,9 @@ import {
 } from '../../scientific-productions/data/scientific-productions.queries';
 import type { Researcher } from '../researcher.entity';
 import type { ResearchersFiltersRequestDto } from '../researchers.reader.contract';
+
+// BLOB photo column in PRODUCCION_CIENTIFICA.PROFILE
+const PHOTO_BLOB_COLUMN = 'PHOTO';
 
 // ─── Internal types ───────────────────────────────────────────────────────────
 
@@ -94,7 +98,7 @@ const BASE_RESEARCHERS_SELECT = `
     up.LINKEDIN_URL     AS "linkedin",
     up.RESEARCH_GATE_URL AS "researchGate",
     p.SCOPUS_PROFILE_LINK AS "scopus",
-    up.PROFILE_IMAGE_URL  AS "photoUrl",
+    p.PHOTO               AS "photoData",
     profile_kind.PROFILE_TYPE AS "profileType",
     ext_inst.INSTITUTION_NAME AS "institution",
     ext_c.COUNTRY_NAME        AS "country"
@@ -461,7 +465,10 @@ export class ResearchersRepository {
     const profileSet: string[] = [];
     const profileParams: unknown[] = [];
     for (const [key, column] of profileMap) {
-      if (Object.prototype.hasOwnProperty.call(fields, key)) {
+      if (
+        Object.prototype.hasOwnProperty.call(fields, key) &&
+        fields[key as keyof typeof fields] !== undefined
+      ) {
         const raw = fields[key as keyof typeof fields];
         const value = raw === '' ? null : raw;
         profileParams.push(value);
@@ -481,7 +488,10 @@ export class ResearchersRepository {
     const ucrSet: string[] = [];
     const ucrParams: unknown[] = [];
     for (const [key, column] of ucrMap) {
-      if (Object.prototype.hasOwnProperty.call(fields, key)) {
+      if (
+        Object.prototype.hasOwnProperty.call(fields, key) &&
+        fields[key as keyof typeof fields] !== undefined
+      ) {
         const raw = fields[key as keyof typeof fields];
         const value = raw === '' ? null : raw;
         ucrParams.push(value);
@@ -526,6 +536,18 @@ export class ResearchersRepository {
       const insertSql = `INSERT INTO PRODUCCION_CIENTIFICA.UCR_PROFILE (${insertCols.join(', ')}) VALUES (${insertBinds.join(', ')})`;
       await this.databaseClient.query(insertSql, insertParams);
     }
+  }
+
+  /**
+   * Stores a photo as BLOB in UCR_PROFILE.PROFILE_IMAGE.
+   * If the UCR_PROFILE row does not exist, a new one is created.
+   */
+  async updatePhoto(profileId: string, buffer: Buffer): Promise<void> {
+    // PROFILE always has a row for every researcher, so UPDATE is sufficient
+    await this.databaseClient.query(
+      `UPDATE PRODUCCION_CIENTIFICA.PROFILE SET ${PHOTO_BLOB_COLUMN} = :1 WHERE PROFILE_ID = :2`,
+      [{ val: buffer, type: oracledb.BUFFER }, profileId],
+    );
   }
 
   // ── Profile sub-queries (per researcher) ──────────────────────────────────

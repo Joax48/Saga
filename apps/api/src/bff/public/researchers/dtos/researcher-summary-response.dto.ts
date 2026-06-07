@@ -20,7 +20,7 @@ export class ResearcherSummaryResponseDto {
   linkedin!: string | null;
   researchGate!: string | null;
   scopus!: string | null;
-  photoUrl!: string | null;
+  photo!: string | null;
   profileType!: ProfileType;
   linkedUnits!: ResearcherLinkedUnitSummaryDto[];
   workUnits!: ResearcherLinkedUnitSummaryDto[];

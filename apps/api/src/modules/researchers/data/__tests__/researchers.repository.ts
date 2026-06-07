@@ -180,12 +180,24 @@ describe('ResearchersRepository', () => {
       expect(itemsQuery).toContain('PROFILE_NAME');
     });
 
-    it('should pass a single search word as three starts-with params (one per field)', async () => {
+    it('should pass a single search word as six params (three primary fields + three alternative-name fields)', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ totalCount: 0 }]);
 
       await repository.findPaginated(1, 10, 'Ana');
 
-      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%', 'Ana%', 'Ana%']);
+      // Per token: name/firstSurname/lastSurname use starts-with (Ana%); the
+      // alternative NAME can be compound so it uses a contains pattern (%Ana%),
+      // while alternative first/last surnames stay starts-with.
+      // Asserted against the COUNT query (calls[1]) which carries only the WHERE
+      // binds; the items query (calls[0]) also appends ORDER BY relevance-score binds.
+      expect(mockDb.query.mock.calls[1][1]).toEqual([
+        'Ana%',
+        'Ana%',
+        'Ana%',
+        '%Ana%',
+        'Ana%',
+        'Ana%',
+      ]);
     });
 
     it('should AND each word so non-adjacent name parts still match', async () => {
@@ -195,12 +207,20 @@ describe('ResearchersRepository', () => {
 
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
       expect(itemsQuery).toContain('AND');
-      // 3 binds per token × 2 tokens
-      expect(mockDb.query.mock.calls[0][1]).toEqual([
+      // 6 binds per token × 2 tokens (3 primary fields + 3 alternative-name fields).
+      // Asserted against the COUNT query (calls[1]), which omits the extra
+      // ORDER BY relevance-score binds present in the items query (calls[0]).
+      expect(mockDb.query.mock.calls[1][1]).toEqual([
         'Kenneth%',
+        'Kenneth%',
+        'Kenneth%',
+        '%Kenneth%',
         'Kenneth%',
         'Kenneth%',
         'Osorio%',
+        'Osorio%',
+        'Osorio%',
+        '%Osorio%',
         'Osorio%',
         'Osorio%',
       ]);
@@ -216,7 +236,14 @@ describe('ResearchersRepository', () => {
       expect(countQuery).toContain('PROFILE_NAME');
       expect(countQuery).toContain('PROFILE_FIRST_SURNAME');
       expect(countQuery).toContain('PROFILE_LAST_SURNAME');
-      expect(mockDb.query.mock.calls[1][1]).toEqual(['Carlos%', 'Carlos%', 'Carlos%']);
+      expect(mockDb.query.mock.calls[1][1]).toEqual([
+        'Carlos%',
+        'Carlos%',
+        'Carlos%',
+        '%Carlos%',
+        'Carlos%',
+        'Carlos%',
+      ]);
     });
 
     it('should return an empty list when no researchers match the search term', async () => {
@@ -243,7 +270,15 @@ describe('ResearchersRepository', () => {
 
       await repository.findPaginated(1, 10, '  Ana  ');
 
-      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%', 'Ana%', 'Ana%']);
+      // COUNT query (calls[1]) carries only the WHERE binds (no score binds).
+      expect(mockDb.query.mock.calls[1][1]).toEqual([
+        'Ana%',
+        'Ana%',
+        'Ana%',
+        '%Ana%',
+        'Ana%',
+        'Ana%',
+      ]);
     });
   });
 
@@ -260,7 +295,7 @@ describe('ResearchersRepository', () => {
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
       expect(itemsQuery).toContain('WHERE');
       expect(itemsQuery).toContain('EXISTS');
-      expect(itemsQuery).toContain('UCR_PROFILE_PROJECT_UNIT');
+      expect(itemsQuery).toContain('UCR_PROFILE_WORK_UNIT');
       expect(itemsQuery).toContain('LOWER(u2.UNIT_NAME)');
       // params should be normalized and lowercased
       expect(mockDb.query.mock.calls[0][1]).toEqual([
@@ -379,7 +414,14 @@ describe('ResearchersRepository', () => {
 
       await repository.getBaseUnitCounts('Ana');
 
-      expect(mockDb.query.mock.calls[0][1]).toEqual(['Ana%', 'Ana%', 'Ana%']);
+      expect(mockDb.query.mock.calls[0][1]).toEqual([
+        'Ana%',
+        'Ana%',
+        'Ana%',
+        '%Ana%',
+        'Ana%',
+        'Ana%',
+      ]);
       const query = mockDb.query.mock.calls[0][0] as string;
       expect(query).toContain('PROFILE_NAME');
     });
@@ -399,10 +441,20 @@ describe('ResearchersRepository', () => {
 
       await repository.getBaseUnitCounts('Carlos', { unit: ['CIMPA'] });
 
-      expect(mockDb.query.mock.calls[0][1]).toEqual(['Carlos%', 'Carlos%', 'Carlos%']);
+      expect(mockDb.query.mock.calls[0][1]).toEqual([
+        'Carlos%',
+        'Carlos%',
+        'Carlos%',
+        '%Carlos%',
+        'Carlos%',
+        'Carlos%',
+      ]);
       const query = mockDb.query.mock.calls[0][0] as string;
       expect(query).toContain('PROFILE_NAME');
-      expect(query).not.toContain('EXISTS');
+      // The unit-filter EXISTS subquery (aliased uppu2) must be excluded. The
+      // search term itself now introduces its own EXISTS for alternative names,
+      // so we assert on the unit-filter alias rather than on 'EXISTS' broadly.
+      expect(query).not.toContain('uppu2');
     });
 
     it('should include GROUP BY UNIT_NAME in the query', async () => {
@@ -419,6 +471,180 @@ describe('ResearchersRepository', () => {
       mockDb.query.mockRejectedValue(new Error('DB timeout'));
 
       await expect(repository.getBaseUnitCounts()).rejects.toThrow('DB timeout');
+    });
+  });
+
+  describe('updateLinks', () => {
+
+    describe('UCR_PROFILE fields (orcidId, linkedin, researchGate)', () => {
+      it('should issue a SELECT then UPDATE when the UCR_PROFILE row exists', async () => {
+
+        mockDb.query
+          .mockResolvedValueOnce([{ PROFILE_ID: 'r-001' }])
+          .mockResolvedValueOnce([]);
+
+        await repository.updateLinks('r-001', {
+          linkedin: 'https://linkedin.com/in/ana',
+        });
+
+        expect(mockDb.query).toHaveBeenCalledTimes(2);
+        const updateSql = mockDb.query.mock.calls[1][0] as string;
+        expect(updateSql.toUpperCase()).toContain('UPDATE');
+        expect(updateSql).toContain('UCR_PROFILE');
+        expect(updateSql).toContain('LINKEDIN_URL');
+      });
+
+      it('should issue a SELECT then INSERT when the UCR_PROFILE row does not exist', async () => {
+        
+        mockDb.query
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([]);
+
+        await repository.updateLinks('r-001', {
+          linkedin: 'https://linkedin.com/in/ana',
+        });
+
+        expect(mockDb.query).toHaveBeenCalledTimes(2);
+        const insertSql = mockDb.query.mock.calls[1][0] as string;
+        expect(insertSql.toUpperCase()).toContain('INSERT');
+        expect(insertSql).toContain('UCR_PROFILE');
+        expect(insertSql).toContain('LINKEDIN_URL');
+      });
+
+      it('should include only the provided UCR field in the SET clause', async () => {
+        
+        mockDb.query
+          .mockResolvedValueOnce([{ PROFILE_ID: 'r-001' }])
+          .mockResolvedValueOnce([]);
+
+        await repository.updateLinks('r-001', {
+          linkedin: 'https://linkedin.com/in/ana',
+        });
+
+        const updateSql = mockDb.query.mock.calls[1][0] as string;
+        expect(updateSql).toContain('LINKEDIN_URL');
+        expect(updateSql).not.toContain('ORCID_ID');
+        expect(updateSql).not.toContain('RESEARCH_GATE_URL');
+      });
+
+      it('should convert empty string to NULL in UCR_PROFILE update (clear operation)', async () => {
+
+        mockDb.query
+          .mockResolvedValueOnce([{ PROFILE_ID: 'r-001' }])
+          .mockResolvedValueOnce([]);
+
+        await repository.updateLinks('r-001', { linkedin: '' });
+
+        const updateParams = mockDb.query.mock.calls[1][1] as unknown[];
+        expect(updateParams[0]).toBeNull();
+      });
+
+      it('should use Oracle positional bind variables (:1, :2) in the UPDATE', async () => {
+        
+        mockDb.query
+          .mockResolvedValueOnce([{ PROFILE_ID: 'r-001' }])
+          .mockResolvedValueOnce([]);
+
+        await repository.updateLinks('r-001', {
+          linkedin: 'https://linkedin.com/in/ana',
+        });
+
+        const updateSql = mockDb.query.mock.calls[1][0] as string;
+        expect(updateSql).toContain(':1');
+        expect(updateSql).not.toContain('$1');
+      });
+
+      it('should skip undefined fields — not include them in the SET clause', async () => {
+
+        mockDb.query
+          .mockResolvedValueOnce([{ PROFILE_ID: 'r-001' }])
+          .mockResolvedValueOnce([]);
+
+        await repository.updateLinks('r-001', {
+          orcidId: undefined,
+          linkedin: 'https://linkedin.com/in/ana',
+        });
+
+        const updateSql = mockDb.query.mock.calls[1][0] as string;
+        expect(updateSql).toContain('LINKEDIN_URL');
+        expect(updateSql).not.toContain('ORCID_ID');
+      });
+    });
+
+    describe('PROFILE table field (scopus)', () => {
+      it('should update SCOPUS_PROFILE_LINK in the PROFILE table when scopus is provided', async () => {
+
+        mockDb.query.mockResolvedValueOnce([]);
+
+        await repository.updateLinks('r-001', {
+          scopus: 'https://scopus.com/authid/detail.uri?authorId=123',
+        });
+
+        expect(mockDb.query).toHaveBeenCalledTimes(1);
+        const sql = mockDb.query.mock.calls[0][0] as string;
+        expect(sql.toUpperCase()).toContain('UPDATE');
+        expect(sql).toContain('PROFILE');
+        expect(sql).toContain('SCOPUS_PROFILE_LINK');
+      });
+
+      it('should convert empty string to NULL in PROFILE update (clear operation)', async () => {
+        mockDb.query.mockResolvedValueOnce([]);
+
+        await repository.updateLinks('r-001', { scopus: '' });
+
+        const params = mockDb.query.mock.calls[0][1] as unknown[];
+        expect(params[0]).toBeNull();
+      });
+
+      it('should skip the PROFILE update when scopus is not in fields', async () => {
+        mockDb.query
+          .mockResolvedValueOnce([{ PROFILE_ID: 'r-001' }])
+          .mockResolvedValueOnce([]);
+
+        await repository.updateLinks('r-001', {
+          linkedin: 'https://linkedin.com/in/ana',
+        });
+
+        const firstSql = mockDb.query.mock.calls[0][0] as string;
+        expect(firstSql.toUpperCase()).not.toContain('SCOPUS_PROFILE_LINK');
+      });
+    });
+
+    describe('combined fields', () => {
+      it('should run three queries when both scopus and a UCR field are provided', async () => {
+
+        mockDb.query
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([{ PROFILE_ID: 'r-001' }])
+          .mockResolvedValueOnce([]);
+
+        await repository.updateLinks('r-001', {
+          scopus: 'https://scopus.com/authid/detail.uri?authorId=123',
+          linkedin: 'https://linkedin.com/in/ana',
+        });
+
+        expect(mockDb.query).toHaveBeenCalledTimes(3);
+      });
+    });
+
+    describe('error handling', () => {
+      it('should propagate errors from the UCR_PROFILE SELECT', async () => {
+        mockDb.query.mockRejectedValue(new Error('DB timeout'));
+
+        await expect(
+          repository.updateLinks('r-001', { linkedin: 'https://linkedin.com/in/ana' }),
+        ).rejects.toThrow('DB timeout');
+      });
+
+      it('should propagate errors from the UCR_PROFILE UPDATE', async () => {
+        mockDb.query
+          .mockResolvedValueOnce([{ PROFILE_ID: 'r-001' }])
+          .mockRejectedValueOnce(new Error('Constraint violation'));
+
+        await expect(
+          repository.updateLinks('r-001', { linkedin: 'https://linkedin.com/in/ana' }),
+        ).rejects.toThrow('Constraint violation');
+      });
     });
   });
 });

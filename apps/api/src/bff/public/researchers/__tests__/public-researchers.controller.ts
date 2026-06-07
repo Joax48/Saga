@@ -4,11 +4,13 @@ import { GetResearchersPaginatedListUseCase } from '../../../../application/use-
 import { GetResearcherDetailUseCase } from '../../../../application/use-cases/get-public-researcher-detail.use-case';
 import { GetResearcherProfileUseCase } from '../../../../application/use-cases/get-public-researcher-profile.use-case';
 import { GetResearchersFiltersUseCase } from '../../../../application/use-cases/get-public-researchers-filters.use-case';
+import { UpdateResearcherPhotoUseCase } from '../../../../application/use-cases/update-researcher-photo.use-case';
 import { GetResearcherCollaborationCountriesUseCase } from '../../../../application/use-cases/get-public-researcher-collaboration-countries.use-case';
 import { GetResearchersCollaborationFacetUseCase } from '../../../../application/use-cases/get-public-researchers-collaboration-facet.use-case';
 import { UpdateResearcherLinksUseCase } from '../../../../application/use-cases/update-researcher-links.use-case';
 import { ResearchersListRequestDto } from '../dtos/researchers-list-request.dto';
 import { ResearchersFiltersRequestQueryDto } from '../dtos/researchers-filters-request.dto';
+import { UpdateResearcherLinksDto } from '../dtos/researcher-update-links.dto';
 
 describe('PublicResearchersController', () => {
   let controller: PublicResearchersController;
@@ -16,6 +18,7 @@ describe('PublicResearchersController', () => {
   let detailUseCase: jest.Mocked<GetResearcherDetailUseCase>;
   let profileUseCase: jest.Mocked<GetResearcherProfileUseCase>;
   let filtersUseCase: jest.Mocked<GetResearchersFiltersUseCase>;
+  let updatePhotoUseCase: jest.Mocked<UpdateResearcherPhotoUseCase>;
   let collaborationCountriesUseCase: jest.Mocked<GetResearcherCollaborationCountriesUseCase>;
   let collaborationFacetUseCase: jest.Mocked<GetResearchersCollaborationFacetUseCase>;
   let updateLinksUseCase: jest.Mocked<UpdateResearcherLinksUseCase>;
@@ -34,6 +37,9 @@ describe('PublicResearchersController', () => {
     filtersUseCase = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<GetResearchersFiltersUseCase>;
+    updatePhotoUseCase = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<UpdateResearcherPhotoUseCase>;
     collaborationCountriesUseCase = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<GetResearcherCollaborationCountriesUseCase>;
@@ -49,6 +55,7 @@ describe('PublicResearchersController', () => {
       detailUseCase,
       profileUseCase,
       filtersUseCase,
+      updatePhotoUseCase,
       collaborationCountriesUseCase,
       collaborationFacetUseCase,
       updateLinksUseCase,
@@ -75,14 +82,14 @@ describe('PublicResearchersController', () => {
             firstSurname: 'Mora',
             secondSurname: 'Jimenez',
             ceaCategory: 'Investigador Asociado',
+            institution: null,
+            country: null,
+            institutions: [],
             orcidId: '0000-0001-2345-6789',
             linkedin: null,
             researchGate: null,
             scopus: null,
-            photoUrl: null,
-            institution: null,
-            country: null,
-            institutions: [],
+            photo: null,
             linkedUnits: [],
             workUnits: [],
           },
@@ -95,14 +102,14 @@ describe('PublicResearchersController', () => {
             firstSurname: 'Vargas',
             secondSurname: 'Solano',
             ceaCategory: null,
+            institution: 'Universidad Nacional',
+            country: 'Costa Rica',
+            institutions: [{ name: 'Universidad Nacional', country: 'Costa Rica' }],
             orcidId: null,
             linkedin: 'https://linkedin.com/in/ana-vargas',
             researchGate: null,
             scopus: null,
-            photoUrl: 'https://example.com/photo.jpg',
-            institution: null,
-            country: null,
-            institutions: [],
+            photo: 'https://example.com/photo.jpg',
             linkedUnits: [],
             workUnits: [],
           },
@@ -263,14 +270,14 @@ describe('PublicResearchersController', () => {
         firstSurname: 'Mora',
         secondSurname: 'Jimenez',
         ceaCategory: null,
+        institution: null,
+        country: null,
+        institutions: [],
         orcidId: null,
         linkedin: null,
         researchGate: null,
         scopus: null,
-        photoUrl: null,
-        institution: null,
-        country: null,
-        institutions: [],
+        photo: null,
         linkedUnits: [],
         workUnits: [],
       };
@@ -319,14 +326,15 @@ describe('PublicResearchersController', () => {
         firstSurname: 'Perez',
         secondSurname: 'Mora',
         ceaCategory: null,
+        institution: null,
+        country: null,
+        institutions: [],
         orcidId: null,
         linkedin: null,
         researchGate: null,
         scopus: null,
-        photoUrl: null,
-        institution: null,
-        country: null,
-        institutions: [],
+        photo: null,
+        hIndex: null,
         linkedUnits: [],
         workUnits: [],
         hIndex: null,
@@ -359,15 +367,101 @@ describe('PublicResearchersController', () => {
         new NotFoundException('Researcher not found'),
       );
 
-      await expect(
-        controller.getResearcherProfile('missing-id'),
-      ).rejects.toBeInstanceOf(NotFoundException);
+      await expect(controller.getResearcherProfile('missing-id')).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
 
     it('should propagate database errors from the use case', async () => {
       profileUseCase.execute.mockRejectedValue(new Error('DB error'));
 
       await expect(controller.getResearcherProfile('1')).rejects.toThrow('DB error');
+    });
+  });
+
+  describe('updateResearcherLinks', () => {
+    const mockProfile = {
+      id: 'r-001',
+      idUcrProfile: 'UCR001',
+      profileType: 'UCR' as const,
+      baseUnit: 'CIMPA',
+      name: 'Ana',
+      firstSurname: 'Pérez',
+      secondSurname: 'Mora',
+      ceaCategory: null,
+      institution: null,
+      country: null,
+      institutions: [],
+      orcidId: '0000-0001-2345-6789',
+      linkedin: 'https://linkedin.com/in/ana',
+      researchGate: null,
+      scopus: null,
+      photo: null,
+      hIndex: null,
+      linkedUnits: [],
+      alternativeNames: [],
+      keywords: [],
+      education: [],
+      experience: [],
+      projects: [],
+      scientificOutputs: [],
+    };
+
+    it('should call updateLinksUseCase then return the updated profile from profileUseCase', async () => {
+      updateLinksUseCase.execute.mockResolvedValue(undefined);
+      profileUseCase.execute.mockResolvedValue(mockProfile);
+      const dto = Object.assign(new UpdateResearcherLinksDto(), {
+        linkedin: 'https://linkedin.com/in/ana',
+      });
+
+      const result = await controller.updateResearcherLinks('r-001', dto);
+
+      expect(updateLinksUseCase.execute).toHaveBeenCalledWith('r-001', dto);
+      expect(profileUseCase.execute).toHaveBeenCalledWith('r-001');
+      expect(result).toEqual(mockProfile);
+    });
+
+    it('should forward the id and dto to updateLinksUseCase', async () => {
+      updateLinksUseCase.execute.mockResolvedValue(undefined);
+      profileUseCase.execute.mockResolvedValue(mockProfile);
+      const dto = Object.assign(new UpdateResearcherLinksDto(), {
+        orcidId: 'https://orcid.org/0000-0001-2345-6789',
+      });
+
+      await controller.updateResearcherLinks('r-001', dto);
+
+      expect(updateLinksUseCase.execute).toHaveBeenCalledWith('r-001', dto);
+      expect(updateLinksUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should always fetch the fresh profile after the update', async () => {
+      updateLinksUseCase.execute.mockResolvedValue(undefined);
+      profileUseCase.execute.mockResolvedValue(mockProfile);
+
+      await controller.updateResearcherLinks('r-001', new UpdateResearcherLinksDto());
+
+      expect(profileUseCase.execute).toHaveBeenCalledWith('r-001');
+      expect(profileUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should propagate NotFoundException from updateLinksUseCase', async () => {
+      updateLinksUseCase.execute.mockRejectedValue(
+        new NotFoundException('Researcher with id "missing" not found'),
+      );
+
+      await expect(
+        controller.updateResearcherLinks('missing', new UpdateResearcherLinksDto()),
+      ).rejects.toBeInstanceOf(NotFoundException);
+
+      expect(profileUseCase.execute).not.toHaveBeenCalled();
+    });
+
+    it('should propagate database errors from updateLinksUseCase', async () => {
+      updateLinksUseCase.execute.mockRejectedValue(new Error('DB error'));
+
+      await expect(
+        controller.updateResearcherLinks('r-001', new UpdateResearcherLinksDto()),
+      ).rejects.toThrow('DB error');
     });
   });
 
@@ -388,9 +482,9 @@ describe('PublicResearchersController', () => {
     it('should propagate errors from the use case', async () => {
       collaborationCountriesUseCase.execute.mockRejectedValue(new Error('DB error'));
 
-      await expect(
-        controller.getResearcherCollaborationCountries('1'),
-      ).rejects.toThrow('DB error');
+      await expect(controller.getResearcherCollaborationCountries('1')).rejects.toThrow(
+        'DB error',
+      );
     });
   });
 });

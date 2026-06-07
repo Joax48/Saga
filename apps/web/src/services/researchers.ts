@@ -1,4 +1,4 @@
-import { request } from './api';
+import { request, API_BASE } from './api';
 
 import type { Researcher } from '@/types/researcher-data';
 import type { ResearcherProfile } from '@/types/researcher-profile';
@@ -41,7 +41,7 @@ interface ResearcherSummaryApiDto {
   linkedin: string | null;
   researchGate: string | null;
   scopus: string | null;
-  photoUrl: string | null;
+  photo: string | null;
   profileType: 'UCR' | 'EXTERNAL';
   linkedUnits: { id: string; name: string }[];
   workUnits: { id: string; name: string }[];
@@ -72,7 +72,7 @@ function mapResearcherSummaryToResearcher(item: ResearcherSummaryApiDto): Resear
     linkedin: item.linkedin,
     researchGate: item.researchGate,
     scopus: item.scopus,
-    photoUrl: item.photoUrl,
+    photo: item.photo,
     profileType: item.profileType,
     linkedUnits: item.linkedUnits ?? [],
     workUnits: item.workUnits ?? [],
@@ -119,6 +119,62 @@ export function getResearchers(
     limit: response.limit,
     total: response.total,
   }));
+}
+
+/**
+ * Uploads a profile photo for a researcher.
+ * Sends the file as multipart/form-data under the field name "photo".
+ * Returns the updated ResearcherProfile after the change is applied.
+ */
+export async function updateResearcherPhoto(
+  id: string,
+  file: File,
+): Promise<ResearcherProfile> {
+  const formData = new FormData();
+  formData.append('photo', file);
+
+  const response = await fetch(`${API_BASE}/researchers/${id}/photo`, {
+    method: 'PATCH',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Photo upload failed: ${response.status}`);
+  }
+
+  return response.json() as Promise<ResearcherProfile>;
+}
+
+/**
+ * Deletes the currently stored profile photo for a researcher (the one persisted
+ * in Dropbox). This is different from clearing a newly selected, not-yet-uploaded
+ * file in the UI — it removes the saved photo on the backend so the profile falls
+ * back to its generated avatar.
+ * Returns the updated ResearcherProfile after the photo is removed.
+ */
+export function deleteResearcherPhoto(id: string): Promise<ResearcherProfile> {
+  return request<ResearcherProfile>(`/researchers/${id}/photo`, {
+    method: 'DELETE',
+  });
+}
+
+/** Updates the profile links for a researcher
+ * The links object can contain any subset of the following optional properties:
+ * - orcidId: string (URL to ORCID profile)
+ * - linkedin: string (URL to LinkedIn profile)
+ * - researchGate: string (URL to ResearchGate profile)
+ * - scopus: string (URL to Scopus profile)
+ * The backend will normalize the ORCID iD and validate the URLs. Only the provided links will be updated; others will remain unchanged.
+ * Returns the updated ResearcherProfile after the changes are applied.
+ */
+export function updateResearcherLinks(
+  id: string,
+  links: { orcidId?: string; linkedin?: string; researchGate?: string; scopus?: string },
+): Promise<ResearcherProfile> {
+  return request<ResearcherProfile>(`/researchers/${id}/links`, {
+    method: 'PATCH',
+    body: JSON.stringify(links),
+  });
 }
 
 /** Fetches a single researcher by ID */

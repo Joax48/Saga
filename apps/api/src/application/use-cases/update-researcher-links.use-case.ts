@@ -19,12 +19,12 @@ export class UpdateResearcherLinksUseCase {
       v = urlMatch[1];
     }
 
-    // Remove any non-digit characters
-    const digits = v.replace(/[^0-9]/g, '');
+    // Remove any non-alphanumeric characters except X (ORCID checksum digit)
+    const digits = v.replace(/[^0-9X]/gi, '').toUpperCase();
     if (digits.length !== 16) return null;
 
-    // Format as 0000-0000-0000-0000
-    return digits.replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1-$2-$3-$4');
+    // Format as 0000-0000-0000-000X (last char may be X per the ORCID spec)
+    return `${digits.slice(0, 4)}-${digits.slice(4, 8)}-${digits.slice(8, 12)}-${digits.slice(12, 16)}`;
   }
 
   // Executes the use case to update a researcher's links.
@@ -43,8 +43,13 @@ export class UpdateResearcherLinksUseCase {
       throw new NotFoundException(`Researcher with id "${id}" not found`);
     }
 
-    // Normalize the ORCID iD if provided, and prepare the update data
-    const normalized = { ...links };
+    // Strip undefined values: class-transformer sets optional DTO fields not present in the
+    // request body as undefined own-properties, which would otherwise be treated as explicit
+    // nulls and wipe values that were never sent.
+    const normalized = Object.fromEntries(
+      Object.entries({ ...links }).filter(([, v]) => v !== undefined),
+    ) as Partial<typeof links>;
+
     if ('orcidId' in normalized) {
       normalized.orcidId = this.normalizeOrcid(normalized.orcidId ?? null);
     }

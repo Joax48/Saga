@@ -36,7 +36,7 @@ export class GetResearcherDetailUseCase {
       linkedin: researcher.linkedin,
       researchGate: researcher.researchGate,
       scopus: researcher.scopus,
-      photoUrl: researcher.photoUrl,
+      photo: researcher.photo,
       profileType: researcher.profileType,
       linkedUnits: researcher.linkedUnits,
       workUnits: researcher.workUnits,

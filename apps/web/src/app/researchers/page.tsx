@@ -239,7 +239,7 @@ function ResearchersPageContent() {
             className="text-sm"
             style={{ color: 'var(--color-text-neutral-secondary)' }}
           >
-            Ordenar por
+            Ordenamiento alfabético
           </span>
           <select
             value={filters.sortOrder ?? 'asc'}
@@ -335,7 +335,7 @@ function ResearchersPageFallback() {
             className="text-sm"
             style={{ color: 'var(--color-text-neutral-secondary)' }}
           >
-            Ordenar por
+            Ordenamiento alfabético
           </span>
           <select
             defaultValue="asc"

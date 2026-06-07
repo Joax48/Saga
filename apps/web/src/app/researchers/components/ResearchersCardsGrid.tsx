@@ -161,7 +161,7 @@ export default function ResearchersCardsGrid({
                   }
                   excerpt={researcher.ceaCategory ?? 'Sin categoría registrada'}
                   imageSrc={
-                    researcher.photoUrl ||
+                    researcher.photo ||
                     getAvatarUrl(
                       researcher.name,
                       researcher.firstSurname,

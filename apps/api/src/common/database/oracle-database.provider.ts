@@ -15,6 +15,8 @@ export class OracleDatabaseProvider
 
   async onModuleInit() {
     oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
+    // Return BLOB columns as Node.js Buffers instead of Lob stream objects
+    oracledb.fetchAsBuffer = [oracledb.BLOB];
     oracledb.fetchAsString = [oracledb.CLOB];
 
     this.pool = await oracledb.createPool({
