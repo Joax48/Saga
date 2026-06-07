@@ -227,11 +227,11 @@ export class UnitsRepository {
     );
   }
 
-async findScientificProductionsByUnitId(
-  unitId: number,
-): Promise<UnitScientificProduction[]> {
-  return this.databaseClient.query<UnitScientificProduction>(
-    `
+  async findScientificProductionsByUnitId(
+    unitId: number,
+  ): Promise<UnitScientificProduction[]> {
+    return this.databaseClient.query<UnitScientificProduction>(
+      `
       SELECT
         SO.scientific_output_id AS "id",
         SO.title                AS "title",
@@ -266,9 +266,9 @@ async findScientificProductionsByUnitId(
       WHERE SOU.unit_id = :unitId
       ORDER BY SO.publication_year DESC
     `,
-    { unitId },
-  );
-}
+      { unitId },
+    );
+  }
 
   async findProjectsByUnitId(unitId: number): Promise<UnitProject[]> {
     return this.databaseClient.query<UnitProject>(
@@ -330,6 +330,12 @@ async findScientificProductionsByUnitId(
     const conditions: string[] = [];
     const params: Record<string, string> = {};
 
+    conditions.push(`
+      UPPER(u.unit_name) NOT LIKE '%ASESOR%'
+      AND UPPER(u.unit_name) NOT LIKE '%ASAMBLEA%'
+      AND UPPER(u.unit_name) NOT LIKE '%CONSEJO%'
+    `);
+
     if (q) {
       params.q = `%${q}%`;
       conditions.push(`u.unit_name LIKE :q`);
@@ -353,6 +359,7 @@ async findScientificProductionsByUnitId(
       JOIN profile p ON p.PROFILE_ID = pwu.PROFILE_ID
       JOIN unit u ON u.unit_id = pwu.unit_id
       ${whereClause}
+      HAVING COUNT(DISTINCT pwu.unit_id) > 0
       GROUP BY p.PROFILE_ID, p.PROFILE_NAME, p.PROFILE_FIRST_SURNAME
       ORDER BY p.PROFILE_NAME
       `,
@@ -365,6 +372,12 @@ async findScientificProductionsByUnitId(
   ): Promise<{ id: number; name: string; firstSurname: string | null; count: number }[]> {
     const conditions: string[] = [];
     const params: Record<string, string> = {};
+
+    conditions.push(`
+      UPPER(u.unit_name) NOT LIKE '%ASESOR%'
+      AND UPPER(u.unit_name) NOT LIKE '%ASAMBLEA%'
+      AND UPPER(u.unit_name) NOT LIKE '%CONSEJO%'
+    `);
 
     if (q) {
       params.q = `%${q}%`;
@@ -390,6 +403,7 @@ async findScientificProductionsByUnitId(
       JOIN unit u ON u.unit_id = ppu.unit_id
       ${whereClause}
       GROUP BY p.PROFILE_ID, p.PROFILE_NAME, p.PROFILE_FIRST_SURNAME
+      HAVING COUNT(DISTINCT ppu.unit_id) > 0
       ORDER BY p.PROFILE_NAME
       `,
       params,
