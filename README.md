@@ -153,6 +153,7 @@ All commands are run from the project root.
 | `pnpm run lint`         | Lint API and web                 |
 | `pnpm run typecheck`    | TypeScript type checking         |
 | `pnpm run test`         | Run API tests                    |
+| `pnpm run e2e`          | Run all API end-to-end tests     |
 | `pnpm run format`       | Format all files with Prettier   |
 | `pnpm run format:check` | Check formatting without writing |
 | `pnpm run ci`           | Run lint + typecheck + test      |
@@ -168,6 +169,7 @@ make dev-web      # Start web
 make lint         # Lint all
 make typecheck    # Type check all
 make test         # Run tests
+make e2e          # Run all API end-to-end tests
 make format       # Format code
 make ci           # Full CI pipeline
 make docker-up    # Docker compose up --build

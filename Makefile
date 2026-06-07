@@ -2,7 +2,7 @@
 # Scientific Production Portal — Makefile
 # ───────────────────────────────────────────────
 
-.PHONY: install dev-api dev-web build lint typecheck test format format-check ci docker-up docker-down docker-rebuild clean
+.PHONY: install dev-api dev-web build lint typecheck test e2e format format-check ci docker-up docker-down docker-rebuild clean
 
 # ── Setup ──────────────────────────────────────
 
@@ -32,6 +32,9 @@ typecheck:
 
 test:
 	pnpm run test
+
+e2e:
+	pnpm run e2e
 
 format:
 	pnpm run format
