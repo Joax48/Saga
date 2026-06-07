@@ -1,5 +1,5 @@
-import { ScientificProductionsService } from '../../../scientific-productions/data/scientific-productions.reader-service';
-import { ScientificProductionRepository } from '../../../scientific-productions/data/scientific-productions.repository';
+import { ScientificProductionsService } from '../data/scientific-productions.reader-service';
+import { ScientificProductionRepository } from '../data/scientific-productions.repository';
 
 describe('ScientificProductionsService', () => {
   let service: ScientificProductionsService;
@@ -59,7 +59,13 @@ describe('ScientificProductionsService', () => {
       expect(result.limit).toBe(10);
       expect(result.total).toBe(1);
       expect(result.items).toHaveLength(1);
-      expect(repository.findPaginated).toHaveBeenCalledWith(1, 10, undefined);
+      expect(repository.findPaginated).toHaveBeenCalledWith(
+        1,
+        10,
+        undefined,
+        undefined,
+        undefined,
+      );    
     });
 
     it('should expose the summary fields expected by the public list view', async () => {
@@ -136,7 +142,13 @@ describe('ScientificProductionsService', () => {
 
       await service.getPaginatedList(2, 5, { q: 'clima' });
 
-      expect(repository.findPaginated).toHaveBeenCalledWith(2, 5, { q: 'clima' });
+      expect(repository.findPaginated).toHaveBeenCalledWith(
+        2,
+        5,
+        { q: 'clima' },
+        undefined,
+        undefined,
+      );
       expect(repository.findPaginated).toHaveBeenCalledTimes(1);
     });
 
@@ -172,12 +184,24 @@ describe('ScientificProductionsService', () => {
       expect(result.page).toBe(2);
       expect(result.items).toHaveLength(1);
       expect(repository.findPaginated).toHaveBeenCalledTimes(2);
-      expect(repository.findPaginated).toHaveBeenNthCalledWith(1, 5, 2, {
-        q: 'tecnologia',
-      });
-      expect(repository.findPaginated).toHaveBeenNthCalledWith(2, 2, 2, {
-        q: 'tecnologia',
-      });
+      expect(repository.findPaginated).toHaveBeenNthCalledWith(
+        1,
+        5,
+        2,
+        {
+          q: 'tecnologia',
+        },
+        undefined,
+        undefined,
+      );
+      expect(repository.findPaginated).toHaveBeenNthCalledWith(
+        2,
+        2,
+        2,
+        {
+          q: 'tecnologia',
+        },
+      );
     });
 
     it('should maintain the requested page when it is within range', async () => {

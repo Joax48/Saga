@@ -74,13 +74,19 @@ describe('GetScientificProductionPaginatedListUseCase', () => {
       expect(result.page).toBe(1);
       expect(result.limit).toBe(10);
       expect(result.total).toBe(2);
-      expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(1, 10, {
-        q: undefined,
-        type: undefined,
-        openAccess: undefined,
-        year: undefined,
-        keywords: undefined,
-      });
+      expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(
+        1,
+        10,
+        {
+          q: undefined,
+          type: undefined,
+          openAccess: undefined,
+          year: undefined,
+          keywords: undefined,
+        },
+        undefined,
+        undefined,
+      );
     });
 
     it('should map each item to the ScientificProductioSummaryResponseDto format', async () => {
@@ -155,13 +161,19 @@ describe('GetScientificProductionPaginatedListUseCase', () => {
         keywords: ['clima', 'agua'],
       });
 
-      expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(2, 5, {
-        q: 'clima',
-        type: ['Articulo'],
-        openAccess: true,
-        year: ['2024'],
-        keywords: ['clima', 'agua'],
-      });
+      expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(
+        2,
+        5,
+        {
+          q: 'clima',
+          type: ['Articulo'],
+          openAccess: true,
+          year: ['2024'],
+          keywords: ['clima', 'agua'],
+        },
+        undefined,
+        undefined,
+      );
       expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledTimes(1);
     });
 
@@ -175,13 +187,19 @@ describe('GetScientificProductionPaginatedListUseCase', () => {
 
       await useCase.execute({ page: 1, limit: 10, q: 'clima' });
 
-      expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(1, 10, {
-        q: 'clima',
-        type: undefined,
-        openAccess: undefined,
-        year: undefined,
-        keywords: undefined,
-      });
+      expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(
+        1,
+        10,
+        {
+          q: 'clima',
+          type: undefined,
+          openAccess: undefined,
+          year: undefined,
+          keywords: undefined,
+        },
+        undefined,
+        undefined,
+      );
       expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledTimes(1);
     });
 
@@ -226,13 +244,19 @@ describe('GetScientificProductionPaginatedListUseCase', () => {
       expect(result.items).toEqual([]);
       expect(result.total).toBe(0);
 
-      expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(1, 10, {
-        q: 'vcrno$·"!12',
-        type: undefined,
-        openAccess: undefined,
-        year: undefined,
-        keywords: undefined,
-      });
+      expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(
+        1,
+        10,
+        {
+          q: 'vcrno$·"!12',
+          type: undefined,
+          openAccess: undefined,
+          year: undefined,
+          keywords: undefined,
+        },
+        undefined,
+        undefined,
+      );
     });
 
     it('should return empty list for invalid keywords', async () => {

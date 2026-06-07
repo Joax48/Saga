@@ -1,5 +1,5 @@
-import { ScientificProductionRepository } from '../../../scientific-productions/data/scientific-productions.repository';
-import type { DatabaseClient } from '../../../../common/database/database-client.contract';
+import { ScientificProductionRepository } from '../data/scientific-productions.repository';
+import type { DatabaseClient } from '../../../common/database/database-client.contract';
 
 type DatabaseClientMock = {
   query: jest.Mock;
@@ -53,7 +53,7 @@ describe('ScientificProductionRepository', () => {
 
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
       expect(itemsQuery).toContain(
-        'ORDER BY so.PUBLICATION_YEAR DESC, so.SCIENTIFIC_OUTPUT_ID',
+        'ORDER BY so.TITLE ASC, so.SCIENTIFIC_OUTPUT_ID ASC',
       );
       expect(itemsQuery).toContain('OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY');
 
@@ -176,14 +176,14 @@ describe('ScientificProductionRepository', () => {
       expect(mockDb.query.mock.calls[1][1]).toEqual({ q: '%clima%', kw0: '%impacto%' });
     });
 
-    it('should order results by publication year and scientific output id', async () => {
+    it('should order results by title and scientific output id', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ TOTALCOUNT: 0 }]);
 
       await repository.findPaginated(1, 10);
 
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
       expect(itemsQuery).toContain(
-        'ORDER BY so.PUBLICATION_YEAR DESC, so.SCIENTIFIC_OUTPUT_ID',
+        'ORDER BY so.TITLE ASC, so.SCIENTIFIC_OUTPUT_ID ASC',
       );
     });
 
