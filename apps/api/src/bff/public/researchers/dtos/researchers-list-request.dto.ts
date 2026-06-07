@@ -34,4 +34,9 @@ export class ResearchersListRequestDto extends PaginatedListRequestDto {
   @IsArray()
   @IsString({ each: true })
   collaborationCountry?: string[];
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc';
 }

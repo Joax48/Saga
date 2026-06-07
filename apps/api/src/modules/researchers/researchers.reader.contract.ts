@@ -133,6 +133,7 @@ export interface ResearchersFiltersRequestDto {
   // A researcher matches when they co-authored a scientific output with an
   // external profile whose institution belongs to one of these countries.
   collaborationCountry?: string[];
+  sortOrder?: 'asc' | 'desc';
 }
 
 /** A single collaboration country with its weight (for the profile map). */

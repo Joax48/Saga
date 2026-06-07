@@ -68,6 +68,7 @@ export default function ResearchersList({
           filters.baseUnit,
           profileType,
           filters.collaborationCountry,
+          filters.sortOrder,
         );
 
         if (cancelled) return;

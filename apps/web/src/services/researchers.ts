@@ -91,6 +91,7 @@ export function getResearchers(
   units?: string[],
   profileType?: 'UCR' | 'EXTERNAL',
   collaborationCountries?: string[],
+  sortOrder?: 'asc' | 'desc',
 ): Promise<PaginatedResearchers> {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
 
@@ -107,6 +108,8 @@ export function getResearchers(
       params.append('collaborationCountry', country),
     );
   }
+
+  if (sortOrder) params.set('sortOrder', sortOrder);
 
   return request<PaginatedListResponseDto<ResearcherSummaryApiDto>>(
     `/researchers?${params.toString()}`,
@@ -178,7 +181,9 @@ export async function getResearcherFilters(
 ): Promise<Pick<ResearcherFilters, 'baseUnit'>> {
   const response = await request<{
     baseUnit: Array<{ value: string; count: number }>;
-  }>(`/researchers/filters${buildFilterParams(searchQuery, units, collaborationCountries)}`);
+  }>(
+    `/researchers/filters${buildFilterParams(searchQuery, units, collaborationCountries)}`,
+  );
 
   return {
     baseUnit: response.baseUnit.map(({ value, count }) => ({

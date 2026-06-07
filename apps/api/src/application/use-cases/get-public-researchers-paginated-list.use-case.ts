@@ -25,6 +25,7 @@ export class GetResearchersPaginatedListUseCase {
       unit: input.unit,
       profileType: input.profileType,
       collaborationCountry: input.collaborationCountry,
+      sortOrder: input.sortOrder,
     };
 
     const researchers = await this.researchersReader.getPaginatedList(

@@ -1,6 +1,13 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Suspense,
+  startTransition,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { ResearcherCardSkeleton } from '@/components/skeletons/CardSkeleton';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ChevronUp } from 'lucide-react';
@@ -24,6 +31,7 @@ const BREADCRUMB_ITEMS = [{ label: 'Perfiles' }];
 const DEFAULT_FILTERS: ResearcherQueryFilters = {
   baseUnit: [],
   collaborationCountry: [],
+  sortOrder: 'asc',
 };
 
 function toggleValue(values: string[] | undefined, value: string): string[] {
@@ -41,6 +49,7 @@ function ResearchersPageContent() {
   const [filters, setFilters] = useState<ResearcherQueryFilters>(() => ({
     baseUnit: searchParams.getAll('unit'),
     collaborationCountry: searchParams.getAll('collaborationCountry'),
+    sortOrder: (searchParams.get('sort') as 'asc' | 'desc') ?? 'asc',
   }));
   const [currentPage, setCurrentPage] = useState(() => {
     const p = parseInt(searchParams.get('page') ?? '1', 10);
@@ -96,41 +105,26 @@ function ResearchersPageContent() {
     }
   }, [currentPage, searchQuery, filters]);
 
-  // Scroll to the list only after an explicit user action (page, search, filter).
+  // Sync state to URL — skip first render and wrap in startTransition to avoid
+  // triggering the Suspense fallback during URL updates.
+  const isFirstSyncRender = useRef(true);
   useEffect(() => {
-    if (isFirstPageRender.current) {
-      isFirstPageRender.current = false;
+    if (isFirstSyncRender.current) {
+      isFirstSyncRender.current = false;
       return;
     }
-
-    if (!shouldScrollToListRef.current) {
-      return;
-    }
-
-    shouldScrollToListRef.current = false;
-
-    if (listContainerRef.current) {
-      const navbar = document.querySelector('header') ?? document.querySelector('nav');
-      const navbarHeight = navbar ? navbar.getBoundingClientRect().height : 0;
-      const top =
-        listContainerRef.current.getBoundingClientRect().top +
-        window.scrollY -
-        navbarHeight -
-        16;
-      window.scrollTo({ top, behavior: 'smooth' });
-    }
-  }, [currentPage, searchQuery, filters]);
-
-  // Sync state to URL so the back button restores page + filters + search
-  useEffect(() => {
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
     for (const unit of filters.baseUnit ?? []) params.append('unit', unit);
     for (const country of filters.collaborationCountry ?? [])
       params.append('collaborationCountry', country);
     if (currentPage > 1) params.set('page', String(currentPage));
+    if (filters.sortOrder && filters.sortOrder !== 'asc')
+      params.set('sort', filters.sortOrder);
     const qs = params.toString();
-    router.replace(`/researchers${qs ? `?${qs}` : ''}`, { scroll: false });
+    startTransition(() => {
+      router.replace(`/researchers${qs ? `?${qs}` : ''}`, { scroll: false });
+    });
   }, [searchQuery, filters, currentPage, router]);
 
   const handleSearch = useCallback((query: string) => {
@@ -178,21 +172,15 @@ function ResearchersPageContent() {
 
   // Refetch the filter facets whenever the search term or any selected filter
   // changes so the sidebar counts stay in sync with the visible list.
-  // The `cancelled` flag discards stale responses if the user types quickly.
   useEffect(() => {
     let cancelled = false;
-    // Unit facet ("Unidad de Pago"): fast and reliable.
     getResearcherFilters(searchQuery, filters.baseUnit, filters.collaborationCountry)
       .then((options) => {
         if (!cancelled) {
           setFilterOptions((prev) => ({ ...prev, baseUnit: options.baseUnit }));
         }
       })
-      .catch(() => {
-        /* keep previous unit options on failure */
-      });
-    // Collaboration facet ("Redes de colaboración"): separate, slow endpoint —
-    // loaded independently so it never blocks or breaks the unit filter.
+      .catch(() => {});
     getResearcherCollaborationFacet(
       searchQuery,
       filters.baseUnit,
@@ -203,9 +191,7 @@ function ResearchersPageContent() {
           setFilterOptions((prev) => ({ ...prev, collaborationCountry }));
         }
       })
-      .catch(() => {
-        /* keep previous collaboration options on failure */
-      });
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -239,30 +225,7 @@ function ResearchersPageContent() {
           </div>
         )}
 
-        {/* Profile type toggle — disabled while only UCR profiles are shown.
-        <div className="mb-4 flex gap-2">
-          {([undefined, 'UCR', 'EXTERNAL'] as const).map((type) => (
-            <button
-              key={type ?? 'ALL'}
-              onClick={() => {
-                setProfileType(type);
-                setCurrentPage(1);
-                shouldScrollToListRef.current = true;
-              }}
-              className={[
-                'px-3 py-1 text-xs font-medium transition-all cursor-pointer border rounded-md',
-                profileType === type
-                  ? 'bg-[var(--color-bg-brand-primary)] text-white border-[var(--color-bg-brand-primary)]'
-                  : 'text-[var(--color-text-neutral-secondary)] border-[var(--color-gray-300)] hover:border-[var(--color-text-neutral-secondary)]',
-              ].join(' ')}
-            >
-              {type === undefined ? 'Todos' : type === 'UCR' ? 'UCR' : 'Externo'}
-            </button>
-          ))}
-        </div>
-        */}
-
-        {total !== null && !listLoadError && (
+        {total !== null && (
           <p
             className="mb-4 text-sm"
             style={{ color: 'var(--color-text-neutral-secondary)' }}
@@ -271,7 +234,30 @@ function ResearchersPageContent() {
           </p>
         )}
 
-        {listLoadError && <ApiErrorMessage className="mb-6" message={listLoadError} />}
+        <div className="flex items-center gap-3 mb-4">
+          <span
+            className="text-sm"
+            style={{ color: 'var(--color-text-neutral-secondary)' }}
+          >
+            Ordenar por
+          </span>
+          <select
+            value={filters.sortOrder ?? 'asc'}
+            onChange={(e) => {
+              shouldScrollToListRef.current = true;
+              setFilters((prev) => ({
+                ...prev,
+                sortOrder: e.target.value as 'asc' | 'desc',
+              }));
+              setCurrentPage(1);
+            }}
+            className="text-sm border rounded px-2 py-1"
+            style={{ color: 'var(--color-text-neutral-secondary)' }}
+          >
+            <option value="asc">Ascendente</option>
+            <option value="desc">Descendente</option>
+          </select>
+        </div>
 
         <div className="flex flex-col gap-8 lg:flex-row">
           {!listLoadError && (
@@ -344,6 +330,23 @@ function ResearchersPageFallback() {
         <div className="flex justify-start h-30" />
       </section>
       <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="flex items-center gap-3 mb-4">
+          <span
+            className="text-sm"
+            style={{ color: 'var(--color-text-neutral-secondary)' }}
+          >
+            Ordenar por
+          </span>
+          <select
+            defaultValue="asc"
+            disabled
+            className="text-sm border rounded px-2 py-1"
+            style={{ color: 'var(--color-text-neutral-secondary)' }}
+          >
+            <option value="asc">Ascendente</option>
+            <option value="desc">Descendente</option>
+          </select>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
           {Array.from({ length: 18 }).map((_, i) => (
             <ResearcherCardSkeleton key={i} />

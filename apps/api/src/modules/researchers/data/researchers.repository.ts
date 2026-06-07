@@ -156,10 +156,11 @@ export class ResearchersRepository {
   ): Promise<PaginatedResult<Researcher>> {
     const offset = this.calculateOffset(page, limit);
     const builtWhereClause = this.buildWhereClause(searchTerm, filters);
+    const orderDir = filters?.sortOrder === 'desc' ? 'DESC' : 'ASC';
 
     // Run both queries in parallel to reduce total wait time
     const [items, total] = await Promise.all([
-      this.findItemsPage(limit, offset, builtWhereClause),
+      this.findItemsPage(limit, offset, builtWhereClause, orderDir),
       this.countResearchers(builtWhereClause),
     ]);
 
@@ -176,8 +177,9 @@ export class ResearchersRepository {
     limit: number,
     offset: number,
     builtWhereClause: BuiltWhereClause,
+    orderDir: 'ASC' | 'DESC' = 'ASC',
   ): Promise<Researcher[]> {
-    const nameOrder = `p.PROFILE_NAME ASC, p.PROFILE_FIRST_SURNAME ASC, p.PROFILE_LAST_SURNAME ASC`;
+    const nameOrder = `p.PROFILE_NAME ${orderDir}, p.PROFILE_FIRST_SURNAME ${orderDir}, p.PROFILE_LAST_SURNAME ${orderDir}`;
     const orderBy = builtWhereClause.scoreExpr
       ? `ORDER BY ${builtWhereClause.scoreExpr} DESC, ${nameOrder}`
       : `ORDER BY ${nameOrder}`;
@@ -279,7 +281,10 @@ export class ResearchersRepository {
    * Shared by the WHERE-clause filter and the per-profile collaboration query
    * so both use exactly the same definition of "collaborates with a country".
    */
-  private collaborationCountryExists(profileColumn: string, placeholders: string): string {
+  private collaborationCountryExists(
+    profileColumn: string,
+    placeholders: string,
+  ): string {
     return `EXISTS (
       SELECT 1
       FROM PRODUCCION_CIENTIFICA.SCIENTIFIC_OUTPUT_PROFILE sop_self
@@ -357,7 +362,9 @@ export class ResearchersRepository {
       )`);
     }
 
-    const collaborationCountries = this.normalizeFilterValues(filters?.collaborationCountry);
+    const collaborationCountries = this.normalizeFilterValues(
+      filters?.collaborationCountry,
+    );
     if (
       !this.shouldSkipFilter('collaborationCountry', excludedFilters) &&
       collaborationCountries.length > 0
@@ -387,13 +394,16 @@ export class ResearchersRepository {
       // Relevance score: count how many distinct primary name fields match any token.
       // "Gutierrez Gutierrez" → score=2 for profiles where both FIRST and LAST
       // match; score=1 for profiles where only one field matches.
-      const scoreCases = ['p.PROFILE_NAME', 'p.PROFILE_FIRST_SURNAME', 'p.PROFILE_LAST_SURNAME']
-        .map((field) => {
-          const orParts = searchTokens
-            .map((token) => `LOWER(${field}) LIKE LOWER(${addScore(token)})`)
-            .join(' OR ');
-          return `CASE WHEN ${orParts} THEN 1 ELSE 0 END`;
-        });
+      const scoreCases = [
+        'p.PROFILE_NAME',
+        'p.PROFILE_FIRST_SURNAME',
+        'p.PROFILE_LAST_SURNAME',
+      ].map((field) => {
+        const orParts = searchTokens
+          .map((token) => `LOWER(${field}) LIKE LOWER(${addScore(token)})`)
+          .join(' OR ');
+        return `CASE WHEN ${orParts} THEN 1 ELSE 0 END`;
+      });
       scoreExpr = `(${scoreCases.join(' + ')})`;
     }
 
@@ -730,9 +740,7 @@ export class ResearchersRepository {
     profileId: string,
     currentYearOnly = false,
   ): Promise<{ id: string; name: string }[]> {
-    const yearClause = currentYearOnly
-      ? 'AND jt.YEAR = EXTRACT(YEAR FROM SYSDATE)'
-      : '';
+    const yearClause = currentYearOnly ? 'AND jt.YEAR = EXTRACT(YEAR FROM SYSDATE)' : '';
     return this.databaseClient.query(
       `
         SELECT DISTINCT
@@ -756,9 +764,7 @@ export class ResearchersRepository {
     if (profileIds.length === 0) return new Map();
 
     const placeholders = profileIds.map((_, i) => `:${i + 1}`).join(', ');
-    const yearClause = currentYearOnly
-      ? 'AND jt.YEAR = EXTRACT(YEAR FROM SYSDATE)'
-      : '';
+    const yearClause = currentYearOnly ? 'AND jt.YEAR = EXTRACT(YEAR FROM SYSDATE)' : '';
     const rows = await this.databaseClient.query<{
       profileId: string;
       id: string;

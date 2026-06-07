@@ -60,4 +60,5 @@ export interface ResearcherQueryFilters {
   baseUnit?: string[];
   profileType?: 'UCR' | 'EXTERNAL';
   collaborationCountry?: string[];
+  sortOrder?: 'asc' | 'desc';
 }
