@@ -93,6 +93,14 @@ export class UnitsRepository {
     const conditions: string[] = [];
     const params: Record<string, string | number | number[] | undefined> = {};
 
+    conditions.push(`
+      UPPER(u.unit_name) NOT LIKE '%ASESOR%'
+      AND UPPER(u.unit_name) NOT LIKE '%ASAMBLEA%'
+      AND UPPER(u.unit_name) NOT LIKE '%CONSEJO%'
+    `);
+
+    const researcherSubconditions: string[] = [];
+
     if (searchDTO.researcherIds?.length) {
       const ids = searchDTO.researcherIds.map((_, i) => `:rid${i}`).join(', ');
 
@@ -100,7 +108,7 @@ export class UnitsRepository {
         params[`rid${i}`] = id;
       });
 
-      conditions.push(`
+      researcherSubconditions.push(`
         EXISTS (
           SELECT 1
           FROM ucr_profile_project_unit ppu
@@ -108,6 +116,27 @@ export class UnitsRepository {
             AND ppu.profile_id IN (${ids})
         )
       `);
+    }
+
+    if (searchDTO.researcherBaseUnitIds?.length) {
+      const ids = searchDTO.researcherBaseUnitIds.map((_, i) => `:rbuid${i}`).join(', ');
+
+      searchDTO.researcherBaseUnitIds.forEach((id, i) => {
+        params[`rbuid${i}`] = id;
+      });
+
+      researcherSubconditions.push(`
+        EXISTS (
+          SELECT 1
+          FROM ucr_profile_work_unit pwu
+          WHERE pwu.unit_id = u.unit_id
+            AND pwu.profile_id IN (${ids})
+        )
+      `);
+    }
+
+    if (researcherSubconditions.length) {
+      conditions.push(`(${researcherSubconditions.join(' OR ')})`);
     }
 
     if (searchDTO.q) {
@@ -198,49 +227,48 @@ export class UnitsRepository {
     );
   }
 
-  async findScientificProductionsByUnitId(
-    unitId: number,
-  ): Promise<UnitScientificProduction[]> {
-    return this.databaseClient.query<UnitScientificProduction>(
-      `
-        SELECT
-          SO.scientific_output_id AS "id",
-          SO.title                AS "title",
-          (
-            SELECT LISTAGG(
-                     INITCAP(TRIM(P.profile_name || ' ' || P.profile_first_surname)),
-                     ';'
-                   )
-                   WITHIN GROUP (ORDER BY P.profile_name)
-            FROM Scientific_Output_Profile SOP
-            JOIN Profile P ON P.profile_id = SOP.profile_id
-            WHERE SOP.scientific_output_id = SO.scientific_output_id
-          )                       AS "authors",
-          INITCAP(SOT.scientific_output_type_name) AS "type",
-          SO.publication_year     AS "publicationYear",
-          SO.doi                  AS "doi",
-          S.source_name           AS "journal",
-          COALESCE(CSO.volume, SCSO.volume) AS "volume",
-          COALESCE(CSO.issue_identifier, SCSO.issue_identifier) AS "issue",
-          COALESCE(CSO.clarivate_page_range, SCSO.scopus_page_range) AS "pages",
-          (
-            SELECT LISTAGG(K.keyword, ',') WITHIN GROUP (ORDER BY K.keyword)
-            FROM Scientific_Output_Keyword SOK
-            JOIN Keyword K ON K.keyword_id = SOK.keyword_id
-            WHERE SOK.scientific_output_id = SO.scientific_output_id
-          )                       AS "keywords"
-        FROM Scientific_Output_Unit SOU
-        JOIN Scientific_Output SO ON SO.scientific_output_id = SOU.scientific_output_id
-        LEFT JOIN Scientific_Output_Type SOT ON SOT.scientific_output_type_id = SO.type
-        LEFT JOIN Source S ON S.source_id = SO.source
-        LEFT JOIN Clarivate_Scientific_Output CSO ON CSO.scientific_output_id = SO.scientific_output_id
-        LEFT JOIN Scopus_Scientific_Output SCSO ON SCSO.scientific_output_id = SO.scientific_output_id
-        WHERE SOU.unit_id = :unitId
-        ORDER BY SO.publication_year DESC
-      `,
-      { unitId },
-    );
-  }
+async findScientificProductionsByUnitId(
+  unitId: number,
+): Promise<UnitScientificProduction[]> {
+  return this.databaseClient.query<UnitScientificProduction>(
+    `
+      SELECT
+        SO.scientific_output_id AS "id",
+        SO.title                AS "title",
+        (
+          SELECT LISTAGG(
+                   INITCAP(TRIM(P.profile_name || ' ' || P.profile_first_surname)),
+                   ';'
+                 )
+                 WITHIN GROUP (ORDER BY P.profile_name)
+          FROM Scientific_Output_Profile SOP
+          JOIN Profile P ON P.profile_id = SOP.profile_id
+          WHERE SOP.scientific_output_id = SO.scientific_output_id
+        )                       AS "authors",
+        COALESCE(CSO.CLARIVATE_TYPE, SCSO.SCOPUS_TYPE) AS "type",
+        SO.publication_year     AS "publicationYear",
+        SO.doi                  AS "doi",
+        S.source_name           AS "journal",
+        COALESCE(CSO.volume, SCSO.volume) AS "volume",
+        COALESCE(CSO.issue_identifier, SCSO.issue_identifier) AS "issue",
+        COALESCE(CSO.clarivate_page_range, SCSO.scopus_page_range) AS "pages",
+        (
+          SELECT LISTAGG(K.keyword, ',') WITHIN GROUP (ORDER BY K.keyword)
+          FROM Scientific_Output_Keyword SOK
+          JOIN Keyword K ON K.keyword_id = SOK.keyword_id
+          WHERE SOK.scientific_output_id = SO.scientific_output_id
+        )                       AS "keywords"
+      FROM Scientific_Output_Unit SOU
+      JOIN Scientific_Output SO ON SO.scientific_output_id = SOU.scientific_output_id
+      LEFT JOIN Source S ON S.source_id = SO.SOURCE
+      LEFT JOIN Clarivate_Scientific_Output CSO ON CSO.scientific_output_id = SO.scientific_output_id
+      LEFT JOIN Scopus_Scientific_Output SCSO ON SCSO.scientific_output_id = SO.scientific_output_id
+      WHERE SOU.unit_id = :unitId
+      ORDER BY SO.publication_year DESC
+    `,
+    { unitId },
+  );
+}
 
   async findProjectsByUnitId(unitId: number): Promise<UnitProject[]> {
     return this.databaseClient.query<UnitProject>(
@@ -256,14 +284,14 @@ export class UnitsRepository {
             FROM UCR_PROFILE_PROJECT_UNIT PPPU
             JOIN Profile PR ON PR.profile_id = PPPU.profile_id
             WHERE PPPU.project_id = P.project_id
-              AND PPPU.participation IN (4, 5)
+              AND PPPU.participation = 1
             FETCH FIRST 1 ROWS ONLY
           )                                       AS "managerName",
           (
             SELECT PPPU.profile_id
             FROM UCR_PROFILE_PROJECT_UNIT PPPU
             WHERE PPPU.project_id = P.project_id
-              AND PPPU.participation IN (4, 5)
+              AND PPPU.participation = 1
             FETCH FIRST 1 ROWS ONLY
           )                                       AS "managerId",
           TO_CHAR(PP.project_start_date, 'DD/MM/YYYY') AS "startDate",
@@ -272,11 +300,13 @@ export class UnitsRepository {
           PT.project_type_name                    AS "projectType",
           (
             SELECT LISTAGG(K.keyword, ',') WITHIN GROUP (ORDER BY K.keyword)
-            FROM Project_Keyword PK
-            JOIN Keyword K ON K.keyword_id = PK.keyword_id
-            WHERE PK.project_id = P.project_id
-            ORDER BY K.keyword
-            FETCH FIRST 10 ROWS ONLY
+            FROM (
+              SELECT K.keyword
+              FROM Project_Keyword PK
+              JOIN Keyword K ON K.keyword_id = PK.keyword_id
+              WHERE PK.project_id = P.project_id
+              FETCH FIRST 20 ROWS ONLY
+            ) K
           )                                       AS "keywords"
         FROM Project_Unit PU
         JOIN Project P ON P.project_id = PU.project_id
@@ -292,6 +322,42 @@ export class UnitsRepository {
 
   private calculateOffset(page: number, limit: number): number {
     return (page - 1) * limit;
+  }
+
+  async findResearchersForUnitsByBaseUnit(
+    q?: string,
+  ): Promise<{ id: number; name: string; firstSurname: string | null; count: number }[]> {
+    const conditions: string[] = [];
+    const params: Record<string, string> = {};
+
+    if (q) {
+      params.q = `%${q}%`;
+      conditions.push(`u.unit_name LIKE :q`);
+    }
+
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    return this.databaseClient.query<{
+      id: number;
+      name: string;
+      firstSurname: string | null;
+      count: number;
+    }>(
+      `
+      SELECT
+        p.PROFILE_ID            AS "id",
+        p.PROFILE_NAME          AS "name",
+        p.PROFILE_FIRST_SURNAME AS "firstSurname",
+        COUNT(DISTINCT pwu.unit_id) AS "count"
+      FROM ucr_profile_work_unit pwu
+      JOIN profile p ON p.PROFILE_ID = pwu.PROFILE_ID
+      JOIN unit u ON u.unit_id = pwu.unit_id
+      ${whereClause}
+      GROUP BY p.PROFILE_ID, p.PROFILE_NAME, p.PROFILE_FIRST_SURNAME
+      ORDER BY p.PROFILE_NAME
+      `,
+      params,
+    );
   }
 
   async findResearchersForUnits(

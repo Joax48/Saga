@@ -50,10 +50,18 @@ export class UnitsReaderService implements UnitsReader {
   }
 
   async getFilterOptions(q?: string): Promise<UnitFiltersResponseDto> {
-    const researchers = await this.unitsRepository.findResearchersForUnits(q);
+    const [researchers, researchersByBaseUnit] = await Promise.all([
+      this.unitsRepository.findResearchersForUnits(q),
+      this.unitsRepository.findResearchersForUnitsByBaseUnit(q),
+    ]);
 
     return {
       researchers: researchers.map((r) => ({
+        value: String(r.id),
+        label: [r.name, r.firstSurname].filter(Boolean).join(' '),
+        count: r.count,
+      })),
+      researchersByBaseUnit: researchersByBaseUnit.map((r) => ({
         value: String(r.id),
         label: [r.name, r.firstSurname].filter(Boolean).join(' '),
         count: r.count,

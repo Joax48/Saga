@@ -17,7 +17,13 @@ export class UnitSearchFiltersDTO {
   @IsInt({ each: true })
   researcherIds?: number[];
 
+  @IsOptional()
+  @Transform(({ value }) => normalizeToNumberArray(value))
+  @IsArray()
+  @IsInt({ each: true })
+  researcherBaseUnitIds?: number[];
+
   get isEmpty(): boolean {
-    return !this.researcherIds?.length;
+    return !this.researcherIds?.length && !this.researcherBaseUnitIds?.length;
   }
 }

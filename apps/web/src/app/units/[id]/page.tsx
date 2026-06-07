@@ -214,10 +214,10 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
   }
 
   return (
-    /*Show unit detailed information page */
     <main className="bg-base-100 py-8 pb-0">
       <div className="max-w-7xl mx-auto w-full">
         {loading ? (
+          /* Skeleton while loading */
           <>
             <div className="skeleton h-4 w-32 rounded mb-6" />
             <section className="grid grid-cols-1 lg:grid-cols-4 gap-16 mb-12">
@@ -252,34 +252,35 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
               />
 
               {/* Header and information section */}
-              <section className="grid grid-cols-1 lg:grid-cols-4 gap-16 mb-12">
+              <section className="grid grid-cols-1 lg:grid-cols-4 gap-16 mb-12 mt-6">
                 {/* Unit Header */}
                 <header className="lg:col-span-3">
                   <h1
-                    className="mb-6 mt-9"
+                    className="mb-6"
                     style={{ fontSize: 'var(--text-h3)', color: 'var(--color-neutral)' }}
                   >
                     {unit.name}
                   </h1>
                   <p className="text-md leading-relaxed text-neutral-700">
-                    {unit.description}
+                    {unit.description || (
+                      <span className="text-[var(--color-text-neutral-tertiary)]">
+                        No hay descripción disponible.
+                      </span>
+                    )}
                   </p>
                 </header>
 
                 {/* Unit information */}
                 <div className="space-y-8 lg:col-span-1">
                   {/* Links section */}
-                  {unit.pageUrl && (
-                    <div>
-                      <h3
-                        className="mb-2 mt-9"
-                        style={{
-                          fontSize: 'var(--text-h3)',
-                          color: 'var(--color-neutral)',
-                        }}
-                      >
-                        Enlaces
-                      </h3>
+                  <div>
+                    <h3
+                      className="mb-2"
+                      style={{ fontSize: 'var(--text-h3)', color: 'var(--color-neutral)' }}
+                    >
+                      Enlaces
+                    </h3>
+                    {unit.pageUrl ? (
                       <a
                         href={
                           unit.pageUrl.startsWith('http')
@@ -298,21 +299,29 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
                         />
                         {unit.pageUrl}
                       </a>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="inline-flex items-center gap-2 text-[var(--color-text-neutral-tertiary)]">
+                        <Image
+                          src="/colaboration_networks_icon_light_blue.png"
+                          alt=""
+                          width={20}
+                          height={20}
+                          className="opacity-50"
+                        />
+                        No hay enlace disponible.
+                      </div>
+                    )}
+                  </div>
 
                   {/* Contact section */}
                   <div>
                     <h3
                       className="mb-2"
-                      style={{
-                        fontSize: 'var(--text-h3)',
-                        color: 'var(--color-neutral)',
-                      }}
+                      style={{ fontSize: 'var(--text-h3)', color: 'var(--color-neutral)' }}
                     >
                       Contacto
                     </h3>
-                    {unit.phoneNumber && (
+                    {unit.phoneNumber ? (
                       <div className="mb-4">
                         <a
                           href={`tel:${unit.phoneNumber}`}
@@ -327,10 +336,21 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
                           {unit.phoneNumber}
                         </a>
                       </div>
+                    ) : (
+                      <div className="mb-4 inline-flex items-center gap-2 text-[var(--color-text-neutral-tertiary)]">
+                        <Image
+                          src="/phone_icon_light_blue.png"
+                          alt=""
+                          width={20}
+                          height={20}
+                          className="opacity-50"
+                        />
+                        No hay teléfono disponible.
+                      </div>
                     )}
 
                     <div className="space-y-3">
-                      {unit.email && (
+                      {unit.email ? (
                         <div>
                           <a
                             href={`mailto:${unit.email}`}
@@ -344,6 +364,17 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
                             />
                             {unit.email}
                           </a>
+                        </div>
+                      ) : (
+                        <div className="inline-flex items-center gap-2 text-[var(--color-text-neutral-tertiary)]">
+                          <Image
+                            src="/email_icon_light_blue.png"
+                            alt=""
+                            width={20}
+                            height={20}
+                            className="opacity-50"
+                          />
+                          No hay correo electrónico disponible.
                         </div>
                       )}
                     </div>

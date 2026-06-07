@@ -22,6 +22,12 @@ export default function UnitsPage() {
     { value: string; label: string; count: number }[]
   >([]);
   const [selectedResearcherIds, setSelectedResearcherIds] = useState<string[]>([]);
+  const [researcherBaseUnitOptions, setResearcherBaseUnitOptions] = useState<
+    { value: string; label: string; count: number }[]
+  >([]);
+  const [selectedResearcherBaseUnitIds, setSelectedResearcherBaseUnitIds] = useState<
+    string[]
+  >([]);
   const [filtersVisible, setFiltersVisible] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,6 +36,7 @@ export default function UnitsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resultsRef = useRef<HTMLElement | null>(null);
 
   const scrollToResults = useCallback(() => {
@@ -49,6 +56,13 @@ export default function UnitsPage() {
         const response = await getUnitFilters();
         setResearcherOptions(
           response.researchers.map((option) => ({
+            value: option.value,
+            label: toTitleCase(option.label),
+            count: option.count,
+          })),
+        );
+        setResearcherBaseUnitOptions(
+          response.researchersByBaseUnit.map((option) => ({
             value: option.value,
             label: toTitleCase(option.label),
             count: option.count,
@@ -76,9 +90,12 @@ export default function UnitsPage() {
 
   const handleSearch = useCallback(
     (query: string) => {
-      setSearchQuery(query);
-      setCurrentPage(1);
-      scrollToResults();
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        setSearchQuery(query);
+        setCurrentPage(1);
+        scrollToResults();
+      }, 400);
     },
     [scrollToResults],
   );
@@ -94,8 +111,20 @@ export default function UnitsPage() {
     [scrollToResults],
   );
 
+  const toggleResearcherBaseUnit = useCallback(
+    (id: string) => {
+      setCurrentPage(1);
+      setSelectedResearcherBaseUnitIds((prev) =>
+        prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id],
+      );
+      scrollToResults();
+    },
+    [scrollToResults],
+  );
+
   const clearFilters = useCallback(() => {
     setSelectedResearcherIds([]);
+    setSelectedResearcherBaseUnitIds([]);
     setCurrentPage(1);
     scrollToResults();
   }, [scrollToResults]);
@@ -109,46 +138,79 @@ export default function UnitsPage() {
   );
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchData = async () => {
       setIsLoading(true);
       setLoadError(null);
       try {
         const response = await getUnits(currentPage, PAGE_SIZE, searchQuery, {
           researcherIds: selectedResearcherIds.map(Number),
+          researcherBaseUnitIds: selectedResearcherBaseUnitIds.map(Number),
         });
-        setUnits(response.data);
-        setTotal(response.total);
-        setTotalPages(Math.max(1, Math.ceil(response.total / response.limit)));
+
+        if (!controller.signal.aborted) {
+          setUnits(response.data);
+          setTotal(response.total);
+          setTotalPages(Math.max(1, Math.ceil(response.total / response.limit)));
+        }
       } catch (error) {
         console.error('Error cargando unidades:', error);
         setUnits([]);
         setTotal(0);
         setTotalPages(1);
-        setLoadError(
-          'No se pudieron cargar las unidades. Intenta nuevamente más tarde.',
-        );
+        setLoadError('No se pudieron cargar las unidades. Intenta nuevamente más tarde.');
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
+
     fetchData();
-  }, [currentPage, searchQuery, selectedResearcherIds]);
+
+    return () => {
+      controller.abort();
+    };
+  }, [currentPage, searchQuery, selectedResearcherIds, selectedResearcherBaseUnitIds]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   const filterGroups: FilterGroupConfig[] = useMemo(
     () => [
       {
         kind: 'options',
-        title: 'Investigadores asociados',
+        title: 'Personas investigadoras por unidad de pago',
+        groupKey: 'researchersByBaseUnit',
+        options: researcherBaseUnitOptions,
+        selectedValues: selectedResearcherBaseUnitIds,
+        onToggle: toggleResearcherBaseUnit,
+      },
+      {
+        kind: 'options',
+        title: 'Personas investigadoras asociadas',
         groupKey: 'researchers',
         options: researcherOptions,
         selectedValues: selectedResearcherIds,
         onToggle: toggleResearcher,
       },
     ],
-    [researcherOptions, selectedResearcherIds, toggleResearcher],
+    [
+      researcherBaseUnitOptions,
+      selectedResearcherBaseUnitIds,
+      toggleResearcherBaseUnit,
+      researcherOptions,
+      selectedResearcherIds,
+      toggleResearcher,
+    ],
   );
 
-  const hasActiveFilters = selectedResearcherIds.length > 0;
+  const hasActiveFilters =
+    selectedResearcherIds.length > 0 || selectedResearcherBaseUnitIds.length > 0;
 
   return (
     <main className="bg-[var(--color-bg-neutral-secondary)] min-h-screen flex flex-col">

@@ -208,6 +208,9 @@ function OptionsPopup({
 }: OptionsPopupProps) {
   const [search, setSearch] = useState('');
   const [searchVisible, setSearchVisible] = useState(false);
+  const POPUP_PAGE_SIZE = 50;
+  const [visibleCount, setVisibleCount] = useState(POPUP_PAGE_SIZE);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const prevGridHeightRef = useRef<number | null>(null);
 
@@ -216,6 +219,30 @@ function OptionsPopup({
     if (!q) return options;
     return options.filter((o) => o.label.toLowerCase().includes(q));
   }, [options, search]);
+
+  const visibleOptions = filteredOptions.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredOptions.length;
+
+  useEffect(() => {
+    setVisibleCount(POPUP_PAGE_SIZE);
+  }, [search]);
+
+  useEffect(() => {
+    const el = bottomRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => prev + POPUP_PAGE_SIZE);
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore]);
 
   const hasSelection = selectedValues.length > 0;
 
@@ -227,7 +254,9 @@ function OptionsPopup({
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, []);
 
   useLayoutEffect(() => {
@@ -319,7 +348,10 @@ function OptionsPopup({
               <button
                 onClick={onClose}
                 className="flex items-center justify-center gap-1.5 w-[6.5rem] text-xs font-semibold tracking-wide uppercase transition-opacity hover:opacity-70 px-3 py-1 rounded-full"
-                style={{ color: 'var(--color-danger, #d9534f)', backgroundColor: 'transparent' }}
+                style={{
+                  color: 'var(--color-danger, #d9534f)',
+                  backgroundColor: 'transparent',
+                }}
                 aria-label="Cerrar"
               >
                 Cerrar
@@ -340,9 +372,16 @@ function OptionsPopup({
         >
           <div
             className="flex items-center gap-2 px-3 py-2 rounded-lg"
-            style={{ backgroundColor: 'var(--color-gray-100)', border: '1px solid var(--color-gray-200)' }}
+            style={{
+              backgroundColor: 'var(--color-gray-100)',
+              border: '1px solid var(--color-gray-200)',
+            }}
           >
-            <Search size={14} style={{ color: 'var(--color-gray-400)' }} className="shrink-0" />
+            <Search
+              size={14}
+              style={{ color: 'var(--color-gray-400)' }}
+              className="shrink-0"
+            />
             <input
               type="text"
               value={search}
@@ -368,21 +407,38 @@ function OptionsPopup({
         <div className="overflow-y-auto px-5 py-4">
           <div ref={gridContainerRef} style={{ overflow: 'hidden' }}>
             {filteredOptions.length > 0 ? (
-              <div className="grid grid-cols-3 gap-x-8 gap-y-1">
-                {filteredOptions.map((opt) => (
-                  <CheckboxOption
-                    key={opt.value}
-                    id={`popup-filter-${groupKey}-${opt.value}`}
-                    label={opt.label}
-                    count={opt.count}
-                    checked={selectedValues.includes(opt.value)}
-                    onChange={() => onToggle(opt.value)}
-                    truncate={false}
-                  />
-                ))}
-              </div>
+              <>
+                <div ref={gridContainerRef} style={{ overflow: 'hidden' }}>
+                  <div className="grid grid-cols-3 gap-x-8 gap-y-1">
+                    {visibleOptions.map((opt) => (
+                      <CheckboxOption
+                        key={opt.value}
+                        id={`popup-filter-${groupKey}-${opt.value}`}
+                        label={opt.label}
+                        count={opt.count}
+                        checked={selectedValues.includes(opt.value)}
+                        onChange={() => onToggle(opt.value)}
+                        truncate={false}
+                      />
+                    ))}
+                  </div>
+                </div>
+                {hasMore && (
+                  <div ref={bottomRef} className="py-2 text-center">
+                    <span
+                      className="text-xs"
+                      style={{ color: 'var(--color-text-neutral-tertiary)' }}
+                    >
+                      Cargando más...
+                    </span>
+                  </div>
+                )}
+              </>
             ) : (
-              <p className="text-sm text-center py-6" style={{ color: 'var(--color-gray-400)' }}>
+              <p
+                className="text-sm text-center py-6"
+                style={{ color: 'var(--color-gray-400)' }}
+              >
                 Sin resultados para &ldquo;{search}&rdquo;
               </p>
             )}
@@ -393,7 +449,9 @@ function OptionsPopup({
         <div
           className="px-5 shrink-0 text-xs flex justify-start overflow-hidden"
           style={{
-            borderTop: hasSelection ? '1px solid var(--color-gray-200)' : '1px solid transparent',
+            borderTop: hasSelection
+              ? '1px solid var(--color-gray-200)'
+              : '1px solid transparent',
             color: 'var(--color-text-brand-primary)',
             maxHeight: hasSelection ? '3rem' : '0',
             opacity: hasSelection ? 1 : 0,

@@ -6,4 +6,5 @@ export class UnitFilterOptionDto {
 
 export class UnitFiltersResponseDto {
   researchers!: UnitFilterOptionDto[];
+  researchersByBaseUnit!: UnitFilterOptionDto[];
 }

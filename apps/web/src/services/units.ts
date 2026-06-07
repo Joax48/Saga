@@ -35,6 +35,7 @@ export interface PaginatedUnitsResponse {
  */
 export interface GetUnitsFilters {
   researcherIds?: number[];
+  researcherBaseUnitIds?: number[];
 
   sortBy?: 'name';
   sortOrder?: 'asc' | 'desc';
@@ -63,6 +64,10 @@ export function getUnits(
 
   filters.researcherIds?.forEach((id) => {
     params.append('researcherIds', String(id));
+  });
+
+  filters.researcherBaseUnitIds?.forEach((id) => {
+    params.append('researcherBaseUnitIds', String(id));
   });
 
   if (filters.sortBy) {
@@ -121,6 +126,7 @@ export interface UnitFilterOption {
  */
 export interface UnitFiltersResponse {
   researchers: UnitFilterOption[];
+  researchersByBaseUnit: UnitFilterOption[];
 }
 
 /**
