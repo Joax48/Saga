@@ -9,34 +9,18 @@ import type { SummaryScientificProduction } from '@/types';
 const PAGE_SIZE = 10;
 
 function parseProduction(p: UnitScientificProduction): SummaryScientificProduction {
-  const typeLabel = (() => {
-    try {
-      const parsed = JSON.parse(p.type);
-      return parsed && typeof parsed === 'object' && parsed.category
-        ? String(parsed.category)
-        : p.type;
-    } catch {
-      return p.type;
-    }
-  })();
-
   return {
     id: p.id,
     title: p.title,
-    authors: p.authors
-      ? p.authors.split(';').map((name, index) => ({ id: index, name: name.trim() }))
-      : [],
-    type: typeLabel,
-    open_access: false,
+    authors: p.authors ?? [],
+    type: p.type ?? '',
+    open_access: p.openAccess === 1,
     publication_year: p.publicationYear,
     doi: p.doi ?? '',
     journal: p.journal ?? undefined,
-    volume: p.volume ?? undefined,
-    issue: p.issue ?? undefined,
     pages: p.pages ?? undefined,
-    keywords: p.keywords
-      ? p.keywords.split(',').map((value, index) => ({ id: index, value: value.trim() }))
-      : [],
+    source: p.source ?? undefined,
+    keywords: p.keywords ?? [],
   };
 }
 
@@ -65,9 +49,12 @@ export function UnitScientificProductionsTab({
 
   if (productions.length === 0) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
-          No hay producción científica asociada.
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
+          No se encontraron resultados.
+        </p>
+        <p className="mt-1 text-sm text-[var(--color-text-neutral-tertiary)]">
+          No hay producción científica asociada a esta unidad.
         </p>
       </div>
     );

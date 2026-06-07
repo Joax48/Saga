@@ -21,12 +21,12 @@ export class GetPublicUnitScientificProductionsUseCase {
       title: p.title,
       authors: p.authors,
       type: p.type,
+      openAccess: p.openAccess,
       publicationYear: p.publicationYear,
       doi: p.doi,
       journal: p.journal,
-      volume: p.volume,
-      issue: p.issue,
       pages: p.pages,
+      source: p.source,
       keywords: p.keywords,
     }));
   }

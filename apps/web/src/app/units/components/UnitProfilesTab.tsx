@@ -33,9 +33,12 @@ export function UnitProfilesTab({ profiles }: UnitProfilesTabProps) {
 
   if (profiles.length === 0) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
-          No hay perfiles asociados.
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
+          No se encontraron resultados.
+        </p>
+        <p className="mt-1 text-sm text-[var(--color-text-neutral-tertiary)]">
+          No hay perfiles asociados a esta unidad.
         </p>
       </div>
     );
@@ -50,30 +53,32 @@ export function UnitProfilesTab({ profiles }: UnitProfilesTabProps) {
         {profiles.length} resultado{profiles.length !== 1 ? 's' : ''}
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 items-stretch">
         {paginated.map((profile) => (
           <Card
             key={profile.id}
             title={profile.name}
+            titleClassName="text-sm font-bold leading-snug text-[var(--color-text-neutral-primary)]"
+            titleLinkClassName="after:absolute after:inset-0 after:z-[0]"
             description={
               <span className="flex flex-col gap-0.5">
                 <span
                   className="text-xs font-medium uppercase tracking-wide"
                   style={{ color: 'var(--color-text-neutral-secondary)' }}
                 >
-                  Unidad base
+                  Unidad de pago
                 </span>
                 {profile.baseUnit ? (
                   <Link
                     href={`/units?q=${encodeURIComponent(profile.baseUnit)}`}
-                    className="hover:underline"
+                    className="relative z-[1] hover:underline"
                     style={{ color: 'var(--color-text-brand-primary)' }}
                   >
                     {profile.baseUnit}
                   </Link>
                 ) : (
                   <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
-                    Sin unidad registrada
+                    Sin unidad de pago registrada
                   </span>
                 )}
               </span>
@@ -83,7 +88,7 @@ export function UnitProfilesTab({ profiles }: UnitProfilesTabProps) {
             imageShape="circle"
             href={`/researchers/${profile.id}`}
             chromeless
-            className="flex items-start gap-4 h-full"
+            className="relative z-0 hover:z-10 flex items-start gap-4 h-full transition-transform duration-200 hover:scale-[1.02] cursor-pointer"
           />
         ))}
       </div>

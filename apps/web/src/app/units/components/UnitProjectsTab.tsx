@@ -29,9 +29,12 @@ export function UnitProjectsTab({ projects }: UnitProjectsTabProps) {
 
   if (projects.length === 0) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
-          No hay proyectos asociados.
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
+          No se encontraron resultados.
+        </p>
+        <p className="mt-1 text-sm text-[var(--color-text-neutral-tertiary)]">
+          No hay proyectos asociados a esta unidad.
         </p>
       </div>
     );
@@ -53,8 +56,12 @@ export function UnitProjectsTab({ projects }: UnitProjectsTabProps) {
               code={project.code}
               title={project.name}
               href={`/projects/${project.id}`}
-              manager={project.managerName}
-              managerHref={`/researchers/${project.managerId}`}
+              manager={project.managerName?.trim() || 'Sin responsable'}
+              managerHref={
+                project.managerId && project.managerName?.trim()
+                  ? `/researchers/${project.managerId}`
+                  : undefined
+              }
               startDate={project.startDate}
               endDate={project.endDate}
               researchType={project.researchType}

@@ -24,15 +24,15 @@ export type UnitProfile = {
 export type UnitScientificProduction = {
   id: string;
   title: string;
-  authors: string;
-  type: string;
+  authors: { id: number; name: string }[] | null;
+  type: string | null;
+  openAccess: number | null;
   publicationYear: number;
   doi: string | null;
   journal: string | null;
-  volume: number | null;
-  issue: number | null;
   pages: string | null;
-  keywords: string;
+  source: string | null;
+  keywords: { id: number; value: string }[] | null;
 };
 
 export type UnitProject = {
@@ -233,39 +233,76 @@ export class UnitsRepository {
     return this.databaseClient.query<UnitScientificProduction>(
       `
       SELECT
-        SO.scientific_output_id AS "id",
-        SO.title                AS "title",
-        (
-          SELECT LISTAGG(
-                   INITCAP(TRIM(P.profile_name || ' ' || P.profile_first_surname)),
-                   ';'
-                 )
-                 WITHIN GROUP (ORDER BY P.profile_name)
-          FROM Scientific_Output_Profile SOP
-          JOIN Profile P ON P.profile_id = SOP.profile_id
-          WHERE SOP.scientific_output_id = SO.scientific_output_id
-        )                       AS "authors",
-        COALESCE(CSO.CLARIVATE_TYPE, SCSO.SCOPUS_TYPE) AS "type",
-        SO.publication_year     AS "publicationYear",
-        SO.doi                  AS "doi",
-        S.source_name           AS "journal",
-        COALESCE(CSO.volume, SCSO.volume) AS "volume",
-        COALESCE(CSO.issue_identifier, SCSO.issue_identifier) AS "issue",
-        COALESCE(CSO.clarivate_page_range, SCSO.scopus_page_range) AS "pages",
-        (
-          SELECT LISTAGG(K.keyword, ',') WITHIN GROUP (ORDER BY K.keyword)
-          FROM Scientific_Output_Keyword SOK
-          JOIN Keyword K ON K.keyword_id = SOK.keyword_id
-          WHERE SOK.scientific_output_id = SO.scientific_output_id
-        )                       AS "keywords"
-      FROM Scientific_Output_Unit SOU
-      JOIN Scientific_Output SO ON SO.scientific_output_id = SOU.scientific_output_id
-      LEFT JOIN Source S ON S.source_id = SO.SOURCE
-      LEFT JOIN Clarivate_Scientific_Output CSO ON CSO.scientific_output_id = SO.scientific_output_id
-      LEFT JOIN Scopus_Scientific_Output SCSO ON SCSO.scientific_output_id = SO.scientific_output_id
-      WHERE SOU.unit_id = :unitId
-      ORDER BY SO.publication_year DESC
-    `,
+        so.SCIENTIFIC_OUTPUT_ID                                       AS "id",
+        so.TITLE                                                      AS "title",
+        authors_sub.authors                                           AS "authors",
+        sot.SCIENTIFIC_OUTPUT_TYPE_NAME                               AS "type",
+        CASE
+          WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN sc.OPEN_ACCESS
+          ELSE NULL
+        END                                                           AS "openAccess",
+        so.PUBLICATION_YEAR                                           AS "publicationYear",
+        so.DOI                                                        AS "doi",
+        src.SOURCE_NAME                                               AS "journal",
+        CASE
+          WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN sc.SCOPUS_PAGE_RANGE
+          ELSE cl.CLARIVATE_PAGE_RANGE
+        END                                                           AS "pages",
+        CASE
+          WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN 'Scopus'
+          ELSE 'Clarivate'
+        END                                                           AS "source",
+        keywords_sub.keywords                                         AS "keywords"
+      FROM Scientific_Output_Unit sou
+      JOIN Scientific_Output so ON so.SCIENTIFIC_OUTPUT_ID = sou.SCIENTIFIC_OUTPUT_ID
+      LEFT JOIN Scopus_Scientific_Output sc
+        ON sc.SCIENTIFIC_OUTPUT_ID = so.SCIENTIFIC_OUTPUT_ID
+      LEFT JOIN Clarivate_Scientific_Output cl
+        ON cl.SCIENTIFIC_OUTPUT_ID = so.SCIENTIFIC_OUTPUT_ID
+      LEFT JOIN Scientific_Output_Type sot
+        ON sot.SCIENTIFIC_OUTPUT_TYPE_ID = NVL(sc.SCOPUS_TYPE, cl.CLARIVATE_TYPE)
+      LEFT JOIN Source src ON src.SOURCE_ID = so.SOURCE
+      LEFT JOIN (
+        SELECT sop.SCIENTIFIC_OUTPUT_ID,
+          JSON_ARRAYAGG(
+            JSON_OBJECT(
+              'id'   VALUE p.PROFILE_ID,
+              'name' VALUE NVL(
+                        p.PROFILE_NAME || ' ' || p.PROFILE_FIRST_SURNAME
+                          || NVL2(p.PROFILE_LAST_SURNAME, ' ' || p.PROFILE_LAST_SURNAME, ''),
+                        an.NAME || ' ' || an.FIRST_SURNAME
+                          || NVL2(an.LAST_SURNAME, ' ' || an.LAST_SURNAME, '')
+              )
+            )
+            ORDER BY p.PROFILE_NAME
+            RETURNING CLOB
+          ) AS authors
+        FROM Scientific_Output_Profile sop
+        JOIN Profile p ON p.PROFILE_ID = sop.PROFILE_ID
+        LEFT JOIN (
+          SELECT PROFILE_ID, NAME, FIRST_SURNAME, LAST_SURNAME,
+                 ROW_NUMBER() OVER (PARTITION BY PROFILE_ID ORDER BY ALTERNATIVE_NAME_ID) AS rn
+          FROM UCR_Profile_Alternative_Name
+        ) an ON an.PROFILE_ID = sop.PROFILE_ID AND an.rn = 1
+        GROUP BY sop.SCIENTIFIC_OUTPUT_ID
+      ) authors_sub ON authors_sub.SCIENTIFIC_OUTPUT_ID = so.SCIENTIFIC_OUTPUT_ID
+      LEFT JOIN (
+        SELECT sok.SCIENTIFIC_OUTPUT_ID,
+          JSON_ARRAYAGG(
+            JSON_OBJECT(
+              'id'    VALUE k.KEYWORD_ID,
+              'value' VALUE INITCAP(k.KEYWORD)
+            )
+            ORDER BY k.KEYWORD
+            RETURNING CLOB
+          ) AS keywords
+        FROM Scientific_Output_Keyword sok
+        JOIN Keyword k ON k.KEYWORD_ID = sok.KEYWORD_ID
+        GROUP BY sok.SCIENTIFIC_OUTPUT_ID
+      ) keywords_sub ON keywords_sub.SCIENTIFIC_OUTPUT_ID = so.SCIENTIFIC_OUTPUT_ID
+      WHERE sou.unit_id = :unitId
+      ORDER BY so.PUBLICATION_YEAR DESC
+      `,
       { unitId },
     );
   }

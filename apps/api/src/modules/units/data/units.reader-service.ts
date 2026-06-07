@@ -76,7 +76,31 @@ export class UnitsReaderService implements UnitsReader {
   async getScientificProductionsByUnitId(
     unitId: number,
   ): Promise<UnitScientificProductionDto[]> {
-    return this.unitsRepository.findScientificProductionsByUnitId(unitId);
+    const rows = await this.unitsRepository.findScientificProductionsByUnitId(unitId);
+
+    return rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      authors: this.parseJsonSafely<{ id: number; name: string }[]>(row.authors, []),
+      type: row.type,
+      openAccess: row.openAccess,
+      publicationYear: row.publicationYear,
+      doi: row.doi,
+      journal: row.journal,
+      pages: row.pages,
+      source: row.source,
+      keywords: this.parseJsonSafely<{ id: number; value: string }[]>(row.keywords, []),
+    }));
+  }
+
+  private parseJsonSafely<T>(value: unknown, fallback: T): T {
+    if (value === null || value === undefined || value === '') return fallback;
+    if (typeof value !== 'string') return value as T;
+    try {
+      return JSON.parse(value) as T;
+    } catch {
+      return fallback;
+    }
   }
 
   async getProjectsByUnitId(unitId: number): Promise<UnitProjectDto[]> {

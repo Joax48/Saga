@@ -29,18 +29,28 @@ export interface UnitProfileDto {
   photoUrl: string | null;
 }
 
+export interface UnitScientificProductionAuthorDto {
+  id: number;
+  name: string;
+}
+
+export interface UnitScientificProductionKeywordDto {
+  id: number;
+  value: string;
+}
+
 export interface UnitScientificProductionDto {
   id: string;
   title: string;
-  authors: string;
-  type: string;
+  authors: UnitScientificProductionAuthorDto[] | null;
+  type: string | null;
+  openAccess: number | null;
   publicationYear: number;
   doi: string | null;
   journal: string | null;
-  volume: number | null;
-  issue: number | null;
   pages: string | null;
-  keywords: string;
+  source: string | null;
+  keywords: UnitScientificProductionKeywordDto[] | null;
 }
 
 export interface UnitProjectDto {
