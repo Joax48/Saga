@@ -119,7 +119,14 @@ describe('GetHomeSearchUseCase', () => {
         total: 1,
       });
       unitsReader.getPaginatedList.mockResolvedValue({
-        items: [{ id: 7, name: 'CIMPA', imageUrl: '/cimpa.png' }],
+        items: [
+          {
+            id: 7,
+            name: 'CIMPA',
+            logoSvgContent: '<svg />',
+            logoUnitAcronym: 'CIMPA',
+          },
+        ],
         page: 1,
         limit: 10,
         total: 1,

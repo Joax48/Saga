@@ -7,6 +7,8 @@ import { ChevronUp } from 'lucide-react';
 
 import PageHeroSearch from '../../components/PageHeroSearch';
 import Button from '../../components/Button';
+import ApiErrorMessage from '@/components/ApiErrorMessage';
+import Pagination from '@/components/Pagination';
 import ResearchersList from './components/ResearchersList';
 import FilterSection from './components/FilterSection';
 
@@ -53,6 +55,8 @@ function ResearchersPageContent() {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
   const [total, setTotal] = useState<number | null>(null);
+  const [listLoadError, setListLoadError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
   // External profiles temporarily disabled — only UCR profiles are listed.
   // const [profileType, setProfileType] = useState<'UCR' | 'EXTERNAL' | undefined>(undefined);
   const shouldScrollToListRef = useRef(false);
@@ -221,17 +225,19 @@ function ResearchersPageContent() {
       />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="mb-4 lg:hidden">
-          <Button
-            variant="brandOutline"
-            size="sm"
-            onClick={() => setFiltersVisible((prev) => !prev)}
-            aria-expanded={filtersVisible}
-            aria-controls="researchers-filter-sidebar"
-          >
-            {filtersVisible ? 'Ocultar filtros' : 'Mostrar filtros'}
-          </Button>
-        </div>
+        {!listLoadError && (
+          <div className="mb-4 lg:hidden">
+            <Button
+              variant="brandOutline"
+              size="sm"
+              onClick={() => setFiltersVisible((prev) => !prev)}
+              aria-expanded={filtersVisible}
+              aria-controls="researchers-filter-sidebar"
+            >
+              {filtersVisible ? 'Ocultar filtros' : 'Mostrar filtros'}
+            </Button>
+          </div>
+        )}
 
         {/* Profile type toggle — disabled while only UCR profiles are shown.
         <div className="mb-4 flex gap-2">
@@ -256,7 +262,7 @@ function ResearchersPageContent() {
         </div>
         */}
 
-        {total !== null && (
+        {total !== null && !listLoadError && (
           <p
             className="mb-4 text-sm"
             style={{ color: 'var(--color-text-neutral-secondary)' }}
@@ -265,19 +271,23 @@ function ResearchersPageContent() {
           </p>
         )}
 
+        {listLoadError && <ApiErrorMessage className="mb-6" message={listLoadError} />}
+
         <div className="flex flex-col gap-8 lg:flex-row">
-          <div
-            id="researchers-filter-sidebar"
-            className={`${filtersVisible ? 'block' : 'hidden'} lg:block`}
-          >
-            <FilterSection
-              filters={filters}
-              filterOptions={filterOptions}
-              onToggleFilter={handleToggleFilter}
-              onClearAll={handleClearAll}
-              hasActiveFilters={hasActiveFilters}
-            />
-          </div>
+          {!listLoadError && (
+            <div
+              id="researchers-filter-sidebar"
+              className={`${filtersVisible ? 'block' : 'hidden'} lg:block`}
+            >
+              <FilterSection
+                filters={filters}
+                filterOptions={filterOptions}
+                onToggleFilter={handleToggleFilter}
+                onClearAll={handleClearAll}
+                hasActiveFilters={hasActiveFilters}
+              />
+            </div>
+          )}
 
           <div ref={listContainerRef} className="flex-1 min-w-0 pb-20">
             <ResearchersList
@@ -286,10 +296,20 @@ function ResearchersPageContent() {
               currentPage={currentPage}
               onPageChange={handlePageChange}
               onTotalChange={setTotal}
+              onLoadErrorChange={setListLoadError}
+              onTotalPagesChange={setTotalPages}
               profileType="UCR"
             />
           </div>
         </div>
+
+        {!listLoadError && total !== null && total > 0 && totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        )}
       </div>
 
       {showScrollTopButton && (

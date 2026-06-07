@@ -6,6 +6,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import PageHeroSearch from '@/components/PageHeroSearch';
 import Pagination from '@/components/Pagination';
 import Button from '@/components/Button';
+import ApiErrorMessage from '@/components/ApiErrorMessage';
 import { FilterSidebar } from '../../../components/FilterSidebar';
 import { ProductionCard } from './ProductionCard';
 import { CardSkeleton } from '@/components/skeletons/CardSkeleton';
@@ -36,6 +37,7 @@ interface ScientificProductionsViewProps {
   filterOptions: FiltersApiResponse;
   sortBy: 'title' | 'publication_year';
   sortOrder: 'asc' | 'desc';
+  hasApiError?: boolean;
 }
 
 export function ScientificProductionsView({
@@ -47,6 +49,7 @@ export function ScientificProductionsView({
   filterOptions,
   sortBy,
   sortOrder,
+  hasApiError = false,
 }: ScientificProductionsViewProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -239,84 +242,99 @@ export function ScientificProductionsView({
         className="bg-(--color-bg-neutral-primary) px-6 lg:px-10 py-14 scroll-mt-10"
       >
         <div className="max-w-6xl mx-auto">
-          <div className="mb-4 lg:hidden">
-            <Button
-              variant="brandOutline"
-              size="sm"
-              onClick={() => setFiltersVisible((prev) => !prev)}
-              aria-expanded={filtersVisible}
-              aria-controls="scientific-productions-filter-sidebar"
-            >
-              {filtersVisible ? 'Ocultar filtros' : 'Mostrar filtros'}
-            </Button>
-          </div>
+          {!hasApiError && (
+            <div className="mb-4 lg:hidden">
+              <Button
+                variant="brandOutline"
+                size="sm"
+                onClick={() => setFiltersVisible((prev) => !prev)}
+                aria-expanded={filtersVisible}
+                aria-controls="scientific-productions-filter-sidebar"
+              >
+                {filtersVisible ? 'Ocultar filtros' : 'Mostrar filtros'}
+              </Button>
+            </div>
+          )}
 
-          <p
-            className="mb-4 text-sm"
-            style={{ color: 'var(--color-text-neutral-secondary)' }}
-          >
-            {total} resultado{total !== 1 ? 's' : ''}
-          </p>
-
-          {/* Ordenamiento */}
-          <div className="flex items-center gap-3 mb-4">
-            <span
-              className="text-sm"
+          {!hasApiError && (
+            <p
+              className="mb-4 text-sm"
               style={{ color: 'var(--color-text-neutral-secondary)' }}
             >
-              Ordenar por
-            </span>
+              {total} resultado{total !== 1 ? 's' : ''}
+            </p>
+          )}
 
-            <select
-              value={sortBy}
-              onChange={(e) => handleSortByChange(e.target.value)}
-              className="text-sm border rounded px-2 py-1"
-              style={{
-                color: 'var(--color-text-neutral-secondary)',
-              }}
-            >
-              <option value="publication_year" className="text-sm">
-                Año de publicación
-              </option>
-              <option value="title" className="text-sm">
-                Título
-              </option>
-            </select>
+          {hasApiError && (
+            <ApiErrorMessage
+              className="mb-6"
+              message="No se pudo cargar la producción científica. Intenta nuevamente más tarde."
+            />
+          )}
 
-            <select
-              value={sortOrder}
-              onChange={(e) => handleSortOrderChange(e.target.value)}
-              className="text-sm border rounded px-2 py-1"
-              style={{
-                color: 'var(--color-text-neutral-secondary)',
-              }}
-            >
-              <option value="desc" className="text-sm">
-                Descendente
-              </option>
-              <option value="asc" className="text-sm">
-                Ascendente
-              </option>
-            </select>
-          </div>
+          {/* Ordenamiento */}
+          {!hasApiError && (
+            <div className="flex items-center gap-3 mb-4">
+              <span
+                className="text-sm"
+                style={{ color: 'var(--color-text-neutral-secondary)' }}
+              >
+                Ordenar por
+              </span>
+
+              <select
+                value={sortBy}
+                onChange={(e) => handleSortByChange(e.target.value)}
+                className="text-sm border rounded px-2 py-1"
+                style={{
+                  color: 'var(--color-text-neutral-secondary)',
+                }}
+              >
+                <option value="publication_year" className="text-sm">
+                  Año de publicación
+                </option>
+                <option value="title" className="text-sm">
+                  Título
+                </option>
+              </select>
+
+              <select
+                value={sortOrder}
+                onChange={(e) => handleSortOrderChange(e.target.value)}
+                className="text-sm border rounded px-2 py-1"
+                style={{
+                  color: 'var(--color-text-neutral-secondary)',
+                }}
+              >
+                <option value="desc" className="text-sm">
+                  Descendente
+                </option>
+                <option value="asc" className="text-sm">
+                  Ascendente
+                </option>
+              </select>
+            </div>
+          )}
 
           <div className="flex flex-col gap-8 lg:flex-row">
-            <div
-              id="scientific-productions-filter-sidebar"
-              className={`${filtersVisible ? 'block' : 'hidden'} lg:block`}
-            >
-              <FilterSidebar
-                groups={filterGroups}
-                hasActiveFilters={hasActiveFilters}
-                onClearAll={handleClearAll}
-              />
-            </div>
+            {!hasApiError && (
+              <div
+                id="scientific-productions-filter-sidebar"
+                className={`${filtersVisible ? 'block' : 'hidden'} lg:block`}
+              >
+                <FilterSidebar
+                  groups={filterGroups}
+                  hasActiveFilters={hasActiveFilters}
+                  onClearAll={handleClearAll}
+                />
+              </div>
+            )}
 
             <div className="flex-1 min-w-0">
               <div className="space-y-8">
                 {isPending ? (
                   Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />)
-                ) : productions.length > 0 ? (
+                ) : hasApiError ? null : productions.length > 0 ? (
                   productions.map((production) => (
                     <ProductionCard key={production.id} production={production} />
                   ))
@@ -330,19 +348,17 @@ export function ScientificProductionsView({
                     </p>
                   </div>
                 )}
-
-                {!isPending && productions.length > 0 && totalPages > 1 && (
-                  <div className="pt-8">
-                    <Pagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      onPageChange={handlePageChange}
-                    />
-                  </div>
-                )}
               </div>
             </div>
           </div>
+
+          {!isPending && !hasApiError && productions.length > 0 && totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
         </div>
       </section>
 

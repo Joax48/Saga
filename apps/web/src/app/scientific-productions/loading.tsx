@@ -19,17 +19,17 @@ export default function ScientificProductionsLoading() {
   return (
     <main className="bg-[var(--color-bg-neutral-secondary)] min-h-screen">
       {/* Hero skeleton */}
-      <section className="px-6 lg:px-10 pt-4 pb-20 bg-[url('/ucr_hero_image.png')] bg-cover bg-center">
-        <div className="flex justify-start h-14" />
+      <section className="px-6 lg:px-10 pt-4 pb-12 bg-[url('/ucr_hero_image.png')] bg-cover bg-top">
+        <div className="flex justify-start h-8" />
         <div className="max-w-6xl mx-auto">
           <div className="pt-2 pb-4">
             <div className="skeleton h-4 w-36 rounded opacity-40" />
           </div>
-          <div className="flex justify-start h-10" />
+          <div className="flex justify-start h-4" />
           <div className="skeleton h-10 w-56 rounded mx-auto opacity-40" />
           <div className="mt-6 skeleton h-12 w-full max-w-xl mx-auto rounded opacity-40" />
         </div>
-        <div className="flex justify-start h-30" />
+        <div className="flex justify-start h-14" />
       </section>
 
       {/* Results skeleton */}

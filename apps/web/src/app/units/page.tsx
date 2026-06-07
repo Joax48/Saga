@@ -5,6 +5,7 @@ import { ChevronUp } from 'lucide-react';
 import PageHeroSearch from '@/components/PageHeroSearch';
 import Pagination from '@/components/Pagination';
 import Button from '@/components/Button';
+import ApiErrorMessage from '@/components/ApiErrorMessage';
 import UnitsList from './components/UnitsList';
 import { getUnits, getUnitFilters } from '@/services/units';
 import type { Unit } from '@/services/units';
@@ -27,6 +28,7 @@ export default function UnitsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
   const resultsRef = useRef<HTMLElement | null>(null);
 
@@ -109,6 +111,7 @@ export default function UnitsPage() {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
+      setLoadError(null);
       try {
         const response = await getUnits(currentPage, PAGE_SIZE, searchQuery, {
           researcherIds: selectedResearcherIds.map(Number),
@@ -118,6 +121,12 @@ export default function UnitsPage() {
         setTotalPages(Math.max(1, Math.ceil(response.total / response.limit)));
       } catch (error) {
         console.error('Error cargando unidades:', error);
+        setUnits([]);
+        setTotal(0);
+        setTotalPages(1);
+        setLoadError(
+          'No se pudieron cargar las unidades. Intenta nuevamente más tarde.',
+        );
       } finally {
         setIsLoading(false);
       }
@@ -156,7 +165,7 @@ export default function UnitsPage() {
       >
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            {total !== null && (
+            {total !== null && !loadError && (
               <p
                 className="text-sm"
                 style={{ color: 'var(--color-text-neutral-secondary)' }}
@@ -166,26 +175,32 @@ export default function UnitsPage() {
             )}
 
             <div className="flex items-center justify-between gap-4 w-full sm:w-auto">
-              <div className="lg:hidden">
-                <Button
-                  variant="brandOutline"
-                  size="sm"
-                  onClick={() => setFiltersVisible((prev) => !prev)}
-                >
-                  {filtersVisible ? 'Ocultar filtros' : 'Mostrar filtros'}
-                </Button>
-              </div>
+              {!loadError && (
+                <div className="lg:hidden">
+                  <Button
+                    variant="brandOutline"
+                    size="sm"
+                    onClick={() => setFiltersVisible((prev) => !prev)}
+                  >
+                    {filtersVisible ? 'Ocultar filtros' : 'Mostrar filtros'}
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
+          {loadError && <ApiErrorMessage className="mb-6" message={loadError} />}
+
           <div className="flex flex-col gap-8 lg:flex-row">
-            <div className={`${filtersVisible ? 'block' : 'hidden'} lg:block`}>
-              <FilterSidebar
-                groups={filterGroups}
-                hasActiveFilters={hasActiveFilters}
-                onClearAll={clearFilters}
-              />
-            </div>
+            {!loadError && (
+              <div className={`${filtersVisible ? 'block' : 'hidden'} lg:block`}>
+                <FilterSidebar
+                  groups={filterGroups}
+                  hasActiveFilters={hasActiveFilters}
+                  onClearAll={clearFilters}
+                />
+              </div>
+            )}
 
             <div className="flex-1 min-w-0">
               <div className="space-y-8">
@@ -195,17 +210,8 @@ export default function UnitsPage() {
                       <UnitCardSkeleton key={i} />
                     ))}
                   </div>
-                ) : units.length > 0 ? (
-                  <>
-                    <UnitsList units={units} />
-                    <div className="pt-8">
-                      <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                      />
-                    </div>
-                  </>
+                ) : loadError ? null : units.length > 0 ? (
+                  <UnitsList units={units} />
                 ) : (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
                     <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
@@ -219,6 +225,14 @@ export default function UnitsPage() {
               </div>
             </div>
           </div>
+
+          {!isLoading && !loadError && units.length > 0 && totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
         </div>
       </section>
 

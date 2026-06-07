@@ -26,6 +26,9 @@ type PageHeroSearchProps = {
 
   /** Pre-fills the search bar on mount (e.g. when restoring from URL params) */
   initialSearchValue?: string;
+
+  /** Larger hero used only by the home page */
+  variant?: 'compact' | 'home';
 };
 
 /**
@@ -54,15 +57,23 @@ export default function PageHeroSearch({
   searchPlaceholder,
   onSearch,
   initialSearchValue,
+  variant = 'compact',
 }: PageHeroSearchProps) {
+  const isHome = variant === 'home';
+
   return (
-    <section className="px-6 lg:px-10 pt-4 pb-20 bg-[url('/ucr_hero_image.png')] bg-cover bg-center">
-      <div className="flex justify-start h-14"></div>
+    <section
+      className={[
+        "px-6 lg:px-10 pt-4 bg-[url('/ucr_hero_image.png')] bg-cover bg-top",
+        isHome ? 'pb-20' : 'pb-12',
+      ].join(' ')}
+    >
+      <div className={isHome ? 'flex justify-start h-14' : 'flex justify-start h-8'} />
       <div className="max-w-6xl mx-auto">
         <div className="pt-2 pb-4">
           <Breadcrumb items={items} />
         </div>
-        <div className="flex justify-start h-10"></div>
+        <div className={isHome ? 'flex justify-start h-10' : 'flex justify-start h-4'} />
         <h1 className="mb-6 text-h1 text-center font-bold text-white">{title}</h1>
 
         <SearchBar
@@ -71,7 +82,7 @@ export default function PageHeroSearch({
           initialValue={initialSearchValue}
         />
       </div>
-      <div className="flex justify-start h-30"></div>
+      <div className={isHome ? 'flex justify-start h-30' : 'flex justify-start h-14'} />
     </section>
   );
 }

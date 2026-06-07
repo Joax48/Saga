@@ -4,6 +4,8 @@ import {
   getScientificProductionFilters,
 } from '@/services/scientific-productions';
 import { ScientificProductionsView } from './components';
+import type { FiltersApiResponse } from '@/services/scientific-productions';
+import type { SummaryScientificProduction } from '@/types';
 
 interface PageProps {
   searchParams: {
@@ -18,6 +20,21 @@ interface PageProps {
     sortOrder?: string;
   };
 }
+
+const EMPTY_PRODUCTIONS_RESPONSE: {
+  items: SummaryScientificProduction[];
+  total: number;
+} = {
+  items: [],
+  total: 0,
+};
+
+const EMPTY_FILTER_OPTIONS: FiltersApiResponse = {
+  types: [],
+  years: [],
+  keywords: [],
+  openAccessCount: 0,
+};
 
 export default async function ScientificProductionsPage({ searchParams }: PageProps) {
   const page = Number(searchParams.page ?? 1);
@@ -53,10 +70,29 @@ export default async function ScientificProductionsPage({ searchParams }: PagePr
     keywords,
   };
 
-  const [response, filterOptions] = await Promise.all([
+  const [productionsResult, filtersResult] = await Promise.allSettled([
     getScientificProductions({ page, limit, ...filterParams, sortBy, sortOrder }),
     getScientificProductionFilters(filterParams),
   ]);
+
+  const response =
+    productionsResult.status === 'fulfilled'
+      ? productionsResult.value
+      : EMPTY_PRODUCTIONS_RESPONSE;
+
+  const filterOptions =
+    filtersResult.status === 'fulfilled' ? filtersResult.value : EMPTY_FILTER_OPTIONS;
+
+  const hasApiError =
+    productionsResult.status === 'rejected' || filtersResult.status === 'rejected';
+
+  if (productionsResult.status === 'rejected') {
+    console.error('Error fetching scientific productions:', productionsResult.reason);
+  }
+
+  if (filtersResult.status === 'rejected') {
+    console.error('Error fetching scientific production filters:', filtersResult.reason);
+  }
 
   return (
     <ScientificProductionsView
@@ -74,6 +110,7 @@ export default async function ScientificProductionsPage({ searchParams }: PagePr
       filterOptions={filterOptions}
       sortBy={sortBy}
       sortOrder={sortOrder}
+      hasApiError={hasApiError}
     />
   );
 }

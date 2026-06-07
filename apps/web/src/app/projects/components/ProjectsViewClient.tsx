@@ -6,6 +6,7 @@ import { ChevronUp } from 'lucide-react';
 import PageHeroSearch from '@/components/PageHeroSearch';
 import Pagination from '@/components/Pagination';
 import Button from '@/components/Button';
+import ApiErrorMessage from '@/components/ApiErrorMessage';
 import { SortControls } from '@/components/SortControls';
 import {
   FacetOption,
@@ -103,6 +104,7 @@ export default function ProjectsViewClient({
     Math.max(1, Math.ceil(initialTotal / PAGE_SIZE)),
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const resultsRef = useRef<HTMLElement>(null);
 
   const scrollToResults = useCallback(() => {
@@ -165,8 +167,12 @@ export default function ProjectsViewClient({
 
   useEffect(() => {
     const loadFilters = async () => {
-      const options = await getProjectFilters(filters, searchQuery);
-      setFilterOptions(options);
+      try {
+        const options = await getProjectFilters(filters, searchQuery);
+        setFilterOptions(options);
+      } catch (error) {
+        console.error('Error loading project filters:', error);
+      }
     };
 
     loadFilters();
@@ -188,6 +194,7 @@ export default function ProjectsViewClient({
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
+      setLoadError(null);
       try {
         const projectsResponse = await getProjects(currentPage, PAGE_SIZE, searchQuery, {
           ...filters,
@@ -200,7 +207,13 @@ export default function ProjectsViewClient({
           Math.max(1, Math.ceil(projectsResponse.total / projectsResponse.limit)),
         );
       } catch (error) {
-        console.error(error);
+        console.error('Error loading projects:', error);
+        setProjects([]);
+        setTotalResults(0);
+        setTotalPages(1);
+        setLoadError(
+          'No se pudieron cargar los proyectos. Intenta nuevamente más tarde.',
+        );
       } finally {
         setIsLoading(false);
       }
@@ -296,59 +309,69 @@ export default function ProjectsViewClient({
         className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14 scroll-mt-10 flex-1"
       >
         <div className="max-w-6xl mx-auto">
-          <div className="mb-4 lg:hidden">
-            <Button
-              variant="brandOutline"
-              size="sm"
-              onClick={() => setFiltersVisible((prev) => !prev)}
-              aria-expanded={filtersVisible}
-              aria-controls="projects-filter-sidebar"
+          {!loadError && (
+            <div className="mb-4 lg:hidden">
+              <Button
+                variant="brandOutline"
+                size="sm"
+                onClick={() => setFiltersVisible((prev) => !prev)}
+                aria-expanded={filtersVisible}
+                aria-controls="projects-filter-sidebar"
+              >
+                {filtersVisible ? 'Ocultar filtros' : 'Mostrar filtros'}
+              </Button>
+            </div>
+          )}
+
+          {!loadError && (
+            <p
+              className="mb-4 text-sm"
+              style={{ color: 'var(--color-text-neutral-secondary)' }}
             >
-              {filtersVisible ? 'Ocultar filtros' : 'Mostrar filtros'}
-            </Button>
-          </div>
+              {totalResults} resultado{totalResults !== 1 ? 's' : ''}
+            </p>
+          )}
 
-          <p
-            className="mb-4 text-sm"
-            style={{ color: 'var(--color-text-neutral-secondary)' }}
-          >
-            {totalResults} resultado{totalResults !== 1 ? 's' : ''}
-          </p>
+          {loadError && <ApiErrorMessage className="mb-6" message={loadError} />}
 
-          <SortControls
-            className="mb-4"
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            onSortByChange={handleSortByChange}
-            onSortOrderChange={handleSortOrderChange}
-            sortByOptions={[
-              { value: 'title', label: 'Título del proyecto' },
-              { value: 'year', label: 'Año del proyecto' },
-              { value: 'code', label: 'Código del proyecto' },
-            ]}
-            sortOrderOptions={[
-              { value: 'asc', label: 'Ascendente' },
-              { value: 'desc', label: 'Descendente' },
-            ]}
-          />
+          {!loadError && (
+            <SortControls
+              className="mb-4"
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSortByChange={handleSortByChange}
+              onSortOrderChange={handleSortOrderChange}
+              sortByOptions={[
+                { value: 'title', label: 'Título del proyecto' },
+                { value: 'year', label: 'Año del proyecto' },
+                { value: 'code', label: 'Código del proyecto' },
+              ]}
+              sortOrderOptions={[
+                { value: 'asc', label: 'Ascendente' },
+                { value: 'desc', label: 'Descendente' },
+              ]}
+            />
+          )}
 
           <div className="flex flex-col gap-8 lg:flex-row">
-            <div
-              id="projects-filter-sidebar"
-              className={`${filtersVisible ? 'block' : 'hidden'} lg:block`}
-            >
-              <FilterSidebar
-                groups={filterGroups}
-                hasActiveFilters={hasActiveFilters}
-                onClearAll={handleClearAll}
-              />
-            </div>
+            {!loadError && (
+              <div
+                id="projects-filter-sidebar"
+                className={`${filtersVisible ? 'block' : 'hidden'} lg:block`}
+              >
+                <FilterSidebar
+                  groups={filterGroups}
+                  hasActiveFilters={hasActiveFilters}
+                  onClearAll={handleClearAll}
+                />
+              </div>
+            )}
 
             <div className="flex-1 min-w-0">
               <div className="space-y-12">
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />)
-                ) : projects.length > 0 ? (
+                ) : loadError ? null : projects.length > 0 ? (
                   projects.map((project) => {
                     const managerProfile = project.associatedProfiles.find(
                       (profile: { id: string; name: string; role?: string }) =>
@@ -386,18 +409,17 @@ export default function ProjectsViewClient({
                   </div>
                 )}
 
-                {!isLoading && projects.length > 0 ? (
-                  <div className="pt-8">
-                    <Pagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      onPageChange={handlePageChange}
-                    />
-                  </div>
-                ) : null}
               </div>
             </div>
           </div>
+
+          {!isLoading && !loadError && projects.length > 0 && totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
         </div>
       </section>
 

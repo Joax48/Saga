@@ -8,6 +8,7 @@ import ProjectListItem from '@/app/projects/components/ProjectListItem';
 import ResearchersCardsGrid from '@/app/researchers/components/ResearchersCardsGrid';
 import { ProductionCard } from '@/app/scientific-productions/components';
 import UnitCard from '@/app/units/components/unitCard';
+import ApiErrorMessage from '@/components/ApiErrorMessage';
 import { CardSkeleton, UnitCardSkeleton } from '@/components/skeletons/CardSkeleton';
 import type { HomeSearchResults } from '@/services/home';
 
@@ -88,11 +89,7 @@ export default function SearchResults({
         </div>
       </div>
 
-      {searchError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">
-          {searchError}
-        </div>
-      )}
+      {searchError && <ApiErrorMessage message={searchError} />}
 
       {isSearching && searchQuery && <SearchResultsSkeleton activeTab={activeTab} />}
 
@@ -201,7 +198,8 @@ export default function SearchResults({
                       <UnitCard
                         key={unit.id}
                         name={unit.name}
-                        url={`/units/mock-images/logos/${unit.id}.png`}
+                        logoSvgContent={unit.logoSvgContent}
+                        logoUnitAcronym={unit.logoUnitAcronym}
                         onClick={() => router.push(`/units/${unit.id}`)}
                       />
                     ))}

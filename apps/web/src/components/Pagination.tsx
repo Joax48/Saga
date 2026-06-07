@@ -56,9 +56,10 @@ export default function Pagination({
   const isLast = currentPage === totalPages;
 
   return (
-    <div
+    <nav
+      aria-label="Paginación"
       className="
-        flex items-center justify-center gap-3 w-full text-sm
+        flex w-full items-center justify-center gap-3 pt-2 pb-16 text-sm
         text-[var(--color-text-neutral-secondary)]
       "
     >
@@ -131,6 +132,6 @@ export default function Pagination({
       >
         Último <span>»</span>
       </button>
-    </div>
+    </nav>
   );
 }

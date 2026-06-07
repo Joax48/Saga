@@ -26,6 +26,7 @@ import {
   CardSkeleton,
   ResearcherCardSkeleton,
 } from '@/components/skeletons/CardSkeleton';
+import ApiErrorMessage from '@/components/ApiErrorMessage';
 import Image from 'next/image';
 
 type UnitData = UnitDetail;
@@ -45,6 +46,9 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
   const [loadingProfiles, setLoadingProfiles] = useState(true);
   const [loadingProductions, setLoadingProductions] = useState(true);
   const [loadingProjects, setLoadingProjects] = useState(true);
+  const [profilesError, setProfilesError] = useState<string | null>(null);
+  const [productionsError, setProductionsError] = useState<string | null>(null);
+  const [projectsError, setProjectsError] = useState<string | null>(null);
 
   const categories: Category[] = [
     {
@@ -70,10 +74,15 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
     const fetchProfiles = async () => {
       try {
         setLoadingProfiles(true);
+        setProfilesError(null);
         const data = await getUnitProfiles(Number(params.id));
         setProfiles(data);
       } catch (err) {
         console.error('Error fetching unit profiles:', err);
+        setProfiles([]);
+        setProfilesError(
+          'No se pudieron cargar los perfiles asociados. Intenta nuevamente más tarde.',
+        );
       } finally {
         setLoadingProfiles(false);
       }
@@ -90,9 +99,7 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
         setUnit(data);
         setError(null);
       } catch (err) {
-        setError(
-          'Error al cargar los detalles de la unidad. Por favor intente de nuevo.',
-        );
+        setError('No se pudo cargar la unidad. Intenta nuevamente más tarde.');
         console.error('Error fetching unit:', err);
       } finally {
         setLoading(false);
@@ -107,10 +114,15 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
     const fetchProductions = async () => {
       try {
         setLoadingProductions(true);
+        setProductionsError(null);
         const data = await getUnitScientificProductions(Number(params.id));
         setProductions(data);
       } catch (error) {
         console.error('Error fetching unit scientific productions:', error);
+        setProductions([]);
+        setProductionsError(
+          'No se pudo cargar la producción científica. Intenta nuevamente más tarde.',
+        );
       } finally {
         setLoadingProductions(false);
       }
@@ -124,10 +136,15 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
     const fetchProjects = async () => {
       try {
         setLoadingProjects(true);
+        setProjectsError(null);
         const data = await getUnitProjects(Number(params.id));
         setProjects(data);
       } catch (error) {
         console.error('Error fetching unit projects:', error);
+        setProjects([]);
+        setProjectsError(
+          'No se pudieron cargar los proyectos. Intenta nuevamente más tarde.',
+        );
       } finally {
         setLoadingProjects(false);
       }
@@ -184,10 +201,14 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
   /*Show error page */
   if (!loading && (error || !unit)) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <p className="text-[18px] text-(--color-text-neutral-secondary)">
-          Unidad no encontrada.
-        </p>
+      <main className="min-h-screen flex items-center justify-center px-6">
+        {error ? (
+          <ApiErrorMessage message={error} />
+        ) : (
+          <p className="text-[18px] text-(--color-text-neutral-secondary)">
+            Unidad no encontrada.
+          </p>
+        )}
       </main>
     );
   }
@@ -355,6 +376,8 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
           {activeTab === 'profiles' &&
             (loadingProfiles ? (
               TabLoadingSkeleton('profiles')
+            ) : profilesError ? (
+              <ApiErrorMessage className="mt-6" message={profilesError} />
             ) : (
               <UnitProfilesTab profiles={profiles} />
             ))}
@@ -368,6 +391,8 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
           {activeTab === 'scientific_production' &&
             (loadingProductions ? (
               TabLoadingSkeleton('scientific_production')
+            ) : productionsError ? (
+              <ApiErrorMessage className="mt-6" message={productionsError} />
             ) : (
               <UnitScientificProductionsTab productions={productions} />
             ))}
@@ -375,6 +400,8 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
           {activeTab === 'projects' &&
             (loadingProjects ? (
               TabLoadingSkeleton('projects')
+            ) : projectsError ? (
+              <ApiErrorMessage className="mt-6" message={projectsError} />
             ) : (
               <UnitProjectsTab projects={projects} />
             ))}

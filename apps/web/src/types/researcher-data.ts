@@ -24,6 +24,8 @@ export interface Researcher {
   profileType: ProfileType;
   linkedUnits: ResearcherListLinkedUnit[];
   workUnits: ResearcherListLinkedUnit[];
+  participationStartDate?: string;
+  participationEndDate?: string;
   position?: string;
   altNames?: string[];
   profileLinks?: { label: string; href: string; icon: any }[];

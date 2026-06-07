@@ -10,6 +10,7 @@ import type { Category } from '@/components/DetailNavbar';
 import DetailNavbar from '@/components/DetailNavbar';
 import { getScientificProductionById } from '@/services/scientific-productions';
 import type { ScientificProduction } from '@/types';
+import ApiErrorMessage from '@/components/ApiErrorMessage';
 import { DetailPageSkeleton } from '@/components/skeletons/DetailPageSkeleton';
 import CollaborationMapPreview from '@/components/CollaborationMapPreview';
 import { countriesToCollaborationPoints } from '@/utils/collaboration-map';
@@ -78,13 +79,21 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
   const [activeTab, setActiveTab] = useState('general');
   const [production, setProduction] = useState<ScientificProduction | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsLoading(true);
+    setLoadError(null);
+    setNotFound(false);
     getScientificProductionById(params.id)
       .then(setProduction)
-      .catch(() => setNotFound(true))
+      .catch((error) => {
+        console.error('Error loading scientific production detail:', error);
+        setLoadError(
+          'No se pudo cargar la producción científica. Intenta nuevamente más tarde.',
+        );
+      })
       .finally(() => setIsLoading(false));
   }, [params.id]);
 
@@ -108,6 +117,14 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
   }, [production?.doi]);
 
   if (isLoading) return <DetailPageSkeleton />;
+
+  if (loadError) {
+    return (
+      <main className="min-h-screen flex items-center justify-center px-6">
+        <ApiErrorMessage message={loadError} />
+      </main>
+    );
+  }
 
   if (notFound || !production) {
     return (

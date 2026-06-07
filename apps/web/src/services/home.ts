@@ -71,7 +71,8 @@ interface ScientificProductionApiDto {
 interface UnitSummaryApiDto {
   id: number;
   name: string;
-  imageUrl: string;
+  logoSvgContent: string | null;
+  logoUnitAcronym: string | null;
 }
 
 interface HomeSearchApiResponse {

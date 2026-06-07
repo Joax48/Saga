@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+﻿/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,6 +7,7 @@ import {
   type ResearcherQueryFilters,
 } from '../../../services/researchers';
 import ResearchersCardsGrid from './ResearchersCardsGrid';
+import ApiErrorMessage from '@/components/ApiErrorMessage';
 
 import type { Researcher } from '@/types/researcher-data.js';
 
@@ -19,6 +20,8 @@ interface ResearchersListProps {
   currentPage: number;
   onPageChange: (page: number) => void;
   onTotalChange?: (total: number) => void;
+  onLoadErrorChange?: (error: string | null) => void;
+  onTotalPagesChange?: (totalPages: number) => void;
   profileType?: 'UCR' | 'EXTERNAL';
 }
 
@@ -28,11 +31,22 @@ export default function ResearchersList({
   currentPage,
   onPageChange,
   onTotalChange,
+  onLoadErrorChange,
+  onTotalPagesChange,
   profileType,
 }: ResearchersListProps) {
   const [researchers, setResearchers] = useState<Researcher[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    onLoadErrorChange?.(loadError);
+  }, [loadError, onLoadErrorChange]);
+
+  useEffect(() => {
+    onTotalPagesChange?.(totalPages);
+  }, [totalPages, onTotalPagesChange]);
 
   // Fetches researchers whenever the page, search query, or filters change.
   // The cleanup function sets `cancelled = true` so that if the effect
@@ -44,6 +58,8 @@ export default function ResearchersList({
 
     const fetchResearchers = async () => {
       setIsLoading(true);
+      setLoadError(null);
+      onLoadErrorChange?.(null);
       try {
         const response = await getResearchers(
           currentPage,
@@ -57,11 +73,18 @@ export default function ResearchersList({
         if (cancelled) return;
 
         setResearchers(response.data);
-        setTotalPages(Math.max(1, Math.ceil(response.total / response.limit)));
+        const nextTotalPages = Math.max(1, Math.ceil(response.total / response.limit));
+        setTotalPages(nextTotalPages);
         onTotalChange?.(response.total);
       } catch (error) {
         if (!cancelled) {
           console.error('Error fetching researchers:', error);
+          setResearchers([]);
+          setTotalPages(1);
+          onTotalChange?.(0);
+          setLoadError(
+            'No se pudieron cargar los perfiles. Intenta nuevamente más tarde.',
+          );
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -74,7 +97,7 @@ export default function ResearchersList({
     return () => {
       cancelled = true;
     };
-  }, [currentPage, searchQuery, filters, profileType, onTotalChange]);
+  }, [currentPage, searchQuery, filters, profileType, onTotalChange, onLoadErrorChange]);
 
   const emptyMessage =
     !isLoading && researchers.length === 0
@@ -98,9 +121,12 @@ export default function ResearchersList({
         onCardClick={() =>
           sessionStorage.setItem('researchers-scroll-y', String(window.scrollY))
         }
+        showPagination={false}
       />
 
-      {emptyMessage && (
+      {!onLoadErrorChange && loadError && <ApiErrorMessage message={loadError} />}
+
+      {!loadError && emptyMessage && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
             No se encontraron resultados.

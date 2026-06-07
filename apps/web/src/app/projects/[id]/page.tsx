@@ -7,6 +7,7 @@ import CategoriesNavigation, { Category } from '@/components/DetailNavbar';
 import { getProjectById } from '@/services/projects';
 import type { Project } from '@/services/projects';
 import type { Researcher } from '@/types/researcher-data';
+import ApiErrorMessage from '@/components/ApiErrorMessage';
 import { DetailPageSkeleton } from '@/components/skeletons/DetailPageSkeleton';
 import ResearchersCardsGrid from '../../researchers/components/ResearchersCardsGrid';
 
@@ -98,6 +99,8 @@ function mapAssociatedProfileToResearcher(
     profileType: 'UCR',
     linkedUnits: [],
     workUnits: [],
+    participationStartDate: profile.participationStartDate,
+    participationEndDate: profile.participationEndDate,
   };
 }
 
@@ -106,6 +109,7 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
   const [profilesPage, setProfilesPage] = useState(1);
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -113,9 +117,11 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
       try {
         const data = await getProjectById(params.id);
         setProject(data);
+        setLoadError(null);
       } catch (error) {
-        console.error(error);
+        console.error('Error loading project detail:', error);
         setProject(null);
+        setLoadError('No se pudo cargar el proyecto. Intenta nuevamente más tarde.');
       } finally {
         setIsLoading(false);
       }
@@ -147,6 +153,14 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
   ];
 
   if (isLoading) return <DetailPageSkeleton />;
+
+  if (loadError) {
+    return (
+      <main className="min-h-screen flex items-center justify-center px-6">
+        <ApiErrorMessage message={loadError} />
+      </main>
+    );
+  }
 
   if (!project) {
     return (

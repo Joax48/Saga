@@ -7,6 +7,7 @@ import Breadcrumb from '../../../../components/Breadcrumb';
 import BackButton from '../../../../components/BackButton';
 import Button from '../../../../components/Button';
 import { getResearcherProfile } from '../../../../services/researchers';
+import ApiErrorMessage from '@/components/ApiErrorMessage';
 import { ResearcherDetailSkeleton } from '@/components/skeletons/DetailPageSkeleton';
 import type { ResearcherProfile } from '../../../../types/researcher-profile';
 
@@ -145,6 +146,7 @@ export default function ResearcherEditPage({ params }: ResearcherEditPageProps) 
   useEffect(() => {
     async function fetchData() {
       try {
+        setLoadError(null);
         const data = await getResearcherProfile(params.id);
         setProfile(data);
         setLinks({
@@ -155,7 +157,7 @@ export default function ResearcherEditPage({ params }: ResearcherEditPageProps) 
         });
       } catch (error) {
         console.error(error);
-        setLoadError('No se pudo cargar el perfil.');
+        setLoadError('No se pudo cargar el perfil. Intenta nuevamente más tarde.');
       } finally {
         setLoading(false);
       }
@@ -212,7 +214,7 @@ export default function ResearcherEditPage({ params }: ResearcherEditPageProps) 
   // TODO: adjust this skeleton to match the design of this page
   if (loading) return <ResearcherDetailSkeleton />;
 
-  if (loadError) return <div className="p-6">{loadError}</div>;
+  if (loadError) return <ApiErrorMessage className="m-6" message={loadError} />;
 
   if (!profile) return <div className="p-6">Perfil no encontrado.</div>;
 

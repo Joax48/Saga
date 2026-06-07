@@ -37,7 +37,7 @@ export function HomeView() {
     } catch (error) {
       console.error('Error searching home results:', error);
       setSearchResults(null);
-      setSearchError('No se pudieron cargar los resultados de la búsqueda.');
+      setSearchError('No se pudieron cargar los resultados de la búsqueda. Intenta nuevamente más tarde.');
     } finally {
       setIsSearching(false);
     }
@@ -84,6 +84,7 @@ export function HomeView() {
         searchPlaceholder="Buscar por proyecto, perfil, producción o unidad"
         onSearch={handleSearch}
         initialSearchValue={searchQuery}
+        variant="home"
       />
 
       <section className="px-6 lg:px-10">

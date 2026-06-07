@@ -15,6 +15,7 @@ interface ResearchersCardsGridProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   onCardClick?: () => void;
+  showPagination?: boolean;
 }
 
 function getAvatarUrl(...nameParts: (string | null | undefined)[]): string {
@@ -28,6 +29,22 @@ function buildFullName(researcher: Researcher): string {
     .join(' ');
 }
 
+function formatParticipationDate(value?: string): string | null {
+  if (!value) return null;
+
+  const parsed = new Date(`${value}T00:00:00`);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat('es-CR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(parsed);
+}
+
 export default function ResearchersCardsGrid({
   researchers,
   isLoading = false,
@@ -37,6 +54,7 @@ export default function ResearchersCardsGrid({
   totalPages,
   onPageChange,
   onCardClick,
+  showPagination = true,
 }: ResearchersCardsGridProps) {
   const cardsCount = isLoading ? pageSize : researchers.length;
 
@@ -73,6 +91,12 @@ export default function ResearchersCardsGrid({
                   : allWorkUnits;
               const primaryWorkUnit = workUnits[0];
               const extraWorkUnits = workUnits.slice(1);
+              const participationStartDate = formatParticipationDate(
+                researcher.participationStartDate,
+              );
+              const participationEndDate = formatParticipationDate(
+                researcher.participationEndDate,
+              );
 
               return (
                 <Card
@@ -124,6 +148,15 @@ export default function ResearchersCardsGrid({
                           Sin unidad de pago registrada
                         </span>
                       )}
+                      {participationStartDate && (
+                        <span
+                          className="text-xs mt-1"
+                          style={{ color: 'var(--color-text-neutral-tertiary)' }}
+                        >
+                          Participación: {participationStartDate}
+                          {participationEndDate ? ` → ${participationEndDate}` : ''}
+                        </span>
+                      )}
                     </span>
                   }
                   excerpt={researcher.ceaCategory ?? 'Sin categoría registrada'}
@@ -144,7 +177,7 @@ export default function ResearchersCardsGrid({
             })}
       </div>
 
-      {totalPages > 1 && (
+      {showPagination && totalPages > 1 && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}

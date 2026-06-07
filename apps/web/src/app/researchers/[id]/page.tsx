@@ -15,6 +15,7 @@ import {
 import CollaborationMapPreview, {
   buildCollaborationPoints,
 } from '@/components/CollaborationMapPreview';
+import ApiErrorMessage from '@/components/ApiErrorMessage';
 import { ResearcherDetailSkeleton } from '@/components/skeletons/DetailPageSkeleton';
 import ProfileTypeBadge from '@/components/ProfileTypeBadge';
 import { ProductionCard } from '../../scientific-productions/components';
@@ -307,11 +308,12 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
   useEffect(() => {
     async function fetchData() {
       try {
+        setLoadError(null);
         const data = await getResearcherProfile(params.id);
         setProfile(data);
       } catch (error) {
         console.error(error);
-        setLoadError('No se pudo cargar el perfil.');
+        setLoadError('No se pudo cargar el perfil. Intenta nuevamente más tarde.');
       } finally {
         setLoading(false);
       }
@@ -353,10 +355,8 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
 
   if (loadError) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <p className="text-[18px] text-(--color-text-neutral-secondary)">
-          {loadError}
-        </p>
+      <main className="min-h-screen flex items-center justify-center px-6">
+        <ApiErrorMessage message={loadError} />
       </main>
     );
   }
