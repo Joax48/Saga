@@ -1,5 +1,7 @@
 import { request } from './api';
 
+export type UnitSortOrder = 'asc' | 'desc';
+
 /**
  * Unit summary from the public units API list endpoint.
  */

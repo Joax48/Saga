@@ -8,9 +8,10 @@ import Button from '@/components/Button';
 import ApiErrorMessage from '@/components/ApiErrorMessage';
 import UnitsList from './components/UnitsList';
 import { getUnits, getUnitFilters } from '@/services/units';
-import type { Unit } from '@/services/units';
+import type { Unit, UnitSortOrder } from '@/services/units';
 import { FilterSidebar, type FilterGroupConfig } from '@/components/FilterSidebar';
 import { UnitCardSkeleton } from '@/components/skeletons/CardSkeleton';
+import { SortControls } from '@/components/SortControls';
 
 const PAGE_SIZE = 9;
 
@@ -25,10 +26,9 @@ export default function UnitsPage() {
   const [researcherBaseUnitOptions, setResearcherBaseUnitOptions] = useState<
     { value: string; label: string; count: number }[]
   >([]);
-  const [selectedResearcherBaseUnitIds, setSelectedResearcherBaseUnitIds] = useState<
-    string[]
-  >([]);
+  const [selectedResearcherBaseUnitIds, setSelectedResearcherBaseUnitIds] = useState<string[]>([]);
   const [filtersVisible, setFiltersVisible] = useState(false);
+  const [sortOrder, setSortOrder] = useState<UnitSortOrder>('asc');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -125,9 +125,19 @@ export default function UnitsPage() {
   const clearFilters = useCallback(() => {
     setSelectedResearcherIds([]);
     setSelectedResearcherBaseUnitIds([]);
+    setSortOrder('asc');
     setCurrentPage(1);
     scrollToResults();
   }, [scrollToResults]);
+
+  const handleSortOrderChange = useCallback(
+    (value: UnitSortOrder) => {
+      setSortOrder(value);
+      setCurrentPage(1);
+      scrollToResults();
+    },
+    [scrollToResults],
+  );
 
   const handlePageChange = useCallback(
     (page: number) => {
@@ -147,6 +157,8 @@ export default function UnitsPage() {
         const response = await getUnits(currentPage, PAGE_SIZE, searchQuery, {
           researcherIds: selectedResearcherIds.map(Number),
           researcherBaseUnitIds: selectedResearcherBaseUnitIds.map(Number),
+          sortBy: 'name',
+          sortOrder,
         });
 
         if (!controller.signal.aborted) {
@@ -172,7 +184,7 @@ export default function UnitsPage() {
     return () => {
       controller.abort();
     };
-  }, [currentPage, searchQuery, selectedResearcherIds, selectedResearcherBaseUnitIds]);
+  }, [currentPage, searchQuery, selectedResearcherIds, selectedResearcherBaseUnitIds, sortOrder]);
 
   useEffect(() => {
     return () => {
@@ -252,6 +264,21 @@ export default function UnitsPage() {
           </div>
 
           {loadError && <ApiErrorMessage className="mb-6" message={loadError} />}
+
+          {!loadError && (
+            <SortControls
+              className="mb-4"
+              sortBy="name"
+              sortOrder={sortOrder}
+              onSortByChange={() => {}}
+              onSortOrderChange={handleSortOrderChange}
+              sortByOptions={[{ value: 'name', label: 'Nombre de la unidad' }]}
+              sortOrderOptions={[
+                { value: 'asc', label: 'Ascendente' },
+                { value: 'desc', label: 'Descendente' },
+              ]}
+            />
+          )}
 
           <div className="flex flex-col gap-8 lg:flex-row">
             {!loadError && (

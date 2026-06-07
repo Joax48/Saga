@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Breadcrumb from '@/components/Breadcrumb';
+import BackButton from '@/components/BackButton';
 import DetailNavbar from '@/components/DetailNavbar';
 import { Category } from '@/components/DetailNavbar';
 import {
@@ -251,6 +252,12 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
                 items={[{ label: 'Unidades', href: '/units' }, { label: unit.name }]}
               />
 
+              <BackButton
+                fallbackHref="/units"
+                ariaLabel="Volver al listado de unidades"
+                className="mt-4"
+              />
+
               {/* Header and information section */}
               <section className="grid grid-cols-1 lg:grid-cols-4 gap-16 mb-12 mt-6">
                 {/* Unit Header */}
@@ -276,7 +283,10 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
                   <div>
                     <h3
                       className="mb-2"
-                      style={{ fontSize: 'var(--text-h3)', color: 'var(--color-neutral)' }}
+                      style={{
+                        fontSize: 'var(--text-h3)',
+                        color: 'var(--color-neutral)',
+                      }}
                     >
                       Enlaces
                     </h3>
@@ -317,7 +327,10 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
                   <div>
                     <h3
                       className="mb-2"
-                      style={{ fontSize: 'var(--text-h3)', color: 'var(--color-neutral)' }}
+                      style={{
+                        fontSize: 'var(--text-h3)',
+                        color: 'var(--color-neutral)',
+                      }}
                     >
                       Contacto
                     </h3>
