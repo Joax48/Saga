@@ -1,0 +1,53 @@
+name: Sync develop (GitUCR) to main (GitHub)
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sync repos
+        run: |
+          set -x
+
+          git clone --branch develop https://JORGE.QUIROSANDERSON:${{ secrets.GITUCR_TOKEN }}@git.ucr.ac.cr/project/saga_ucr.git repo
+          cd repo
+
+          git remote add github https://${{ secrets.GH_TOKEN }}@github.com/Joax48/Saga.git
+
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          echo "Fetching github/main..."
+          git fetch github main
+
+          echo "Creating local 'main' from develop..."
+          git checkout -B main
+
+          echo "Merging github/main into local main (favoring ours on auto-resolvable conflicts)..."
+          git merge github/main --allow-unrelated-histories -X ours || true
+
+          # If there are still unmerged paths (modify/delete, etc.), attempt automated resolution per-file.
+          if [ -n "$(git ls-files -u)" ]; then
+            echo "Unmerged files detected. Attempting automated per-file resolution..."
+            git ls-files -u | awk '{print $4}' | sort -u | while read -r file; do
+              echo "Resolving: $file"
+              # Try to keep 'ours' (cloned develop). If that fails, fall back to 'theirs' (github/main).
+              git checkout --ours -- "$file" 2>/dev/null || \
+              git checkout --theirs -- "$file" 2>/dev/null || \
+              (echo "Neither side present for $file, removing" && git rm -f -- "$file" 2>/dev/null) || true
+              git add -- "$file" 2>/dev/null || true
+            done
+
+            # Commit the automated resolutions if any
+            git commit -m "Resolve conflicts favoring GitUCR develop (automated)" || true
+          else
+            echo "No unmerged files remain."
+          fi
+
+          echo "Pushing to github main..."
+          git push github main
