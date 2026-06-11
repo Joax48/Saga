@@ -56,7 +56,10 @@ export default function TopNavigation() {
     const loaders: Array<[TopNavKey, Promise<number>]> = [
       ['researchers', getResearchers(1, 1, '', undefined, 'UCR').then((r) => r.total)],
       ['units', getUnits(1, 1).then((r) => r.total)],
-      ['productions', getScientificProductions({ page: 1, limit: 1 }).then((r) => r.total)],
+      [
+        'productions',
+        getScientificProductions({ page: 1, limit: 1 }).then((r) => r.total),
+      ],
       ['projects', getProjects(1, 1).then((r) => r.total)],
     ];
 
@@ -80,7 +83,6 @@ export default function TopNavigation() {
       <div className="max-w-6xl mx-auto grid grid-cols-2 gap-4 text-center md:grid-cols-3 lg:grid-cols-4">
         {ITEMS.map((item) => {
           const count = counts[item.key];
-
           return (
             <Link
               key={item.label}
@@ -96,13 +98,13 @@ export default function TopNavigation() {
                   className="object-contain transition-transform duration-200 group-hover:scale-110"
                 />
                 {count !== undefined && (
-                  <span className="absolute right-0 top-1 inline-flex min-w-6 items-center justify-center rounded-md border border-[var(--color-secondary)] bg-white px-1.5 py-0.5 text-xs font-semibold text-[var(--color-secondary)]">
+                  <span className="absolute right-0 top-1 inline-flex min-w-6 items-center justify-center rounded-md border border-[var(--color-secondary)] bg-white px-1.5 py-0.5 text-caption font-bold text-[var(--color-secondary)]">
                     {count}
                   </span>
                 )}
               </div>
 
-              <span className="text-sm text-center text-[var(--color-secondary)] group-hover:scale-110">
+              <span className="text-body-sm--line-height text-center text-[var(--color-secondary)] group-hover:scale-110">
                 {item.label}
               </span>
             </Link>

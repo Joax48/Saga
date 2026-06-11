@@ -78,10 +78,10 @@ export default function SearchResults({
     <section className="space-y-6 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-[var(--color-text-neutral-primary)]">
+          <h2 className="text-h3 font-bold text-[var(--color-text-neutral-primary)]">
             Resultados de búsqueda
           </h2>
-          <p className="text-sm text-[var(--color-text-neutral-secondary)]">
+          <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
             {searchQuery
               ? `Buscando: ${searchQuery}`
               : 'Escribe algo para buscar en las cuatro secciones.'}
@@ -105,7 +105,7 @@ export default function SearchResults({
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
                   className={[
-                    'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                    'rounded-full px-4 py-2 text-body-sm transition-colors',
                     isActive
                       ? 'bg-[var(--color-bg-brand-primary)] text-white'
                       : 'bg-[var(--color-bg-neutral-secondary)] text-[var(--color-text-neutral-primary)] hover:bg-[var(--color-bg-brand-secondary)]',
@@ -215,10 +215,10 @@ export default function SearchResults({
 
       {!isSearching && hasResults && searchResults && !hasAnyResult && (
         <div className="rounded-xl border border-[var(--color-gray-300)] bg-white px-4 py-10 text-center">
-          <p className="text-base font-medium text-[var(--color-text-neutral-primary)]">
+          <p className="text-body-lg text-[var(--color-text-neutral-primary)]">
             No se encontraron coincidencias para “{searchQuery}”.
           </p>
-          <p className="mt-1 text-sm text-[var(--color-text-neutral-secondary)]">
+          <p className="mt-1 text-body-md text-[var(--color-text-neutral-secondary)]">
             Prueba con otro término o ve a una página de módulo para afinar la búsqueda.
           </p>
         </div>
@@ -242,17 +242,17 @@ function SearchSection({
     <article className="rounded-2xl bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-bold text-[var(--color-text-neutral-primary)]">
+          <h3 className="text-h6 font-bold text-[var(--color-text-neutral-primary)]">
             {title}
           </h3>
-          <p className="text-sm text-[var(--color-text-neutral-secondary)]">
+          <p className="text-body-sm text-[var(--color-text-neutral-secondary)]">
             {total} resultado{total !== 1 ? 's' : ''}
           </p>
         </div>
 
         <Link
           href={href}
-          className="text-sm font-medium text-[var(--color-text-brand-primary)] hover:underline"
+          className="text-body-sm text-[var(--color-text-brand-primary)] hover:underline"
         >
           Ver todo
         </Link>
@@ -265,7 +265,7 @@ function SearchSection({
 
 function EmptySectionMessage({ label }: { label: string }) {
   return (
-    <div className="rounded-xl bg-[var(--color-bg-neutral-secondary)] px-4 py-8 text-center text-sm text-[var(--color-text-neutral-secondary)]">
+    <div className="rounded-xl bg-[var(--color-bg-neutral-secondary)] px-4 py-8 text-center text-body-lg text-[var(--color-text-neutral-secondary)]">
       No se encontraron {label}.
     </div>
   );

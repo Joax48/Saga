@@ -50,10 +50,10 @@ export function UnitScientificProductionsTab({
   if (productions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
+        <p className="text-body-lg font-bold text-[var(--color-text-neutral-secondary)]">
           No se encontraron resultados.
         </p>
-        <p className="mt-1 text-sm text-[var(--color-text-neutral-tertiary)]">
+        <p className="mt-1 text-body-md text-[var(--color-text-neutral-tertiary)]">
           No hay producción científica asociada a esta unidad.
         </p>
       </div>
@@ -63,7 +63,7 @@ export function UnitScientificProductionsTab({
   return (
     <div className="mt-6">
       <p
-        className="mb-4 text-sm"
+        className="mb-4 text-body-md"
         style={{ color: 'var(--color-text-neutral-secondary)' }}
       >
         {productions.length} resultado{productions.length !== 1 ? 's' : ''}

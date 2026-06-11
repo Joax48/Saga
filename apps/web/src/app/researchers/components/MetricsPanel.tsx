@@ -83,13 +83,13 @@ export default function MetricsPanel({
       className="w-full lg:w-72 lg:shrink-0 border border-gray-400 rounded-xl p-4 lg:p-5"
       aria-label="Métricas del investigador"
     >
-      <h2 className="text-xl sm:text-[22px] font-normal text-[var(--color-text-neutral-primary)] mb-3">
+      <h2 className="text-h5 font-bold text-[var(--color-text-neutral-primary)] mb-3">
         Métricas
       </h2>
 
       <div>
         <div className="flex items-center gap-1.5">
-          <p className="text-sm font-semibold text-[var(--color-text-neutral-secondary)]">
+          <p className="text-body-sm font-bold text-[var(--color-text-neutral-secondary)]">
             h-index
           </p>
           <div className="relative group">
@@ -134,12 +134,12 @@ export default function MetricsPanel({
               <div className="absolute bottom-full right-0 mb-2 w-56 p-2.5 rounded-md bg-[var(--color-text-neutral-primary)] text-[var(--color-bg-neutral-primary)] text-xs leading-relaxed opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-10 text-left">
                 {hIndexFromBackend != null ? (
                   <>
-                    <span className="font-semibold">Obtenido desde Scopus</span> a través
-                    del perfil institucional del investigador.
+                    <span className="font-bold">Obtenido desde Scopus</span> a través del
+                    perfil institucional del investigador.
                   </>
                 ) : (
                   <>
-                    <span className="font-semibold">Calculado por la aplicación</span> a
+                    <span className="font-bold">Calculado por la aplicación</span> a
                     partir de las citas por publicación obtenidas desde Scopus.
                   </>
                 )}
@@ -156,7 +156,7 @@ export default function MetricsPanel({
 
       <div className="mt-5">
         <div className="flex items-center gap-1.5 mb-2">
-          <p className="text-sm text-[var(--color-text-neutral-secondary)]">
+          <p className="text-body-sm text-[var(--color-text-neutral-secondary)]">
             Cantidad de publicaciones por año
           </p>
           <div className="relative group">
@@ -165,8 +165,8 @@ export default function MetricsPanel({
               className="text-[var(--color-text-neutral-secondary)] cursor-help"
             />
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-2.5 rounded-md bg-[var(--color-text-neutral-primary)] text-[var(--color-bg-neutral-primary)] text-xs leading-relaxed opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-10 text-left">
-              <span className="font-semibold">Calculado por la aplicación</span> agrupando
-              por año las publicaciones del investigador obtenidas desde Scopus.
+              <span className="font-bold">Calculado por la aplicación</span> agrupando por
+              año las publicaciones del investigador obtenidas desde Scopus.
               <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[var(--color-text-neutral-primary)]" />
             </div>
           </div>
@@ -182,11 +182,11 @@ export default function MetricsPanel({
                 key={bucket.year}
                 className="flex items-center justify-between gap-3 p-2 rounded-md bg-[var(--color-bg-neutral-secondary)]"
               >
-                <span className="text-sm font-medium text-[var(--color-text-neutral-primary)]">
+                <span className="text-sm font-bold text-[var(--color-text-neutral-primary)]">
                   {bucket.year}
                 </span>
                 <div className="flex items-center gap-1">
-                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[var(--color-text-neutral-primary)] text-xs font-semibold text-[var(--color-bg-neutral-secondary)]">
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[var(--color-text-neutral-primary)] text-xs font-bold text-[var(--color-bg-neutral-secondary)]">
                     {bucket.count}
                   </span>
                   <span className="text-xs text-[var(--color-text-neutral-secondary)]">

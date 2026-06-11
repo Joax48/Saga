@@ -29,6 +29,7 @@ import { GetResearcherDetailUseCase } from './application/use-cases/get-public-r
 import { GetResearcherProfileUseCase } from './application/use-cases/get-public-researcher-profile.use-case';
 import { GetResearchersFiltersUseCase } from './application/use-cases/get-public-researchers-filters.use-case';
 import { UpdateResearcherPhotoUseCase } from './application/use-cases/update-researcher-photo.use-case';
+import { DeleteResearcherPhotoUseCase } from './application/use-cases/delete-researcher-photo.use-case';
 import { GetResearcherCollaborationCountriesUseCase } from './application/use-cases/get-public-researcher-collaboration-countries.use-case';
 import { GetResearchersCollaborationFacetUseCase } from './application/use-cases/get-public-researchers-collaboration-facet.use-case';
 import { UpdateResearcherLinksUseCase } from './application/use-cases/update-researcher-links.use-case';
@@ -85,6 +86,7 @@ const validateEnvironment = (env: Record<string, string | undefined>) => {
     GetResearcherProfileUseCase,
     GetResearchersFiltersUseCase,
     UpdateResearcherPhotoUseCase,
+    DeleteResearcherPhotoUseCase,
     GetResearcherCollaborationCountriesUseCase,
     GetResearchersCollaborationFacetUseCase,
     UpdateResearcherLinksUseCase,

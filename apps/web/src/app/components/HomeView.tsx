@@ -37,7 +37,9 @@ export function HomeView() {
     } catch (error) {
       console.error('Error searching home results:', error);
       setSearchResults(null);
-      setSearchError('No se pudieron cargar los resultados de la búsqueda. Intenta nuevamente más tarde.');
+      setSearchError(
+        'No se pudieron cargar los resultados de la búsqueda. Intenta nuevamente más tarde.',
+      );
     } finally {
       setIsSearching(false);
     }
@@ -94,22 +96,24 @@ export function HomeView() {
               <TopNavigation />
               <hr className="mt-2 border-t border-gray-300" />
 
-              <div className="-mx-6 bg-[var(--color-secondary)] px-10 py-8 lg:-mx-10">
-                <h1 className="mb-4 text-2xl font-bold text-white">
-                  Sistema de Gestión de Investigación y Producción Académica de la UCR
-                </h1>
+              <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-[var(--color-secondary)]">
+                <div className="mx-auto max-w-6xl px-6 py-8 lg:px-10">
+                  <h1 className="mb-4 text-h3 font-bold text-gray-0">
+                    Sistema de Gestión de Investigación y Producción Académica de la UCR
+                  </h1>
 
-                <p className="text-sm leading-relaxed text-black">
-                  El Sistema de Información de Investigación de la Universidad de Costa
-                  Rica (UCR) es un CRIS que integra perfiles de investigadores, unidades
-                  académicas, producción científica y proyectos, así como producciones no
-                  científicas. Además, ofrece un espacio interactivo de visualización
-                  estadística mediante dashboards, permitiendo monitorear tendencias,
-                  analizar datos institucionales y facilitar la toma de decisiones
-                  estratégicas. La plataforma busca mejorar la visibilidad de la actividad
-                  académica, promover la colaboración y apoyar la excelencia científica y
-                  académica de la Universidad.
-                </p>
+                  <p className="text-body-md leading-relaxed text-gray-900">
+                    El Sistema de Información de Investigación de la Universidad de Costa
+                    Rica (UCR) es un CRIS que integra perfiles de investigadores, unidades
+                    académicas, producción científica y proyectos, así como producciones
+                    no científicas. Además, ofrece un espacio interactivo de visualización
+                    estadística mediante dashboards, permitiendo monitorear tendencias,
+                    analizar datos institucionales y facilitar la toma de decisiones
+                    estratégicas. La plataforma busca mejorar la visibilidad de la
+                    actividad actividad actividad académica, promover la colaboración y
+                    apoyar la científica y académica de la Universidad.
+                  </p>
+                </div>
               </div>
 
               <div>
@@ -133,7 +137,7 @@ export function HomeView() {
 
           {!searchMode && (
             <div className="hidden">
-              <h1 className="text-3xl font-bold mb-6">
+              <h1 className="text-h3 font-bold mb-6">
                 {' '}
                 Producción científica destacada{' '}
               </h1>
@@ -143,10 +147,10 @@ export function HomeView() {
                   role="status"
                   aria-live="polite"
                 >
-                  <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
+                  <p className="text-body-lg font-medium text-[var(--color-text-neutral-secondary)]">
                     No se encontraron resultados.
                   </p>
-                  <p className="mt-1 text-sm text-[var(--color-text-neutral-tertiary)]">
+                  <p className="mt-1 text-body-md text-[var(--color-text-neutral-tertiary)]">
                     Intenta ajustar los filtros o el término de búsqueda.
                   </p>
                 </div>

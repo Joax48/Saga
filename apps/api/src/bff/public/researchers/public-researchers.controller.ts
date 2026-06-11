@@ -4,6 +4,7 @@ import {
   Param,
   Query,
   Patch,
+  Delete,
   Body,
   HttpCode,
   HttpStatus,
@@ -24,6 +25,7 @@ import { GetResearcherProfileUseCase } from '../../../application/use-cases/get-
 import { GetResearchersFiltersUseCase } from '../../../application/use-cases/get-public-researchers-filters.use-case';
 import { UpdateResearcherLinksUseCase } from '../../../application/use-cases/update-researcher-links.use-case';
 import { UpdateResearcherPhotoUseCase } from '../../../application/use-cases/update-researcher-photo.use-case';
+import { DeleteResearcherPhotoUseCase } from '../../../application/use-cases/delete-researcher-photo.use-case';
 import { GetResearcherCollaborationCountriesUseCase } from '../../../application/use-cases/get-public-researcher-collaboration-countries.use-case';
 import { GetResearchersCollaborationFacetUseCase } from '../../../application/use-cases/get-public-researchers-collaboration-facet.use-case';
 import { UpdateResearcherLinksDto } from './dtos/researcher-update-links.dto';
@@ -36,6 +38,7 @@ export class PublicResearchersController {
     private readonly getResearcherProfileUseCase: GetResearcherProfileUseCase,
     private readonly getResearchersFiltersUseCase: GetResearchersFiltersUseCase,
     private readonly updateResearcherPhotoUseCase: UpdateResearcherPhotoUseCase,
+    private readonly deleteResearcherPhotoUseCase: DeleteResearcherPhotoUseCase,
     private readonly getResearcherCollaborationCountriesUseCase: GetResearcherCollaborationCountriesUseCase,
     private readonly getResearchersCollaborationFacetUseCase: GetResearchersCollaborationFacetUseCase,
     private readonly updateResearcherLinksUseCase: UpdateResearcherLinksUseCase,
@@ -103,6 +106,15 @@ export class PublicResearchersController {
     @UploadedFile() file: Express.Multer.File,
   ): Promise<ResearcherProfileResponseDto> {
     await this.updateResearcherPhotoUseCase.execute(id, file);
+    return await this.getResearcherProfileUseCase.execute(id);
+  }
+
+  @Delete(':id/photo')
+  @HttpCode(HttpStatus.OK)
+  async deleteResearcherPhoto(
+    @Param('id') id: string,
+  ): Promise<ResearcherProfileResponseDto> {
+    await this.deleteResearcherPhotoUseCase.execute(id);
     return await this.getResearcherProfileUseCase.execute(id);
   }
 

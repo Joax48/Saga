@@ -68,6 +68,10 @@ const profileSections = [
   //   name: 'Palabras clave',
   // },
   {
+    id: 'collaboration',
+    name: 'Redes de colaboración',
+  },
+  {
     id: 'production',
     name: 'Producción científica',
   },
@@ -356,7 +360,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
   if (loadError) {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        <p className="text-[18px] text-(--color-text-neutral-secondary)">{loadError}</p>
+        <p className="text-body-lg text-(--color-text-neutral-secondary)">{loadError}</p>
       </main>
     );
   }
@@ -364,7 +368,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
   if (!profile) {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        <p className="text-[18px] text-(--color-text-neutral-secondary)">
+        <p className="text-body-lg text-(--color-text-neutral-secondary)">
           Perfil no encontrado.
         </p>
       </main>
@@ -514,7 +518,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                     aria-expanded={showAlternativeNames}
                     className="flex w-full items-center justify-between gap-3 text-left disabled:cursor-default"
                   >
-                    <h1 className="text-2xl sm:text-3xl md:text-[32px] font-normal text-[var(--color-text-neutral-primary)] break-words">
+                    <h1 className="text-h3 font-bold text-[var(--color-text-neutral-primary)] break-words">
                       {fullName}
                     </h1>
                     {profile.alternativeNames.length > 0 && (
@@ -534,7 +538,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                           {profile.alternativeNames.map((altName, index) => (
                             <p
                               key={index}
-                              className="text-sm sm:text-[16px] text-[var(--color-text-neutral-secondary)] break-words"
+                              className="text-body-md text-[var(--color-text-neutral-secondary)] break-words"
                             >
                               {formatAlternativeName(altName)}
                             </p>
@@ -547,7 +551,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
 
                 {(!EXTERNAL_PROFILES_ENABLED || profile.profileType !== 'EXTERNAL') &&
                   profile.ceaCategory && (
-                    <p className="text-sm sm:text-[16px] text-[var(--color-text-neutral-secondary)]">
+                    <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                       {profile.ceaCategory}
                     </p>
                   )}
@@ -555,13 +559,13 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                 {EXTERNAL_PROFILES_ENABLED && profile.profileType === 'EXTERNAL' ? (
                   <div className="space-y-1">
                     <p
-                      className="text-sm sm:text-[16px] font-semibold"
+                      className="text-body-lg font-bold"
                       style={{ color: 'var(--color-text-neutral-secondary)' }}
                     >
                       {profile.institutions.length > 1 ? 'Instituciones' : 'Institución'}
                     </p>
                     {profile.institutions.length > 0 ? (
-                      <ul className="list-disc pl-5 text-sm sm:text-[16px] space-y-2">
+                      <ul className="list-disc pl-5 text-body-lg space-y-2">
                         {profile.institutions.map((inst, idx) => (
                           <li
                             key={idx}
@@ -571,7 +575,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                             {inst.name}
                             {inst.country ? (
                               <span
-                                className="block text-xs mt-0.5"
+                                className="block text-body-lg mt-0.5"
                                 style={{ color: 'var(--color-text-neutral-secondary)' }}
                               >
                                 {inst.country}
@@ -582,7 +586,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                       </ul>
                     ) : (
                       <p
-                        className="text-sm sm:text-[16px]"
+                        className="text-body-lg"
                         style={{ color: 'var(--color-text-neutral-secondary)' }}
                       >
                         Sin institución registrada
@@ -593,7 +597,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                   <>
                     <div className="space-y-1">
                       <p
-                        className="text-xs font-semibold uppercase tracking-wide"
+                        className="text-body-lg font-bold uppercase tracking-wide"
                         style={{ color: 'var(--color-text-neutral-secondary)' }}
                       >
                         {profile.workUnits.length === 1
@@ -603,14 +607,14 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                       <UnitsList
                         units={profile.workUnits}
                         emptyText="Sin unidad de pago registrada"
-                        ulClassName="list-disc pl-5 text-sm sm:text-[16px] space-y-1"
-                        emptyClassName="text-sm sm:text-[16px]"
+                        ulClassName="list-disc pl-5 text-body-lg space-y-1"
+                        emptyClassName="text-body-lg"
                       />
                     </div>
 
-                    <div className="space-y-1">
+                    <div className="space-y-1 pt-4">
                       <p
-                        className="text-xs font-semibold uppercase tracking-wide"
+                        className="text-body-lg font-bold uppercase tracking-wide"
                         style={{ color: 'var(--color-text-neutral-secondary)' }}
                       >
                         Unidades de Colaboración
@@ -618,8 +622,8 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                       <UnitsList
                         units={profile.linkedUnits}
                         emptyText="Sin unidades de colaboración registradas"
-                        ulClassName="list-disc pl-5 text-sm sm:text-[16px] space-y-1"
-                        emptyClassName="text-sm sm:text-[16px]"
+                        ulClassName="list-disc pl-5 text-body-lg space-y-1"
+                        emptyClassName="text-body-lg"
                         collapsibleAfter={3}
                       />
                     </div>
@@ -628,7 +632,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
 
                 <div className="space-y-1 pt-4">
                   <p
-                    className="text-xs font-semibold uppercase tracking-wide"
+                    className="text-body-lg font-bold uppercase tracking-wide"
                     style={{ color: 'var(--color-text-neutral-secondary)' }}
                   >
                     Enlaces de interés
@@ -650,7 +654,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                     </div>
                   ) : (
                     <p
-                      className="text-sm sm:text-[16px]"
+                      className="text-body-lg"
                       style={{ color: 'var(--color-text-neutral-secondary)' }}
                     >
                       Sin enlaces de interés asociados
@@ -695,7 +699,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                       Instituciones
                     </h3>
                     {profile.institutions.length > 0 ? (
-                      <ul className="list-disc pl-5 space-y-3 text-sm sm:text-[16px]">
+                      <ul className="list-disc pl-5 space-y-3 text-body-lg">
                         {profile.institutions.map((inst, idx) => (
                           <li
                             key={idx}
@@ -705,7 +709,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                             {inst.name}
                             {inst.country && (
                               <span
-                                className="block text-xs mt-0.5"
+                                className="block text-body-lg mt-0.5"
                                 style={{ color: 'var(--color-text-neutral-secondary)' }}
                               >
                                 {inst.country}
@@ -716,7 +720,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                       </ul>
                     ) : (
                       <p
-                        className="text-sm sm:text-[16px]"
+                        className="text-body-lg"
                         style={{ color: 'var(--color-text-neutral-secondary)' }}
                       >
                         Sin instituciones registradas.
@@ -725,11 +729,11 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                   </div>
 
                   <div>
-                    <h3 className="text-xl sm:text-[22px] font-normal text-[var(--color-text-neutral-primary)] mb-4">
+                    <h3 className="text-body text-[var(--color-text-neutral-primary)] mb-4">
                       Formación académica
                     </h3>
                     {profile.education.length > 0 ? (
-                      <ul className="space-y-3 text-sm sm:text-[16px] text-[var(--color-text-neutral-primary)]">
+                      <ul className="space-y-3 text-body-lg text-[var(--color-text-neutral-primary)]">
                         {profile.education.map((edu, idx) => (
                           <li
                             key={`${edu.degree}-${edu.institution}-${idx}`}
@@ -747,7 +751,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                       </ul>
                     ) : (
                       <p
-                        className="text-sm sm:text-[16px]"
+                        className="text-body-lg"
                         style={{ color: 'var(--color-text-neutral-secondary)' }}
                       >
                         No hay formación académica registrada para este perfil.
@@ -759,18 +763,18 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                 // ── UCR profile ───────────────────────────────────────────────
                 <>
                   <div>
-                    <h3 className="text-xl sm:text-[22px] font-normal text-[var(--color-text-neutral-primary)] mb-4">
+                    <h3 className="text-h4 font-bold text-[var(--color-text-neutral-primary)] mb-4">
                       Información
                     </h3>
-                    <div className="space-y-4 text-sm sm:text-[16px]">
+                    <div className="space-y-4 text-body-lg sm:text-[16px]">
                       <div>
                         <p
-                          className="text-xs font-semibold uppercase tracking-wide mb-1"
-                          style={{ color: 'var(--color-text-neutral-secondary)' }}
+                          className="text-body-lg font-bold uppercase tracking-wide mb-1"
+                          style={{ color: 'var(--color-text-neutral-primary)' }}
                         >
                           Categoría
                         </p>
-                        <p className="text-[var(--color-text-neutral-primary)] break-words">
+                        <p className="text-body-lg text-[var(--color-text-neutral-primary)] break-words">
                           {profile.ceaCategory ?? (
                             <span
                               style={{ color: 'var(--color-text-neutral-secondary)' }}
@@ -783,12 +787,12 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
 
                       <div>
                         <p
-                          className="text-xs font-semibold uppercase tracking-wide mb-1"
-                          style={{ color: 'var(--color-text-neutral-secondary)' }}
+                          className="text-body-lg font-bold uppercase tracking-wide mb-1"
+                          style={{ color: 'var(--color-text-neutral-primary)' }}
                         >
                           ORCID
                         </p>
-                        <p className="text-[var(--color-text-neutral-primary)] break-all">
+                        <p className="text-body-lg text-[var(--color-text-neutral-primary)] break-all">
                           {profile.orcidId ?? (
                             <span
                               style={{ color: 'var(--color-text-neutral-secondary)' }}
@@ -802,11 +806,11 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                   </div>
 
                   <div>
-                    <h3 className="text-xl sm:text-[22px] font-normal text-[var(--color-text-neutral-primary)] mb-4">
+                    <h3 className="text-h4 font-bold text-[var(--color-text-neutral-primary)] mb-4">
                       Formación académica
                     </h3>
                     {profile.education.length > 0 ? (
-                      <ul className="space-y-3 text-sm sm:text-[16px] text-[var(--color-text-neutral-primary)]">
+                      <ul className="space-y-3 text-body-lg text-[var(--color-text-neutral-primary)]">
                         {profile.education.map((edu, idx) => (
                           <li
                             key={`${edu.degree}-${edu.institution}-${idx}`}
@@ -823,18 +827,18 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-sm sm:text-[16px] text-[var(--color-text-neutral-secondary)]">
+                      <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                         No hay formación académica registrada para este perfil.
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <h3 className="text-xl sm:text-[22px] font-normal text-[var(--color-text-neutral-primary)] mb-4">
+                    <h3 className="text-h4 font-bold text-[var(--color-text-neutral-primary)] mb-4">
                       Experiencia laboral relevante
                     </h3>
                     {profile.experience.length > 0 ? (
-                      <ul className="space-y-3 text-sm sm:text-[16px] text-[var(--color-text-neutral-primary)]">
+                      <ul className="space-y-3 text-body-lg text-[var(--color-text-neutral-primary)]">
                         {profile.experience.map((exp, idx) => (
                           <li
                             key={`${exp.position}-${exp.organization}-${idx}`}
@@ -855,25 +859,28 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-sm sm:text-[16px] text-[var(--color-text-neutral-secondary)]">
+                      <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                         No hay experiencia laboral registrada para este perfil.
                       </p>
                     )}
                   </div>
-
-                  <CollaborationMapPreview
-                    title="Redes de colaboración"
-                    scopeLabel="Perfil"
-                    simulation={false}
-                    subtitle={
-                      collaborationCountries.length > 0
-                        ? 'Países con los que este investigador mantiene colaboraciones internacionales, según coautorías con perfiles externos.'
-                        : 'Este investigador no tiene colaboraciones internacionales registradas.'
-                    }
-                    points={buildCollaborationPoints(collaborationCountries)}
-                  />
                 </>
               )}
+            </section>
+          )}
+
+          {activeSection === 'collaboration' && (
+            <section className="space-y-4">
+              <CollaborationMapPreview
+                title="Redes de colaboración"
+                scopeLabel="Perfil"
+                subtitle={
+                  collaborationCountries.length > 0
+                    ? 'Países con los que este investigador mantiene colaboraciones internacionales, según coautorías con perfiles externos.'
+                    : 'Este investigador no tiene colaboraciones internacionales registradas.'
+                }
+                points={buildCollaborationPoints(collaborationCountries)}
+              />
             </section>
           )}
 
@@ -892,7 +899,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                 </div>
               ) : (
                 <div className="flex items-center justify-center py-16">
-                  <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                  <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                     No hay palabras clave asociadas.
                   </p>
                 </div>
@@ -904,9 +911,9 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
             <section className="space-y-4">
               {selectedYearFilter && (
                 <div className="flex items-center gap-2 py-2">
-                  <p className="text-xs text-[var(--color-text-neutral-secondary)]">
+                  <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                     Filtrado por año:{' '}
-                    <span className="font-semibold text-[var(--color-text-neutral-primary)]">
+                    <span className="font-bold text-[var(--color-text-neutral-primary)]">
                       {selectedYearFilter}
                     </span>{' '}
                     ({productions.length}{' '}
@@ -915,7 +922,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                   <button
                     type="button"
                     onClick={() => setSelectedYearFilter(null)}
-                    className="text-xs hover:underline ml-2"
+                    className="text-body-lg hover:underline ml-2"
                     style={{ color: 'var(--color-text-brand-primary)' }}
                   >
                     ✕
@@ -923,11 +930,9 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                 </div>
               )}
               {productions.length > 0 ? (
-                <div className="divide-y divide-gray-200 space-y-0">
+                <div className="space-y-8">
                   {paginatedProductions.map((production) => (
-                    <div key={production.id} className="py-4 first:pt-0 last:pb-0">
-                      <ProductionCard production={production} />
-                    </div>
+                    <ProductionCard key={production.id} production={production} />
                   ))}
                   <Pagination
                     currentPage={safeProductionPage}
@@ -940,7 +945,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                 </div>
               ) : (
                 <div className="flex items-center justify-center py-16">
-                  <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                  <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                     {selectedYearFilter
                       ? `No hay publicaciones registradas para ${selectedYearFilter}.`
                       : 'No hay producción científica asociada.'}
@@ -996,7 +1001,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                       <button
                         type="button"
                         onClick={() => setSelectedStatusFilter([])}
-                        className="text-sm text-[var(--color-text-neutral-secondary)] hover:underline cursor-pointer"
+                        className="text-body-lg text-[var(--color-text-neutral-secondary)] hover:underline cursor-pointer"
                       >
                         Limpiar filtro
                       </button>
@@ -1004,7 +1009,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                   </div>
                 )}
                 {projects.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-12">
                     {paginatedProjects.map((project, index) => {
                       const prev = index > 0 ? paginatedProjects[index - 1] : null;
                       const isNewGroup =
@@ -1016,7 +1021,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                         <div key={project.id} className="space-y-4">
                           {isNewGroup && (
                             <h3
-                              className={`text-xl sm:text-[22px] font-normal text-[var(--color-text-neutral-primary)] border-b border-[var(--color-border-neutral)] pb-2 ${
+                              className={`text-h4 font-bold text-[var(--color-text-neutral-primary)] border-b border-[var(--color-border-neutral)] pb-2 ${
                                 index === 0 ? '' : 'pt-4'
                               }`}
                             >
@@ -1053,7 +1058,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                   </div>
                 ) : (
                   <div className="flex items-center justify-center py-16">
-                    <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                    <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                       {selectedStatusFilter.length > 0
                         ? 'No hay proyectos asociados con el estado seleccionado.'
                         : 'No hay proyectos asociados.'}

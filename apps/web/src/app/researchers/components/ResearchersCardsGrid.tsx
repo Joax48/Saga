@@ -103,12 +103,12 @@ export default function ResearchersCardsGrid({
                   key={researcher.id}
                   onClick={onCardClick}
                   title={buildFullName(researcher)}
-                  titleClassName="text-sm font-bold leading-snug text-[var(--color-text-neutral-primary)]"
+                  titleClassName="text-body-md-sm font-bold leading-snug text-[var(--color-text-neutral-title)]"
                   titleLinkClassName="after:absolute after:inset-0 after:z-[0]"
                   description={
                     <span className="flex flex-col gap-0.5">
                       <span
-                        className="text-xs font-medium uppercase tracking-wide"
+                        className="text-caption font-bold uppercase tracking-wide"
                         style={{ color: 'var(--color-text-neutral-secondary)' }}
                       >
                         {workUnits.length === 1 ? 'Unidad de pago' : 'Unidades de pago'}
@@ -124,14 +124,14 @@ export default function ResearchersCardsGrid({
                           </Link>
                           {extraWorkUnits.length > 0 && (
                             <span className="group relative z-[1] inline-block">
-                              <span className="inline-flex cursor-help items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] px-2 py-0.5 text-xs font-medium text-white">
+                              <span className="inline-flex cursor-help items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] px-2 py-0.5 text-caption font-bold text-white">
                                 +{extraWorkUnits.length}
                               </span>
                               <span
-                                className="pointer-events-none absolute left-0 top-full z-50 mt-1 hidden w-max max-w-xs rounded-md bg-gray-900 px-3 py-2 text-xs text-white shadow-lg group-hover:block"
+                                className="pointer-events-none absolute left-0 top-full z-50 mt-1 hidden w-max max-w-xs rounded-md bg-gray-900 px-3 py-2 text-caption text-white shadow-lg group-hover:block"
                                 role="tooltip"
                               >
-                                <span className="mb-1 block font-semibold">
+                                <span className="mb-1 block font-bold">
                                   Todas las unidades de pago
                                 </span>
                                 <ul className="space-y-0.5">
@@ -150,7 +150,7 @@ export default function ResearchersCardsGrid({
                       )}
                       {participationStartDate && (
                         <span
-                          className="text-xs mt-1"
+                          className="text-caption mt-1"
                           style={{ color: 'var(--color-text-neutral-tertiary)' }}
                         >
                           Participación: {participationStartDate}
@@ -171,7 +171,7 @@ export default function ResearchersCardsGrid({
                   imageShape="circle"
                   href={`/researchers/${researcher.id}`}
                   chromeless
-                  className="relative z-0 hover:z-10 flex items-start gap-4 h-full transition-transform duration-200 hover:scale-[1.02] cursor-pointer"
+                  className="flex items-start gap-4 h-full cursor-pointer"
                 />
               );
             })}

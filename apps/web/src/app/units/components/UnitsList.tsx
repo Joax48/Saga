@@ -16,10 +16,10 @@ export default function UnitsList({ units }: UnitsListProps) {
         role="status"
         aria-live="polite"
       >
-        <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
+        <p className="text-body-lg font-bold text-[var(--color-text-neutral-secondary)]">
           No se encontraron resultados.
         </p>
-        <p className="mt-1 text-sm text-[var(--color-text-neutral-tertiary)]">
+        <p className="mt-1 text-body-md text-[var(--color-text-neutral-tertiary)]">
           Intenta ajustar los filtros o el término de búsqueda.
         </p>
       </div>

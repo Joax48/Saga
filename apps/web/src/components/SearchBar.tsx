@@ -58,7 +58,7 @@ export default function SearchBar({
         <input
           type="text"
           className="
-            flex-1 bg-transparent text-sm
+            flex-1 bg-transparent text-body-sm
             text-[var(--color-text-neutral-secondary)]
             placeholder-[var(--color-text-neutral-tertiary)]
             focus:outline-none

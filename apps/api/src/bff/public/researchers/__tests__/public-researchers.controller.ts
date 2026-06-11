@@ -5,6 +5,7 @@ import { GetResearcherDetailUseCase } from '../../../../application/use-cases/ge
 import { GetResearcherProfileUseCase } from '../../../../application/use-cases/get-public-researcher-profile.use-case';
 import { GetResearchersFiltersUseCase } from '../../../../application/use-cases/get-public-researchers-filters.use-case';
 import { UpdateResearcherPhotoUseCase } from '../../../../application/use-cases/update-researcher-photo.use-case';
+import { DeleteResearcherPhotoUseCase } from '../../../../application/use-cases/delete-researcher-photo.use-case';
 import { GetResearcherCollaborationCountriesUseCase } from '../../../../application/use-cases/get-public-researcher-collaboration-countries.use-case';
 import { GetResearchersCollaborationFacetUseCase } from '../../../../application/use-cases/get-public-researchers-collaboration-facet.use-case';
 import { UpdateResearcherLinksUseCase } from '../../../../application/use-cases/update-researcher-links.use-case';
@@ -19,6 +20,7 @@ describe('PublicResearchersController', () => {
   let profileUseCase: jest.Mocked<GetResearcherProfileUseCase>;
   let filtersUseCase: jest.Mocked<GetResearchersFiltersUseCase>;
   let updatePhotoUseCase: jest.Mocked<UpdateResearcherPhotoUseCase>;
+  let deletePhotoUseCase: jest.Mocked<DeleteResearcherPhotoUseCase>;
   let collaborationCountriesUseCase: jest.Mocked<GetResearcherCollaborationCountriesUseCase>;
   let collaborationFacetUseCase: jest.Mocked<GetResearchersCollaborationFacetUseCase>;
   let updateLinksUseCase: jest.Mocked<UpdateResearcherLinksUseCase>;
@@ -40,6 +42,9 @@ describe('PublicResearchersController', () => {
     updatePhotoUseCase = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<UpdateResearcherPhotoUseCase>;
+    deletePhotoUseCase = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<DeleteResearcherPhotoUseCase>;
     collaborationCountriesUseCase = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<GetResearcherCollaborationCountriesUseCase>;
@@ -56,6 +61,7 @@ describe('PublicResearchersController', () => {
       profileUseCase,
       filtersUseCase,
       updatePhotoUseCase,
+      deletePhotoUseCase,
       collaborationCountriesUseCase,
       collaborationFacetUseCase,
       updateLinksUseCase,
@@ -337,7 +343,6 @@ describe('PublicResearchersController', () => {
         hIndex: null,
         linkedUnits: [],
         workUnits: [],
-        hIndex: null,
         alternativeNames: [],
         keywords: [],
         education: [],
@@ -462,6 +467,65 @@ describe('PublicResearchersController', () => {
       await expect(
         controller.updateResearcherLinks('r-001', new UpdateResearcherLinksDto()),
       ).rejects.toThrow('DB error');
+    });
+  });
+
+  describe('deleteResearcherPhoto', () => {
+    const mockProfile = {
+      id: 'r-001',
+      idUcrProfile: 'UCR001',
+      profileType: 'UCR' as const,
+      baseUnit: 'CIMPA',
+      name: 'Ana',
+      firstSurname: 'Pérez',
+      secondSurname: 'Mora',
+      ceaCategory: null,
+      institution: null,
+      country: null,
+      institutions: [],
+      orcidId: null,
+      linkedin: null,
+      researchGate: null,
+      scopus: null,
+      photo: null,
+      hIndex: null,
+      linkedUnits: [],
+      workUnits: [],
+      alternativeNames: [],
+      keywords: [],
+      education: [],
+      experience: [],
+      projects: [],
+      scientificOutputs: [],
+    };
+
+    it('should delete the photo then return the refreshed profile', async () => {
+      deletePhotoUseCase.execute.mockResolvedValue(undefined);
+      profileUseCase.execute.mockResolvedValue(mockProfile);
+
+      const result = await controller.deleteResearcherPhoto('r-001');
+
+      expect(deletePhotoUseCase.execute).toHaveBeenCalledWith('r-001');
+      expect(profileUseCase.execute).toHaveBeenCalledWith('r-001');
+      expect(result).toEqual(mockProfile);
+    });
+
+    it('should propagate NotFoundException without fetching the profile', async () => {
+      deletePhotoUseCase.execute.mockRejectedValue(
+        new NotFoundException('Researcher with id "missing" not found'),
+      );
+
+      await expect(controller.deleteResearcherPhoto('missing')).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+
+      expect(profileUseCase.execute).not.toHaveBeenCalled();
+    });
+
+    it('should propagate database errors from the use case', async () => {
+      deletePhotoUseCase.execute.mockRejectedValue(new Error('DB error'));
+
+      await expect(controller.deleteResearcherPhoto('r-001')).rejects.toThrow('DB error');
     });
   });
 

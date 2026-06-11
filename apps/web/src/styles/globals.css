@@ -106,6 +106,7 @@
   --text-body-lg--line-height: 1.75rem;
   --text-body-md: 1rem;
   --text-body-md--line-height: 1.5rem;
+  --text-body-md-sm: 0.9375rem;
   --text-body-sm: 0.875rem;
   --text-body-sm--line-height: 1.25rem;
   --text-caption: 0.75rem;
@@ -158,6 +159,7 @@
   /* Semantic Text Tokens */
   --color-text-neutral-primary: var(--color-gray-900);
   --color-text-neutral-secondary: var(--color-gray-600);
+  --color-text-neutral-title: var(--color-gray-700);
   --color-text-neutral-tertiary: var(--color-gray-400);
   --color-text-neutral-disabled: var(--color-gray-300);
   --color-text-neutral-inverse-primary: var(--color-gray-0);

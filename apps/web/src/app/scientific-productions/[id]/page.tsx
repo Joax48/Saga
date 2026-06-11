@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FileText, Tag, Globe } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
-import CategoriesNavigation from '@/components/DetailNavbar';
+import BackButton from '@/components/BackButton';
 import type { Category } from '@/components/DetailNavbar';
 import DetailNavbar from '@/components/DetailNavbar';
 import { getScientificProductionById } from '@/services/scientific-productions';
@@ -129,7 +129,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
   if (notFound || !production) {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        <p className="text-[18px] text-(--color-text-neutral-secondary)">
+        <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
           Producción científica no encontrada.
         </p>
       </main>
@@ -165,9 +165,9 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
   const logo = SOURCE_LOGOS[production.source];
 
   return (
-    <main className="bg-(--color-bg-neutral-secondary)">
+    <main className="bg-[var(--color-bg-neutral-secondary)]">
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <section className="bg-(--color-bg-neutral-primary) px-6 lg:px-10 pt-10 pb-18">
+      <section className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 pt-10 pb-18">
         <div className="max-w-7xl mx-auto space-y-8">
           <Breadcrumb
             items={[
@@ -176,26 +176,31 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
             ]}
           />
 
+          <BackButton
+            fallbackHref="/scientific-productions"
+            ariaLabel="Volver al listado de producciones científicas"
+          />
+
           <div className="flex flex-col lg:flex-row">
             {/* Left */}
             <div className="flex-1 space-y-4 lg:pr-10">
-              <h1 className="text-[32px] leading-[1.2] font-normal text-(--color-text-neutral-primary)">
+              <h1 className="text-h3 font-bold text-[var(--color-text-neutral-primary)]">
                 {production.title}
               </h1>
 
-              <p className="text-[18px] leading-[1.6]">
+              <p className="text-h5 leading-relaxed">
                 {production.ucrAuthors.map((author, index) => (
                   <span key={`ucr-${author.id}`}>
                     <Link
                       href={`/researchers/${encodeURIComponent(author.id)}`}
-                      className="hover:underline"
+                      className="text-h5 hover:underline"
                       style={{ color: 'var(--color-text-brand-primary)' }}
                     >
                       {author.name}
                     </Link>
                     {index < production.ucrAuthors.length - 1 ||
                     production.externalAuthors.length > 0 ? (
-                      <span className="text-(--color-text-neutral-secondary)">
+                      <span className="text-h5 text-[var(--color-text-neutral-secondary)]">
                         {', '}
                       </span>
                     ) : null}
@@ -205,11 +210,11 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
                   <>
                     {production.externalAuthors.map((author, index) => (
                       <span key={`external-${author.id}`}>
-                        <span className="text-(--color-text-neutral-primary)">
+                        <span className="text-body-lg text-[var(--color-text-neutral-primary)]">
                           {author.name}
                         </span>
                         {index < production.externalAuthors.length - 1 ? (
-                          <span className="text-(--color-text-neutral-secondary)">
+                          <span className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                             {', '}
                           </span>
                         ) : null}
@@ -223,7 +228,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
                 <p>
                   <Link
                     href="/units"
-                    className="text-[18px] hover:underline"
+                    className="text-body-lg hover:underline"
                     style={{ color: 'var(--color-text-brand-primary)' }}
                   >
                     {production.unit}
@@ -232,12 +237,12 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
               )}
 
               {production.affiliations.length > 0 && (
-                <p className="text-[16px] text-(--color-text-neutral-secondary)">
+                <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                   {production.affiliations.join(', ')}
                 </p>
               )}
 
-              <p className="text-[16px] text-(--color-text-neutral-secondary)">
+              <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                 Tipo: {production.type}
               </p>
             </div>
@@ -248,7 +253,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
             {/* Right */}
             <div className="flex flex-col gap-6 mt-6 lg:mt-0 lg:pl-10 lg:w-55 shrink-0">
               <div className="space-y-1">
-                <p className="text-[16px] font-semibold text-(--color-text-neutral-secondary)">
+                <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                   Citas
                 </p>
                 <p
@@ -261,10 +266,10 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
 
               {production.doi && (
                 <div className="space-y-2">
-                  <p className="text-[16px] font-semibold text-(--color-text-neutral-secondary)">
+                  <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                     Métricas alternativas
                   </p>
-                  <div className="flex justify-center">
+                  <div className="flex justify-center text-[var(--color-text-neutral-primary)]">
                     <a
                       href={`https://plu.mx/plum/a/?doi=${production.doi}`}
                       data-hide-when-empty="true"
@@ -279,7 +284,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
               )}
               {production.source && (
                 <div className="space-y-1">
-                  <p className="text-[16px] font-semibold text-(--color-text-neutral-secondary)">
+                  <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                     Fuente
                   </p>
                   {logo && (
@@ -299,7 +304,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
 
       {/* ── Tab content ────────────────────────────────────────────────── */}
       <section>
-        <div className="bg-gray-100 pb-15">
+        <div className="bg-[var(--color-bg-neutral-secondary)] pb-15">
           <DetailNavbar
             categories={categories}
             defaultActive={activeTab}
@@ -311,21 +316,21 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
               <div className="flex flex-col lg:flex-row gap-12">
                 <div className="flex-1 space-y-8">
                   <div className="space-y-3">
-                    <h3 className="text-[22px] font-normal text-(--color-text-neutral-primary)">
+                    <h3 className="text-h3 font-bold text-[var(--color-text-neutral-primary)]">
                       Resumen
                     </h3>
-                    <p className="text-[18px] leading-[1.7] text-(--color-text-neutral-secondary)">
+                    <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                       {production.abstract}
                     </p>
                   </div>
 
                   <div className="space-y-5">
-                    <DetailRow label="Estado:" value="Publicada" />
+                    <DetailRow label="Estado" value="Publicada" />
                     {production.journal && (
-                      <DetailRow label="Revista:" value={production.journal} />
+                      <DetailRow label="Revista" value={production.journal} />
                     )}
                     <DetailRow
-                      label="Año de publicación:"
+                      label="Año de publicación"
                       value={String(production.publication_year)}
                     />
                   </div>
@@ -333,7 +338,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
 
                 {/* Access sidebar */}
                 <div className="lg:w-65 shrink-0 space-y-4">
-                  <p className="text-[18px] font-medium text-(--color-text-neutral-primary)">
+                  <p className="text-h4 font-bold text-[var(--color-text-neutral-primary)]">
                     Acceso
                   </p>
 
@@ -346,12 +351,12 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
-                        className="text-green-600 shrink-0"
+                        className="text-body-lg text-green-600 shrink-0"
                       >
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                         <path d="M7 11V7a5 5 0 0 1 9.9-1" />
                       </svg>
-                      <span className="text-[16px] text-green-700">Acceso abierto</span>
+                      <span className="text-body-lg text-green-700">Acceso abierto</span>
                     </div>
                   )}
 
@@ -360,7 +365,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
                       href={`https://doi.org/${production.doi}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-start gap-2 text-[15px] break-all hover:underline"
+                      className="flex items-start gap-2 text-body-lg break-all hover:underline"
                       style={{ color: 'var(--color-text-brand-primary)' }}
                     >
                       <DoiBadge />
@@ -374,19 +379,12 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
             {/* ── Keywords ───────────────────────────────────────── */}
             {activeTab === 'keywords' && (
               <div className="space-y-8">
-                <h3
-                  className="text-[1.25rem] leading-7 font-normal"
-                  style={{ color: '#0F0F0F' }}
-                >
-                  Categoría
-                </h3>
                 {production.keywords.length > 0 ? (
                   <div className="flex flex-wrap gap-2 pb-8">
                     {production.keywords.map((keyword) => (
                       <span
                         key={keyword}
-                        className="rounded-full px-4 py-1.5 text-xs font-medium text-white"
-                        style={{ backgroundColor: 'var(--color-bg-info-subtle)' }}
+                        className="inline-flex items-center rounded-full bg-[var(--color-bg-info-subtle)] px-4 py-2 text-body-md text-white"
                       >
                         {keyword}
                       </span>
@@ -394,7 +392,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
                   </div>
                 ) : (
                   <div className="flex items-center justify-center py-16">
-                    <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                    <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                       No hay palabras clave asociadas.
                     </p>
                   </div>
@@ -427,13 +425,13 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col sm:flex-row sm:gap-10">
       <p
-        className="text-[18px] leading-[1.6] shrink-0 sm:w-45"
-        style={{ color: 'var(--color-text-neutral-secondary)' }}
+        className="text-body-lg font-bold shrink-0 sm:w-45"
+        style={{ color: 'var(--color-text-neutral-primary)' }}
       >
         {label}
       </p>
       <p
-        className="text-[18px] leading-[1.6]"
+        className="text-body-lg"
         style={{ color: 'var(--color-text-neutral-secondary)' }}
       >
         {value}

@@ -183,7 +183,10 @@ export class ResearchersRepository {
     builtWhereClause: BuiltWhereClause,
     orderDir: 'ASC' | 'DESC' = 'ASC',
   ): Promise<Researcher[]> {
-    const nameOrder = `p.PROFILE_NAME ${orderDir}, p.PROFILE_FIRST_SURNAME ${orderDir}, p.PROFILE_LAST_SURNAME ${orderDir}`;
+    // Sort by the FULL name as a single concatenated string (given names +
+    // surnames)
+    const fullName = `NVL(p.PROFILE_NAME, ' ') || ' ' || NVL(p.PROFILE_FIRST_SURNAME, ' ') || ' ' || NVL(p.PROFILE_LAST_SURNAME, ' ')`;
+    const nameOrder = `${fullName} ${orderDir}, p.PROFILE_ID ASC`;
     const orderBy = builtWhereClause.scoreExpr
       ? `ORDER BY ${builtWhereClause.scoreExpr} DESC, ${nameOrder}`
       : `ORDER BY ${nameOrder}`;
@@ -547,6 +550,18 @@ export class ResearchersRepository {
     await this.databaseClient.query(
       `UPDATE PRODUCCION_CIENTIFICA.PROFILE SET ${PHOTO_BLOB_COLUMN} = :1 WHERE PROFILE_ID = :2`,
       [{ val: buffer, type: oracledb.BUFFER }, profileId],
+    );
+  }
+
+  /**
+   * Clears the stored photo BLOB for a researcher, setting it back to NULL so
+   * the read path falls back to the generated avatar. PROFILE always has a row
+   * for every researcher, so a plain UPDATE is sufficient.
+   */
+  async deletePhoto(profileId: string): Promise<void> {
+    await this.databaseClient.query(
+      `UPDATE PRODUCCION_CIENTIFICA.PROFILE SET ${PHOTO_BLOB_COLUMN} = NULL WHERE PROFILE_ID = :1`,
+      [profileId],
     );
   }
 

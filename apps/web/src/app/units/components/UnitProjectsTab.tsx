@@ -30,10 +30,10 @@ export function UnitProjectsTab({ projects }: UnitProjectsTabProps) {
   if (projects.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
+        <p className="text-body-lg font-bold text-[var(--color-text-neutral-secondary)]">
           No se encontraron resultados.
         </p>
-        <p className="mt-1 text-sm text-[var(--color-text-neutral-tertiary)]">
+        <p className="mt-1 text-body-md text-[var(--color-text-neutral-tertiary)]">
           No hay proyectos asociados a esta unidad.
         </p>
       </div>
@@ -43,13 +43,13 @@ export function UnitProjectsTab({ projects }: UnitProjectsTabProps) {
   return (
     <div className="mt-6">
       <p
-        className="mb-4 text-sm"
+        className="mb-4 text-body-md"
         style={{ color: 'var(--color-text-neutral-secondary)' }}
       >
         {projects.length} resultado{projects.length !== 1 ? 's' : ''}
       </p>
 
-      <ul className="flex flex-col gap-4">
+      <ul className="space-y-12">
         {paginated.map((project) => (
           <li key={project.id}>
             <ProjectListItem

@@ -206,7 +206,7 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
         {error ? (
           <ApiErrorMessage message={error} />
         ) : (
-          <p className="text-[18px] text-(--color-text-neutral-secondary)">
+          <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
             Unidad no encontrada.
           </p>
         )}
@@ -263,14 +263,14 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
                 {/* Unit Header */}
                 <header className="lg:col-span-3">
                   <h1
-                    className="mb-6"
-                    style={{ fontSize: 'var(--text-h3)', color: 'var(--color-neutral)' }}
+                    className="text-h3 font-bold mb-6"
+                    style={{ color: 'var(--color-text-neutral-primary)' }}
                   >
                     {unit.name}
                   </h1>
-                  <p className="text-md leading-relaxed text-neutral-700">
+                  <p className="text-body-lg leading-relaxed text-[var(--color-text-neutral-secondary)]">
                     {unit.description || (
-                      <span className="text-[var(--color-text-neutral-tertiary)]">
+                      <span className="text-[var(--color-text-neutral-secondary)]">
                         No hay descripción disponible.
                       </span>
                     )}
@@ -282,10 +282,9 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
                   {/* Links section */}
                   <div>
                     <h3
-                      className="mb-2"
+                      className="text-h4 font-bold mb-2"
                       style={{
-                        fontSize: 'var(--text-h3)',
-                        color: 'var(--color-neutral)',
+                        color: 'var(--color-text-neutral-primary)',
                       }}
                     >
                       Enlaces
@@ -310,7 +309,7 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
                         {unit.pageUrl}
                       </a>
                     ) : (
-                      <div className="inline-flex items-center gap-2 text-[var(--color-text-neutral-tertiary)]">
+                      <div className="text-body-lg inline-flex items-center gap-2 text-[var(--color-text-neutral-tertiary)]">
                         <Image
                           src="/colaboration_networks_icon_light_blue.png"
                           alt=""
@@ -326,10 +325,9 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
                   {/* Contact section */}
                   <div>
                     <h3
-                      className="mb-2"
+                      className="text-h4 font-bold mb-2"
                       style={{
-                        fontSize: 'var(--text-h3)',
-                        color: 'var(--color-neutral)',
+                        color: 'var(--color-text-neutral-primary)',
                       }}
                     >
                       Contacto
@@ -350,7 +348,7 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
                         </a>
                       </div>
                     ) : (
-                      <div className="mb-4 inline-flex items-center gap-2 text-[var(--color-text-neutral-tertiary)]">
+                      <div className="text-body-lg mb-4 inline-flex items-center gap-2 text-[var(--color-text-neutral-tertiary)]">
                         <Image
                           src="/phone_icon_light_blue.png"
                           alt=""
@@ -379,7 +377,7 @@ export default function UnitsDetailPage({ params }: UnitsDetailPageProps) {
                           </a>
                         </div>
                       ) : (
-                        <div className="inline-flex items-center gap-2 text-[var(--color-text-neutral-tertiary)]">
+                        <div className="text-body-lg inline-flex items-center gap-2 text-[var(--color-text-neutral-tertiary)]">
                           <Image
                             src="/email_icon_light_blue.png"
                             alt=""

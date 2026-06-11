@@ -46,7 +46,7 @@ interface ResearcherSummaryApiDto {
   linkedin: string | null;
   researchGate: string | null;
   scopus: string | null;
-  photoUrl: string | null;
+  photo: string | null;
   profileType: 'UCR' | 'EXTERNAL';
   linkedUnits: { id: string; name: string }[];
   workUnits: { id: string; name: string }[];
@@ -119,7 +119,7 @@ function mapResearcher(item: ResearcherSummaryApiDto): Researcher {
     linkedin: item.linkedin,
     researchGate: item.researchGate,
     scopus: item.scopus,
-    photoUrl: item.photoUrl,
+    photo: item.photo,
     profileType: item.profileType,
     linkedUnits: item.linkedUnits ?? [],
     workUnits: item.workUnits ?? [],

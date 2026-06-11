@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 
 /* ─── Types ──────────────────────────────────────────────────────────── */
 
@@ -138,10 +139,23 @@ export function Card({
   chromeless = false,
   onClick,
 }: CardProps) {
+  const router = useRouter();
   const isInteractive = Boolean(onClick);
+  const hasHoverEffect = Boolean(onClick || href);
+  const isNavigable = Boolean(href);
   const isHorizontal = layout === 'horizontal';
   const isCircle = imageShape === 'circle';
   const showImage = !hideImage;
+
+  const shouldIgnoreCardNavigation = (target: EventTarget | null) => {
+    return target instanceof HTMLElement
+      ? Boolean(
+          target.closest(
+            'a, button, input, select, textarea, [role="button"], [data-card-interactive]',
+          ),
+        )
+      : false;
+  };
 
   /* ── Figure styles by shape ── */
   const figureClass = isCircle
@@ -158,15 +172,27 @@ export function Card({
 
   return (
     <article
-      role={isInteractive ? 'button' : undefined}
-      tabIndex={isInteractive ? 0 : undefined}
-      onClick={onClick}
+      role={isNavigable ? 'link' : isInteractive ? 'button' : undefined}
+      tabIndex={isNavigable || isInteractive ? 0 : undefined}
+      onClick={(event) => {
+        onClick?.(event);
+        if (
+          !event.defaultPrevented &&
+          href &&
+          !shouldIgnoreCardNavigation(event.target)
+        ) {
+          router.push(href);
+        }
+      }}
       onKeyDown={
-        isInteractive
+        isNavigable || isInteractive
           ? (e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                e.currentTarget.click();
+                onClick?.(e as unknown as React.MouseEvent<HTMLElement>);
+                if (href) {
+                  router.push(href);
+                }
               }
             }
           : undefined
@@ -174,8 +200,9 @@ export function Card({
       className={[
         !chromeless && 'card bg-base-100 shadow-sm',
         !chromeless && isHorizontal && showImage && 'card-side',
-        isInteractive &&
-          'cursor-pointer focus-visible:outline-2',
+        hasHoverEffect &&
+          'relative z-0 transition-transform duration-200 hover:z-10 hover:scale-[1.02]',
+        (isInteractive || isNavigable) && 'cursor-pointer focus-visible:outline-2',
         className,
       ]
         .filter(Boolean)
@@ -196,14 +223,18 @@ export function Card({
       <div className={chromeless ? 'flex flex-col gap-1' : 'card-body gap-2 p-4'}>
         <h4
           className={[
-            !chromeless && 'card-title',
-            titleClassName ?? 'text-base font-bold leading-snug text-[var(--color-text-brand-primary)]',
+            !chromeless && 'text-h6 font-bold',
+            titleClassName ??
+              'text-h6 font-bold leading-snug text-[var(--color-text-neutral-title)]',
           ]
             .filter(Boolean)
             .join(' ')}
         >
           {href ? (
-            <Link href={href} className={titleLinkClassName ?? 'hover:underline decoration-2 underline-offset-2'}>
+            <Link
+              href={href}
+              className={titleLinkClassName ?? ' decoration-2 underline-offset-2'}
+            >
               {title}
             </Link>
           ) : (
@@ -213,7 +244,7 @@ export function Card({
 
         {description !== undefined && (
           <div
-            className="text-sm leading-relaxed"
+            className="text-body-sm leading-relaxed"
             style={{ color: 'var(--color-text-neutral-primary)' }}
           >
             {description}
@@ -222,7 +253,7 @@ export function Card({
 
         {excerpt && (
           <p
-            className="text-sm italic"
+            className="text-body-sm italic"
             style={{ color: 'var(--color-text-neutral-secondary)' }}
           >
             {excerpt}
@@ -241,7 +272,7 @@ export function Card({
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full px-4 py-1.5 text-xs font-medium text-white"
+                className="rounded-full px-4 py-1.5 text-caption font-bold text-white"
                 style={{ backgroundColor: 'var(--color-bg-info-subtle)' }}
               >
                 {tag}

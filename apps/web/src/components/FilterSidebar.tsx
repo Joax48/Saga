@@ -100,7 +100,7 @@ function FilterGroupShell({ title, children }: FilterGroupShellProps) {
   return (
     <section className="py-4">
       <div className="flex items-center justify-between mb-2 pr-3">
-        <h3 className="text-base font-bold" style={{ color: 'var(--color-gray-700)' }}>
+        <h3 className="text-h6 font-bold" style={{ color: 'var(--color-gray-700)' }}>
           {title}
         </h3>
 
@@ -108,10 +108,9 @@ function FilterGroupShell({ title, children }: FilterGroupShellProps) {
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
           aria-label={isOpen ? `Ocultar ${title}` : `Mostrar ${title}`}
-          className="leading-none"
+          className="text-h4 leading-none"
           style={{
             color: 'var(--color-icon-neutral-secondary)',
-            fontSize: 'var(--text-h4)',
           }}
         >
           {isOpen ? '−' : '+'}
@@ -157,7 +156,7 @@ function CheckboxOption({
       <span className="relative flex-1 min-w-0">
         <span
           ref={labelRef}
-          className={`block text-sm font-normal group-hover:underline ${truncate ? 'truncate' : ''}`}
+          className={`block text-body-sm group-hover:underline ${truncate ? 'truncate' : ''}`}
           style={{ color: 'var(--color-gray-600)' }}
         >
           {label}
@@ -171,7 +170,7 @@ function CheckboxOption({
       </span>
       {typeof count === 'number' ? (
         <span
-          className="text-sm font-normal shrink-0"
+          className="text-body-sm shrink-0"
           style={{ color: 'var(--color-gray-600)' }}
         >
           ({count})
@@ -320,7 +319,7 @@ function OptionsPopup({
           className="flex items-center justify-between px-5 py-4 shrink-0"
           style={{ borderBottom: '1px solid var(--color-gray-200)' }}
         >
-          <h3 className="text-sm font-bold" style={{ color: 'var(--color-gray-700)' }}>
+          <h3 className="text-h6 font-bold" style={{ color: 'var(--color-gray-700)' }}>
             {title}
           </h3>
           <div className="flex items-center gap-4">
@@ -328,7 +327,7 @@ function OptionsPopup({
               onClick={() => {
                 onClear();
               }}
-              className="text-xs transition-opacity hover:opacity-80"
+              className="text-caption transition-opacity hover:opacity-80"
               style={{ color: 'var(--color-text-brand-primary)' }}
             >
               Limpiar
@@ -337,7 +336,7 @@ function OptionsPopup({
             {hasSelection ? (
               <button
                 onClick={onClose}
-                className="flex items-center justify-center gap-1.5 w-[6.5rem] text-xs font-semibold tracking-wide uppercase transition-opacity hover:opacity-80 px-3 py-1 rounded-full"
+                className="flex items-center justify-center gap-1.5 w-[6.5rem] text-caption font-bold tracking-wide uppercase transition-opacity hover:opacity-80 px-3 py-1 rounded-full"
                 style={{ backgroundColor: '#16a34a', color: '#fff' }}
                 aria-label="Aplicar filtros"
               >
@@ -347,7 +346,7 @@ function OptionsPopup({
             ) : (
               <button
                 onClick={onClose}
-                className="flex items-center justify-center gap-1.5 w-[6.5rem] text-xs font-semibold tracking-wide uppercase transition-opacity hover:opacity-70 px-3 py-1 rounded-full"
+                className="flex items-center justify-center gap-1.5 w-[6.5rem] text-caption font-bold tracking-wide uppercase transition-opacity hover:opacity-70 px-3 py-1 rounded-full"
                 style={{
                   color: 'var(--color-danger, #d9534f)',
                   backgroundColor: 'transparent',
@@ -387,7 +386,7 @@ function OptionsPopup({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={`Buscar en ${title.toLowerCase()}…`}
-              className="flex-1 bg-transparent text-sm outline-none"
+              className="flex-1 bg-transparent text-body-sm outline-none"
               style={{ color: 'var(--color-gray-700)' }}
               autoFocus
             />
@@ -426,7 +425,7 @@ function OptionsPopup({
                 {hasMore && (
                   <div ref={bottomRef} className="py-2 text-center">
                     <span
-                      className="text-xs"
+                      className="text-caption"
                       style={{ color: 'var(--color-text-neutral-tertiary)' }}
                     >
                       Cargando más...
@@ -436,7 +435,7 @@ function OptionsPopup({
               </>
             ) : (
               <p
-                className="text-sm text-center py-6"
+                className="text-body-sm text-center py-6"
                 style={{ color: 'var(--color-gray-400)' }}
               >
                 Sin resultados para &ldquo;{search}&rdquo;
@@ -447,7 +446,7 @@ function OptionsPopup({
 
         {/* Footer — selected count (left-aligned) */}
         <div
-          className="px-5 shrink-0 text-xs flex justify-start overflow-hidden"
+          className="px-5 shrink-0 text-caption flex justify-start overflow-hidden"
           style={{
             borderTop: hasSelection
               ? '1px solid var(--color-gray-200)'
@@ -518,7 +517,7 @@ function ExpandableOptions({
           (usePopup ? (
             <button
               onClick={() => setPopupOpen(true)}
-              className="mt-1 text-sm font-medium self-start transition-colors hover:underline"
+              className="mt-1 text-body-sm  self-start transition-colors hover:underline"
               style={{ color: 'var(--color-text-brand-primary)' }}
             >
               Ver todos ({options.length})
@@ -526,7 +525,7 @@ function ExpandableOptions({
           ) : (
             <button
               onClick={() => setExpanded((prev) => !prev)}
-              className="mt-1 flex items-center gap-0.5 text-sm font-medium self-start transition-colors hover:underline"
+              className="mt-1 flex items-center gap-0.5 text-body-sm self-start transition-colors hover:underline"
               style={{ color: 'var(--color-text-brand-primary)' }}
             >
               {expanded ? (
@@ -636,13 +635,13 @@ export function FilterSidebar({
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-1 pr-3">
-        <h2 className="text-base font-bold" style={{ color: 'var(--color-gray-600)' }}>
+        <h2 className="text-h6 font-bold" style={{ color: 'var(--color-gray-600)' }}>
           Filtros
         </h2>{' '}
         {hasActiveFilters && onClearAll && (
           <button
             onClick={onClearAll}
-            className="text-xs transition-colors"
+            className="text-caption transition-colors"
             style={{ color: 'var(--color-text-brand-primary)' }}
           >
             Limpiar

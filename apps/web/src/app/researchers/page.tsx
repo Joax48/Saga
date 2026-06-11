@@ -18,6 +18,7 @@ import ApiErrorMessage from '@/components/ApiErrorMessage';
 import Pagination from '@/components/Pagination';
 import ResearchersList from './components/ResearchersList';
 import FilterSection from './components/FilterSection';
+import { SortControls } from '@/components/SortControls';
 
 import {
   getResearcherFilters,
@@ -227,38 +228,33 @@ function ResearchersPageContent() {
 
         {total !== null && (
           <p
-            className="mb-4 text-sm"
+            className="mb-4 text-body-md"
             style={{ color: 'var(--color-text-neutral-secondary)' }}
           >
             {total} resultado{total !== 1 ? 's' : ''}
           </p>
         )}
 
-        <div className="flex items-center gap-3 mb-4">
-          <span
-            className="text-sm"
-            style={{ color: 'var(--color-text-neutral-secondary)' }}
-          >
-            Ordenamiento alfabético
-          </span>
-          <select
-            value={filters.sortOrder ?? 'asc'}
-            onChange={(e) => {
-              shouldScrollToListRef.current = true;
-              setFilters((prev) => ({
-                ...prev,
-                sortOrder: e.target.value as 'asc' | 'desc',
-              }));
-              setCurrentPage(1);
-            }}
-            className="text-sm border rounded px-2 py-1"
-            style={{ color: 'var(--color-text-neutral-secondary)' }}
-          >
-            <option value="asc">Ascendente</option>
-            <option value="desc">Descendente</option>
-          </select>
-        </div>
-
+        <SortControls
+          className="mb-4"
+          label="Ordenamiento alfabético"
+          sortBy="name"
+          sortOrder={filters.sortOrder ?? 'asc'}
+          onSortByChange={() => {}}
+          onSortOrderChange={(value) => {
+            shouldScrollToListRef.current = true;
+            setFilters((prev) => ({
+              ...prev,
+              sortOrder: value,
+            }));
+            setCurrentPage(1);
+          }}
+          sortByOptions={[{ value: 'name', label: 'Nombre del perfil' }]}
+          sortOrderOptions={[
+            { value: 'asc', label: 'Ascendente' },
+            { value: 'desc', label: 'Descendente' },
+          ]}
+        />
         <div className="flex flex-col gap-8 lg:flex-row">
           {!listLoadError && (
             <div
@@ -332,7 +328,7 @@ function ResearchersPageFallback() {
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex items-center gap-3 mb-4">
           <span
-            className="text-sm"
+            className="text-body-md"
             style={{ color: 'var(--color-text-neutral-secondary)' }}
           >
             Ordenamiento alfabético
@@ -340,7 +336,7 @@ function ResearchersPageFallback() {
           <select
             defaultValue="asc"
             disabled
-            className="text-sm border rounded px-2 py-1"
+            className="text-body-md border rounded px-2 py-1"
             style={{ color: 'var(--color-text-neutral-secondary)' }}
           >
             <option value="asc">Ascendente</option>

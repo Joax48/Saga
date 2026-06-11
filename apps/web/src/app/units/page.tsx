@@ -26,7 +26,9 @@ export default function UnitsPage() {
   const [researcherBaseUnitOptions, setResearcherBaseUnitOptions] = useState<
     { value: string; label: string; count: number }[]
   >([]);
-  const [selectedResearcherBaseUnitIds, setSelectedResearcherBaseUnitIds] = useState<string[]>([]);
+  const [selectedResearcherBaseUnitIds, setSelectedResearcherBaseUnitIds] = useState<
+    string[]
+  >([]);
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [sortOrder, setSortOrder] = useState<UnitSortOrder>('asc');
 
@@ -184,7 +186,13 @@ export default function UnitsPage() {
     return () => {
       controller.abort();
     };
-  }, [currentPage, searchQuery, selectedResearcherIds, selectedResearcherBaseUnitIds, sortOrder]);
+  }, [
+    currentPage,
+    searchQuery,
+    selectedResearcherIds,
+    selectedResearcherBaseUnitIds,
+    sortOrder,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -241,7 +249,7 @@ export default function UnitsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             {total !== null && !loadError && (
               <p
-                className="text-sm"
+                className="text-body-md"
                 style={{ color: 'var(--color-text-neutral-secondary)' }}
               >
                 {total} resultado{total !== 1 ? 's' : ''}
@@ -303,10 +311,10 @@ export default function UnitsPage() {
                   <UnitsList units={units} />
                 ) : (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
+                    <p className="text-body-lg font-bold text-[var(--color-text-neutral-secondary)]">
                       No se encontraron resultados.
                     </p>
-                    <p className="mt-1 text-sm text-[var(--color-text-neutral-tertiary)]">
+                    <p className="mt-1 text-body-md text-[var(--color-text-neutral-tertiary)]">
                       Intenta ajustar los filtros o el término de búsqueda.
                     </p>
                   </div>

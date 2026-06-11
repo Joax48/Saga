@@ -8,6 +8,7 @@ import Pagination from '@/components/Pagination';
 import Button from '@/components/Button';
 import ApiErrorMessage from '@/components/ApiErrorMessage';
 import { FilterSidebar } from '../../../components/FilterSidebar';
+import { SortControls } from '@/components/SortControls';
 import { ProductionCard } from './ProductionCard';
 import { CardSkeleton } from '@/components/skeletons/CardSkeleton';
 import type { FilterGroupConfig } from '../../../components/FilterSidebar';
@@ -229,7 +230,7 @@ export function ScientificProductionsView({
   }, [router, pathname]);
 
   return (
-    <main className="bg-(--color-bg-neutral-secondary) min-h-screen">
+    <main className="bg-[var(--color-bg-neutral-secondary)] min-h-screen">
       <PageHeroSearch
         items={BREADCRUMB_ITEMS}
         title="Producción científica"
@@ -239,7 +240,7 @@ export function ScientificProductionsView({
 
       <section
         ref={resultsRef}
-        className="bg-(--color-bg-neutral-primary) px-6 lg:px-10 py-14 scroll-mt-10"
+        className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14 scroll-mt-10"
       >
         <div className="max-w-6xl mx-auto">
           {!hasApiError && (
@@ -258,7 +259,7 @@ export function ScientificProductionsView({
 
           {!hasApiError && (
             <p
-              className="mb-4 text-sm"
+              className="mb-4 text-body-md"
               style={{ color: 'var(--color-text-neutral-secondary)' }}
             >
               {total} resultado{total !== 1 ? 's' : ''}
@@ -272,48 +273,22 @@ export function ScientificProductionsView({
             />
           )}
 
-          {/* Ordenamiento */}
           {!hasApiError && (
-            <div className="flex items-center gap-3 mb-4">
-              <span
-                className="text-sm"
-                style={{ color: 'var(--color-text-neutral-secondary)' }}
-              >
-                Ordenar por
-              </span>
-
-              <select
-                value={sortBy}
-                onChange={(e) => handleSortByChange(e.target.value)}
-                className="text-sm border rounded px-2 py-1"
-                style={{
-                  color: 'var(--color-text-neutral-secondary)',
-                }}
-              >
-                <option value="publication_year" className="text-sm">
-                  Año de publicación
-                </option>
-                <option value="title" className="text-sm">
-                  Título
-                </option>
-              </select>
-
-              <select
-                value={sortOrder}
-                onChange={(e) => handleSortOrderChange(e.target.value)}
-                className="text-sm border rounded px-2 py-1"
-                style={{
-                  color: 'var(--color-text-neutral-secondary)',
-                }}
-              >
-                <option value="desc" className="text-sm">
-                  Descendente
-                </option>
-                <option value="asc" className="text-sm">
-                  Ascendente
-                </option>
-              </select>
-            </div>
+            <SortControls
+              className="mb-4"
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSortByChange={handleSortByChange}
+              onSortOrderChange={handleSortOrderChange}
+              sortByOptions={[
+                { value: 'publication_year', label: 'Año de publicación' },
+                { value: 'title', label: 'Título' },
+              ]}
+              sortOrderOptions={[
+                { value: 'desc', label: 'Descendente' },
+                { value: 'asc', label: 'Ascendente' },
+              ]}
+            />
           )}
 
           <div className="flex flex-col gap-8 lg:flex-row">
@@ -340,10 +315,10 @@ export function ScientificProductionsView({
                   ))
                 ) : (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <p className="text-base font-medium text-[var(--color-text-neutral-secondary)]">
+                    <p className="text-body-lg font-bold text-[var(--color-text-neutral-secondary)]">
                       No se encontraron resultados.
                     </p>
-                    <p className="mt-1 text-sm text-[var(--color-text-neutral-tertiary)]">
+                    <p className="mt-1 text-body-md text-[var(--color-text-neutral-tertiary)]">
                       Intenta ajustar los filtros o el término de búsqueda.
                     </p>
                   </div>
@@ -365,7 +340,7 @@ export function ScientificProductionsView({
       {showScrollTopButton && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-(--color-bg-brand-primary) text-white shadow-lg transition-transform hover:scale-110"
+          className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] text-white shadow-lg transition-transform hover:scale-110"
           aria-label="Volver al inicio"
         >
           <ChevronUp size={20} strokeWidth={2} />

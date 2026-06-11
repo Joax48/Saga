@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import BackButton from '@/components/BackButton';
 import Breadcrumb from '@/components/Breadcrumb';
 import CategoriesNavigation, { Category } from '@/components/DetailNavbar';
 import { getProjectById } from '@/services/projects';
@@ -95,7 +96,7 @@ function mapAssociatedProfileToResearcher(
     linkedin: null,
     researchGate: null,
     scopus: null,
-    photoUrl: null,
+    photo: null,
     profileType: 'UCR',
     linkedUnits: [],
     workUnits: [],
@@ -165,7 +166,7 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
   if (!project) {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        <p className="text-[18px] text-(--color-text-neutral-secondary)">
+        <p className="text-h6 text-[var(--color-text-neutral-secondary)]">
           Proyecto no encontrado.
         </p>
       </main>
@@ -209,13 +210,19 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
             ]}
           />
 
+          <BackButton
+            fallbackHref="/projects"
+            ariaLabel="Volver al listado de proyectos"
+            className="mt-4"
+          />
+
           <div className="w-full px-0 py-1">
             <div className="space-y-5">
-              <h1 className="text-h3">
+              <h1 className="text-h3 font-bold text-[var(--color-text-neutral-primary)]">
                 {project.code} | {project.title}
               </h1>
 
-              <div className="space-y-3 text-body-lg text-[var(--color-text-neutral-secondary)]">
+              <div className="space-y-3 text-h5 text-[var(--color-text-neutral-secondary)]">
                 <p>
                   <a
                     href={managerHref}
@@ -225,10 +232,12 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
                   </a>{' '}
                   <span>(Investigador principal).</span>
                 </p>
+              </div>
 
+              <div className="space-y-3 text-body-lg text-[var(--color-text-neutral-secondary)]">
                 {managerParticipationPeriod && (
                   <p>
-                    <span className="font-medium text-[var(--color-text-neutral-primary)]">
+                    <span className="font-bold text-[var(--color-text-neutral-secondary)]">
                       Colaboraci&oacute;n:
                     </span>{' '}
                     {managerParticipationPeriod}
@@ -240,7 +249,7 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
                 </p>
 
                 <p>
-                  <span className="font-medium text-[var(--color-text-neutral-primary)]">
+                  <span className="font-bold text-[var(--color-text-neutral-secondary)]">
                     Disciplinas:
                   </span>{' '}
                   {disciplinesText}
@@ -265,7 +274,7 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
           {activeTab === 'general' && (
             <div className="space-y-10">
               <div className="space-y-6">
-                <h3 className="text-h4 font-semibold text-[var(--color-text-neutral-primary)]">
+                <h3 className="text-h4 font-bold text-[var(--color-text-neutral-primary)]">
                   Descripción
                 </h3>
 
@@ -298,7 +307,7 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
                 />
               ) : (
                 <div className="flex items-center justify-center py-16">
-                  <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                  <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                     No hay perfiles asociados.
                   </p>
                 </div>
@@ -321,7 +330,7 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
                 </div>
               ) : (
                 <div className="flex items-center justify-center py-16">
-                  <p className="text-[16px] text-[var(--color-text-neutral-secondary)]">
+                  <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
                     No hay palabras clave asociadas.
                   </p>
                 </div>
@@ -337,7 +346,7 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-[260px_1fr] gap-2">
-      <p className="text-body-lg font-medium text-[var(--color-text-neutral-primary)]">
+      <p className="text-body-lg font-bold text-[var(--color-text-neutral-primary)]">
         {label}
       </p>
       <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">{value}</p>
