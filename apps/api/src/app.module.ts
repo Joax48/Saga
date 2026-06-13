@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { validateEnvironment } from './common/config/env.validation';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { LoggerModule } from './common/logger/logger.module';
 import { SearchModule } from './modules/search/search.module';
@@ -35,23 +36,6 @@ import { GetResearchersCollaborationFacetUseCase } from './application/use-cases
 import { UpdateResearcherLinksUseCase } from './application/use-cases/update-researcher-links.use-case';
 import { GetProjectDetailUseCase } from './application/use-cases/get-public-project-detail.use-case';
 import { GetScientificProductionsFiltersUseCase } from './application/use-cases/get-public-scientific-production-filters.use-case';
-
-const REQUIRED_ENVIRONMENT_VARIABLES = [
-  'DB_USER',
-  'DB_PASSWORD',
-  'DB_CONNECT_STRING',
-  'DB_SCHEMA',
-] as const;
-
-const validateEnvironment = (env: Record<string, string | undefined>) => {
-  for (const key of REQUIRED_ENVIRONMENT_VARIABLES) {
-    if (!env[key]) {
-      throw new Error(`Missing environment variable: ${key}`);
-    }
-  }
-
-  return env;
-};
 
 @Module({
   imports: [
