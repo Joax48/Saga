@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import oracledb, { Pool, BindParameters, Result } from 'oracledb';
 
 import { DatabaseClient, QueryParameters } from './database-client.contract';
+import { error } from 'console';
 
 @Injectable()
 export class OracleDatabaseProvider
@@ -44,8 +45,16 @@ export class OracleDatabaseProvider
 
     try {
       const schema = this.configService.get<string>('DB_SCHEMA');
+      const schemaRegex = /^[A-Za-z][A-Za-z0-9_$#]*$/;
+
+      if (schema && !schemaRegex.test(schema as string)) {
+        throw new Error('Invalid schema name, you may have a typo in .env file');
+      }
+
       if (schema) {
-        await connection.execute(`ALTER SESSION SET CURRENT_SCHEMA = ${schema}`);
+        await connection.execute(
+          `ALTER SESSION SET CURRENT_SCHEMA = ${schema.toUpperCase()}`,
+        );
       }
       await connection.execute(`ALTER SESSION SET NLS_COMP=LINGUISTIC;`);
       await connection.execute(`ALTER SESSION SET NLS_SORT=SPANISH_M_AI;`);
