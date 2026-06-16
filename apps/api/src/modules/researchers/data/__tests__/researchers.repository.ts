@@ -475,10 +475,8 @@ describe('ResearchersRepository', () => {
   });
 
   describe('updateLinks', () => {
-
     describe('UCR_PROFILE fields (orcidId, linkedin, researchGate)', () => {
       it('should issue a SELECT then UPDATE when the UCR_PROFILE row exists', async () => {
-
         mockDb.query
           .mockResolvedValueOnce([{ PROFILE_ID: 'r-001' }])
           .mockResolvedValueOnce([]);
@@ -495,10 +493,7 @@ describe('ResearchersRepository', () => {
       });
 
       it('should issue a SELECT then INSERT when the UCR_PROFILE row does not exist', async () => {
-        
-        mockDb.query
-          .mockResolvedValueOnce([])
-          .mockResolvedValueOnce([]);
+        mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
         await repository.updateLinks('r-001', {
           linkedin: 'https://linkedin.com/in/ana',
@@ -512,7 +507,6 @@ describe('ResearchersRepository', () => {
       });
 
       it('should include only the provided UCR field in the SET clause', async () => {
-        
         mockDb.query
           .mockResolvedValueOnce([{ PROFILE_ID: 'r-001' }])
           .mockResolvedValueOnce([]);
@@ -528,7 +522,6 @@ describe('ResearchersRepository', () => {
       });
 
       it('should convert empty string to NULL in UCR_PROFILE update (clear operation)', async () => {
-
         mockDb.query
           .mockResolvedValueOnce([{ PROFILE_ID: 'r-001' }])
           .mockResolvedValueOnce([]);
@@ -540,7 +533,6 @@ describe('ResearchersRepository', () => {
       });
 
       it('should use Oracle positional bind variables (:1, :2) in the UPDATE', async () => {
-        
         mockDb.query
           .mockResolvedValueOnce([{ PROFILE_ID: 'r-001' }])
           .mockResolvedValueOnce([]);
@@ -555,7 +547,6 @@ describe('ResearchersRepository', () => {
       });
 
       it('should skip undefined fields — not include them in the SET clause', async () => {
-
         mockDb.query
           .mockResolvedValueOnce([{ PROFILE_ID: 'r-001' }])
           .mockResolvedValueOnce([]);
@@ -573,7 +564,6 @@ describe('ResearchersRepository', () => {
 
     describe('PROFILE table field (scopus)', () => {
       it('should update SCOPUS_PROFILE_LINK in the PROFILE table when scopus is provided', async () => {
-
         mockDb.query.mockResolvedValueOnce([]);
 
         await repository.updateLinks('r-001', {
@@ -612,7 +602,6 @@ describe('ResearchersRepository', () => {
 
     describe('combined fields', () => {
       it('should run three queries when both scopus and a UCR field are provided', async () => {
-
         mockDb.query
           .mockResolvedValueOnce([])
           .mockResolvedValueOnce([{ PROFILE_ID: 'r-001' }])

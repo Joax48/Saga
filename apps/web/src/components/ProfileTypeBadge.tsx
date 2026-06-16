@@ -14,7 +14,10 @@ const LABELS: Record<ProfileType, string> = {
  * Small pill that flags whether a profile belongs to a UCR member or an
  * external co-author. UCR uses the branded blue; external uses a neutral grey.
  */
-export default function ProfileTypeBadge({ type, className = '' }: ProfileTypeBadgeProps) {
+export default function ProfileTypeBadge({
+  type,
+  className = '',
+}: ProfileTypeBadgeProps) {
   const isUcr = type === 'UCR';
 
   const style = isUcr

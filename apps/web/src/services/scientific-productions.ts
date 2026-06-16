@@ -47,7 +47,7 @@ interface ApiSummaryScientificProduction {
   volume: string | null;
   issue: string | null;
   pages: string | null;
-  source: string | null ;
+  source: string | null;
   keywords: KeywordReference[] | null;
 }
 

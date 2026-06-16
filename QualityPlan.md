@@ -1,7 +1,7 @@
 # Software Quality Plan — Saga UCR
 
-
 > This Quality Plan summarizes the project's software quality practices and conventions: test file structure, unit test templates, mocking guidelines, pre-PR validation steps, and branch/commit standards. It is a concise, living guide for developers and reviewers to ensure consistent, testable, and maintainable code across the repository. Keep the document up to date and use the team's designated tools for detailed tracking and execution records.
+
 ---
 
 ## Table of Contents
@@ -24,11 +24,11 @@ Each module must have a `__tests__/` folder with one `.ts` file per class.
 
 ### 1.1 Naming Convention
 
-| Class under test              | Test file                              |
-|-------------------------------|----------------------------------------|
-| `researchers.service.ts`      | `__tests__/researchers.service.ts`     |
-| `researchers.repository.ts`   | `__tests__/researchers.repository.ts`  |
-| `researchers.controller.ts`   | `__tests__/researchers.controller.ts`  |
+| Class under test            | Test file                             |
+| --------------------------- | ------------------------------------- |
+| `researchers.service.ts`    | `__tests__/researchers.service.ts`    |
+| `researchers.repository.ts` | `__tests__/researchers.repository.ts` |
+| `researchers.controller.ts` | `__tests__/researchers.controller.ts` |
 
 ### 1.2 Full Example Tree
 
@@ -177,9 +177,9 @@ describe('ResearchersService', () => {
       repository.findById.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.findById('non-existent-id'))
-        .rejects
-        .toThrow('Researcher not found');
+      await expect(service.findById('non-existent-id')).rejects.toThrow(
+        'Researcher not found',
+      );
     });
   });
 });
@@ -342,9 +342,9 @@ describe('PublicResearchersController', () => {
       profileQuery.execute.mockRejectedValue(new Error('Researcher not found'));
 
       // Act & Assert
-      await expect(controller.getProfile('invalid-id'))
-        .rejects
-        .toThrow('Researcher not found');
+      await expect(controller.getProfile('invalid-id')).rejects.toThrow(
+        'Researcher not found',
+      );
     });
   });
 });
@@ -381,10 +381,7 @@ describe('GetPublicResearcherProfileQuery', () => {
       findByResearcherId: jest.fn(),
     } as unknown as jest.Mocked<ProjectsService>;
 
-    query = new GetPublicResearcherProfileQuery(
-      researchersService,
-      projectsService,
-    );
+    query = new GetPublicResearcherProfileQuery(researchersService, projectsService);
   });
 
   afterEach(() => {
@@ -413,14 +410,12 @@ describe('GetPublicResearcherProfileQuery', () => {
 
     it('should fail if the researcher does not exist', async () => {
       // Arrange
-      researchersService.findById.mockRejectedValue(
-        new Error('Researcher not found'),
-      );
+      researchersService.findById.mockRejectedValue(new Error('Researcher not found'));
 
       // Act & Assert
-      await expect(query.execute({ id: 'non-existent' }))
-        .rejects
-        .toThrow('Researcher not found');
+      await expect(query.execute({ id: 'non-existent' })).rejects.toThrow(
+        'Researcher not found',
+      );
 
       // Should not call other services if the first one fails
       expect(projectsService.findByResearcherId).not.toHaveBeenCalled();
@@ -433,12 +428,12 @@ describe('GetPublicResearcherProfileQuery', () => {
 
 ### 2.5 Summary: What to Mock per Layer
 
-| Layer             | Class under test                              | What is mocked                            |
-|-------------------|-----------------------------------------------|-------------------------------------------|
-| Service           | `researchers.service.ts`                      | Injected repository                       |
-| Repository        | `researchers.repository.ts`                   | `DatabaseClient` contract (`query` method) — returns `T[]` directly, Oracle bind vars (`:1`, `:2`, …) |
-| Controller (BFF)  | `public-researchers.controller.ts`            | Query or service from `application/`      |
-| Application Query | `get-public-researcher-profile.query.ts`      | All coordinated services                  |
+| Layer             | Class under test                         | What is mocked                                                                                        |
+| ----------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Service           | `researchers.service.ts`                 | Injected repository                                                                                   |
+| Repository        | `researchers.repository.ts`              | `DatabaseClient` contract (`query` method) — returns `T[]` directly, Oracle bind vars (`:1`, `:2`, …) |
+| Controller (BFF)  | `public-researchers.controller.ts`       | Query or service from `application/`                                                                  |
+| Application Query | `get-public-researcher-profile.query.ts` | All coordinated services                                                                              |
 
 Each `describe` groups cases related to the same method. Each `it` tests a single behavior. The `beforeEach` rebuilds clean mocks before each test to prevent side effects between cases.
 
@@ -446,13 +441,13 @@ Each `describe` groups cases related to the same method. Each `it` tests a singl
 
 ## 3. What to Mock and What Not To
 
-| Always mock                                    | Never mock                                  |
-|------------------------------------------------|---------------------------------------------|
-| Repositories (database access)                 | The class being tested                      |
-| External services (third-party APIs, email)    | Pure logic with no dependencies             |
-| Other injected services                        | Simple constructors                         |
-| The database client                            | Entities and simple DTOs                    |
-| Guards and middleware (in controller tests)    | Utilities with no side effects              |
+| Always mock                                 | Never mock                      |
+| ------------------------------------------- | ------------------------------- |
+| Repositories (database access)              | The class being tested          |
+| External services (third-party APIs, email) | Pure logic with no dependencies |
+| Other injected services                     | Simple constructors             |
+| The database client                         | Entities and simple DTOs        |
+| Guards and middleware (in controller tests) | Utilities with no side effects  |
 
 **Considerations:**
 
@@ -481,32 +476,37 @@ Every Pull Request must include the following structure:
 ---
 
 ## Description
-*What does this PR do and why is it necessary? Include enough context for someone outside the ticket to understand it.*
+
+_What does this PR do and why is it necessary? Include enough context for someone outside the ticket to understand it._
 
 ---
 
 ## Type of Change
-- [ ] `feat`     — New feature
-- [ ] `fix`      — Bug fix
+
+- [ ] `feat` — New feature
+- [ ] `fix` — Bug fix
 - [ ] `refactor` — Code improvement with no behavior change
-- [ ] `test`     — Tests only
-- [ ] `chore`    — Configuration, dependencies, CI
-- [ ] `docs`     — Documentation only
+- [ ] `test` — Tests only
+- [ ] `chore` — Configuration, dependencies, CI
+- [ ] `docs` — Documentation only
 
 - [ ] Breaking change (breaks backward compatibility)
 
 ---
 
 ## Reference
-Closes #___
-*Use "Closes" to automatically close the issue on merge.*
+
+Closes #\_\_\_
+_Use "Closes" to automatically close the issue on merge._
 
 ---
 
 ## Changes Made
-*Concrete list of changes. Be specific: affected files/modules.*
+
+_Concrete list of changes. Be specific: affected files/modules._
 
 Example:
+
 - Files: units.module.ts — register new endpoints and providers.
 - Files: apps/api/src/modules/units/units.service.ts — implement findAll with pagination and filtering.
 - Files: apps/api/src/modules/units/units.repository.ts — add DB query for paginated units.
@@ -515,19 +515,26 @@ Example:
 ---
 
 ## How to Test
-*Exact and reproducible steps. Include preconditions if applicable.*
+
+_Exact and reproducible steps. Include preconditions if applicable._
 **Preconditions:** (data, flags, environment variables)
 
 Example:
+
 1. Start API:
+
 ```bash
 pnpm run dev:api
 ```
+
 2. Call the public endpoint
+
 ```bash
 curl -s "http://localhost:3000/public/units?page=1&limit=10"
 ```
+
 3. Run unit tests for units module:
+
 ```bash
 pnpm run test -- apps/api/src/modules/units
 ```
@@ -535,6 +542,7 @@ pnpm run test -- apps/api/src/modules/units
 **Expected result:**
 
 Example:
+
 - HTTP: 200 OK with JSON body containing items (array of units) and meta (pagination info: page, limit, total).
 - Behavior: Response respects page and limit query parameters and returns an empty items array when no records match.
 - Tests: Unit tests for units.service and units.repository pass locally (pnpm run test).
@@ -542,6 +550,7 @@ Example:
 ---
 
 ## Impact
+
 **Affected areas:** (modules, services, routes, APIs)
 
 - [ ] Affects database (migrations required)
@@ -553,30 +562,35 @@ Example:
 ---
 
 ## Evidence
-*Screenshots, GIFs, logs, terminal outputs. Mostly for UI changes.*
+
+_Screenshots, GIFs, logs, terminal outputs. Mostly for UI changes._
 
 ---
 
 ## Quality Checklist
 
 ### Code
+
 - [ ] Follows project conventions
 - [ ] No dead code or unnecessary comments
 - [ ] No forgotten `console.log` / debuggers
 - [ ] Proper error handling
 
 ### Tests
+
 - [ ] Tests added or updated
 - [ ] Cover happy paths, edge cases, and errors
 - [ ] `pnpm run test` passes locally
 
 ### Technical Validations
+
 - [ ] `pnpm run typecheck` passes
 - [ ] `pnpm run lint` passes
 - [ ] `pnpm run build` passes
 - [ ] Pipeline is green
 
 ### Functional QA
+
 - [ ] Acceptance criteria verified
 - [ ] Happy paths tested
 - [ ] Relevant edge cases tested
@@ -584,6 +598,7 @@ Example:
 - [ ] Tested on multiple browsers (if applicable)
 
 ### Review
+
 - [ ] At least 1 reviewer assigned
 - [ ] Previous comments resolved
 - [ ] PR has a reasonable size (< 400 lines)
@@ -591,8 +606,8 @@ Example:
 ---
 
 ## Notes for the Reviewer
-*Technical decisions made, discarded alternatives, generated technical debt, or anything the reviewer should know before reviewing.*
 
+_Technical decisions made, discarded alternatives, generated technical debt, or anything the reviewer should know before reviewing._
 
 ---
 
@@ -600,23 +615,23 @@ Example:
 
 ### Branches
 
-| Type    | Format                            | Example                        |
-|---------|-----------------------------------|--------------------------------|
-| Feature | `feature/<id>-<description>`      | `feature/12-researcher-profile`|
-| Fix     | `fix/<id>-<description>`          | `fix/45-search-filter`         |
-| Hotfix  | `hotfix/<id>-<description>`       | `hotfix/78-500-error-home`     |
+| Type    | Format                       | Example                         |
+| ------- | ---------------------------- | ------------------------------- |
+| Feature | `feature/<id>-<description>` | `feature/12-researcher-profile` |
+| Fix     | `fix/<id>-<description>`     | `fix/45-search-filter`          |
+| Hotfix  | `hotfix/<id>-<description>`  | `hotfix/78-500-error-home`      |
 
 ### Commits
 
 Use descriptive prefixes:
 
-| Prefix   | Use                              | Example                                        |
-|----------|----------------------------------|------------------------------------------------|
-| `feat:`  | New feature                      | `feat: add units endpoint`                     |
-| `fix:`   | Bug fix                          | `fix: correct global search filter`            |
-| `test:`  | Add or modify tests              | `test: add tests for researchers.service`      |
-| `chore:` | Maintenance, config              | `chore: update pipeline`                       |
-| `docs:`  | Documentation                    | `docs: update quality guide`                   |
+| Prefix   | Use                 | Example                                   |
+| -------- | ------------------- | ----------------------------------------- |
+| `feat:`  | New feature         | `feat: add units endpoint`                |
+| `fix:`   | Bug fix             | `fix: correct global search filter`       |
+| `test:`  | Add or modify tests | `test: add tests for researchers.service` |
+| `chore:` | Maintenance, config | `chore: update pipeline`                  |
+| `docs:`  | Documentation       | `docs: update quality guide`              |
 
 ---
 
@@ -669,5 +684,6 @@ Each row in the sheet represents one use case. The sheet columns are described b
 - Status: Current state of the case — use one of: approved, failed, in progress.
 
 ### Notes
+
 - The sheet replaces the per-module Markdown use case files previously described. Keep the Google Sheet updated for traceability and link use cases from PRs when relevant.
 - When adding a new use case, populate all columns except Actual Result and Status (those are filled during or after execution).

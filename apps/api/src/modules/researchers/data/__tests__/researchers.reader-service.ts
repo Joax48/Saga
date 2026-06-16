@@ -713,7 +713,6 @@ describe('ResearchersReaderService', () => {
 
       await expect(service.getFilters()).rejects.toThrow('DB error');
     });
-
   });
 
   describe('getCollaborationFacet', () => {

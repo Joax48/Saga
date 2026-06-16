@@ -65,7 +65,7 @@ describe('ScientificProductionsService', () => {
         undefined,
         undefined,
         undefined,
-      );    
+      );
     });
 
     it('should expose the summary fields expected by the public list view', async () => {
@@ -194,14 +194,9 @@ describe('ScientificProductionsService', () => {
         undefined,
         undefined,
       );
-      expect(repository.findPaginated).toHaveBeenNthCalledWith(
-        2,
-        2,
-        2,
-        {
-          q: 'tecnologia',
-        },
-      );
+      expect(repository.findPaginated).toHaveBeenNthCalledWith(2, 2, 2, {
+        q: 'tecnologia',
+      });
     });
 
     it('should maintain the requested page when it is within range', async () => {

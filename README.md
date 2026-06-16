@@ -4,10 +4,9 @@ Public portal for researchers, projects, and scientific productions.
 
 ## Quality Plan
 
-The project's software quality practices, conventions, and guidelines are documented in QualityPlan.md 
+The project's software quality practices, conventions, and guidelines are documented in QualityPlan.md
 
 [See the full document here](QualityPlan.md)
-
 
 ## Tech Stack
 

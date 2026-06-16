@@ -1,5 +1,5 @@
-import { GetScientificProductionsFiltersUseCase } from "../get-public-scientific-production-filters.use-case";
-import type { ScientificProductionsReader } from "../../../modules/scientific-productions/scientific-productions.reader.contract";
+import { GetScientificProductionsFiltersUseCase } from '../get-public-scientific-production-filters.use-case';
+import type { ScientificProductionsReader } from '../../../modules/scientific-productions/scientific-productions.reader.contract';
 
 describe('GetScientificProductionsFiltersUseCase', () => {
   let useCase: GetScientificProductionsFiltersUseCase;
@@ -45,12 +45,8 @@ describe('GetScientificProductionsFiltersUseCase', () => {
   });
 
   it('should propagate reader errors', async () => {
-    reader.getFilters.mockRejectedValue(
-      new Error('Database error'),
-    );
+    reader.getFilters.mockRejectedValue(new Error('Database error'));
 
-    await expect(useCase.execute()).rejects.toThrow(
-      'Database error',
-    );
+    await expect(useCase.execute()).rejects.toThrow('Database error');
   });
 });

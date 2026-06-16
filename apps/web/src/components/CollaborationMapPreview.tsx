@@ -59,11 +59,7 @@ export function buildCollaborationPoints(
 }
 
 function normalize(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .trim()
-    .toLowerCase();
+  return value.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
 }
 
 type CollaborationMapPreviewProps = {
@@ -139,7 +135,9 @@ const DEFAULT_POINTS: CollaborationPoint[] = [
     country: 'Brasil',
     count: 3,
     tone: 'secondary',
-    institutions: [{ name: 'Universidade de São Paulo', researchCount: 3, projectCount: 1 }],
+    institutions: [
+      { name: 'Universidade de São Paulo', researchCount: 3, projectCount: 1 },
+    ],
   },
   {
     id: 'co',
@@ -148,7 +146,9 @@ const DEFAULT_POINTS: CollaborationPoint[] = [
     country: 'Colombia',
     count: 2,
     tone: 'secondary',
-    institutions: [{ name: 'Universidad de los Andes', researchCount: 2, projectCount: 0 }],
+    institutions: [
+      { name: 'Universidad de los Andes', researchCount: 2, projectCount: 0 },
+    ],
   },
   {
     id: 'fr',
@@ -157,7 +157,9 @@ const DEFAULT_POINTS: CollaborationPoint[] = [
     country: 'Francia',
     count: 2,
     tone: 'secondary',
-    institutions: [{ name: 'Université Paris-Saclay', researchCount: 2, projectCount: 1 }],
+    institutions: [
+      { name: 'Université Paris-Saclay', researchCount: 2, projectCount: 1 },
+    ],
   },
 ];
 
@@ -249,7 +251,14 @@ export default function CollaborationMapPreview({
                     : `${point.country} — ${point.count} colaborador${point.count !== 1 ? 'es' : ''}`}
                 </title>
                 {isSelected && (
-                  <circle r={14} cy={-2} fill="none" stroke={fill} strokeWidth={2} opacity={0.5} />
+                  <circle
+                    r={14}
+                    cy={-2}
+                    fill="none"
+                    stroke={fill}
+                    strokeWidth={2}
+                    opacity={0.5}
+                  />
                 )}
                 <path d={PIN_PATH} fill={fill} stroke="#ffffff" strokeWidth={1.2} />
                 <circle r={3.5} cy={-2} fill="#ffffff" />
@@ -282,20 +291,25 @@ export default function CollaborationMapPreview({
               ) : selected.institutions && selected.institutions.length > 0 ? (
                 selected.institutions.map((inst, i) => (
                   <div key={i} className="px-4 py-3">
-                    <p className="mb-1.5 text-xs font-medium text-gray-800">{inst.name}</p>
+                    <p className="mb-1.5 text-xs font-medium text-gray-800">
+                      {inst.name}
+                    </p>
                     <p className="flex items-center gap-1.5 text-xs text-[#0B66B2]">
                       <BookOpen size={11} />
-                      {inst.researchCount} resultado{inst.researchCount !== 1 ? 's' : ''} de investigación compartida
+                      {inst.researchCount} resultado{inst.researchCount !== 1 ? 's' : ''}{' '}
+                      de investigación compartida
                     </p>
                     <p className="mt-0.5 flex items-center gap-1.5 text-xs text-[#0B66B2]">
                       <FolderOpen size={11} />
-                      {inst.projectCount} proyecto{inst.projectCount !== 1 ? 's' : ''} compartido{inst.projectCount !== 1 ? 's' : ''}
+                      {inst.projectCount} proyecto{inst.projectCount !== 1 ? 's' : ''}{' '}
+                      compartido{inst.projectCount !== 1 ? 's' : ''}
                     </p>
                   </div>
                 ))
               ) : (
                 <div className="px-4 py-3 text-xs text-gray-500">
-                  {selected.count} colaborador{selected.count !== 1 ? 'es' : ''} registrado{selected.count !== 1 ? 's' : ''}
+                  {selected.count} colaborador{selected.count !== 1 ? 'es' : ''}{' '}
+                  registrado{selected.count !== 1 ? 's' : ''}
                 </div>
               )}
             </div>

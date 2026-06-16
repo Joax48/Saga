@@ -122,7 +122,10 @@ class FallbackExceptionMapper implements ExceptionMapper {
     // non-Error thrown values are assigned directly so the logger serializes their properties
     const context =
       exception instanceof Error
-        ? { ...stackContext('error', exception.stack), ...causeContext('error', exception) }
+        ? {
+            ...stackContext('error', exception.stack),
+            ...causeContext('error', exception),
+          }
         : { raw: exception };
 
     return {

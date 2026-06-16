@@ -12,9 +12,7 @@ describe('GetScientificProductionDetailUseCase', () => {
       getById: jest.fn(),
     } as unknown as jest.Mocked<ScientificProductionsReader>;
 
-    useCase = new GetScientificProductionDetailUseCase(
-      scientificProductionsReader,
-    );
+    useCase = new GetScientificProductionDetailUseCase(scientificProductionsReader);
   });
 
   afterEach(() => {
@@ -58,9 +56,7 @@ describe('GetScientificProductionDetailUseCase', () => {
         ],
       };
 
-      scientificProductionsReader.getById.mockResolvedValue(
-        scientificProduction,
-      );
+      scientificProductionsReader.getById.mockResolvedValue(scientificProduction);
 
       const result = await useCase.execute('1');
 
@@ -106,9 +102,7 @@ describe('GetScientificProductionDetailUseCase', () => {
     it('should throw NotFoundException when the scientific production does not exist', async () => {
       scientificProductionsReader.getById.mockResolvedValue(null);
 
-      await expect(useCase.execute('999')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(useCase.execute('999')).rejects.toThrow(NotFoundException);
 
       await expect(useCase.execute('999')).rejects.toThrow(
         'Scientific production with id "999" not found',
@@ -118,13 +112,9 @@ describe('GetScientificProductionDetailUseCase', () => {
     });
 
     it('should propagate reader errors', async () => {
-      scientificProductionsReader.getById.mockRejectedValue(
-        new Error('Database error'),
-      );
+      scientificProductionsReader.getById.mockRejectedValue(new Error('Database error'));
 
-      await expect(useCase.execute('1')).rejects.toThrow(
-        'Database error',
-      );
+      await expect(useCase.execute('1')).rejects.toThrow('Database error');
 
       expect(scientificProductionsReader.getById).toHaveBeenCalledWith('1');
     });

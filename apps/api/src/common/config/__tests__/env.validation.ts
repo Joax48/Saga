@@ -38,7 +38,9 @@ describe('validateEnvironment', () => {
         DB_SCHEMA: schema,
       };
 
-      expect(() => validateEnvironment(environment)).toThrow('DB_SCHEMA must be a valid Oracle identifier');
+      expect(() => validateEnvironment(environment)).toThrow(
+        'DB_SCHEMA must be a valid Oracle identifier',
+      );
     },
   );
 

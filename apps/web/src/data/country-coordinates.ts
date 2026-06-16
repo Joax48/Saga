@@ -13,11 +13,7 @@ export type LatLng = { lat: number; lng: number };
 
 /** Lower-cases, trims and removes diacritics so "MÉXICO" → "mexico". */
 export function normalizeCountryName(name: string): string {
-  return name
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .trim()
-    .toLowerCase();
+  return name.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
 }
 
 // Keyed by normalized Spanish name → centroid.

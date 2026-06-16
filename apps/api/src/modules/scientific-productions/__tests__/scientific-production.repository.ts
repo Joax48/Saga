@@ -52,9 +52,7 @@ describe('ScientificProductionRepository', () => {
       expect(mockDb.query).toHaveBeenCalledTimes(2);
 
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
-      expect(itemsQuery).toContain(
-        'ORDER BY so.TITLE ASC, so.SCIENTIFIC_OUTPUT_ID ASC',
-      );
+      expect(itemsQuery).toContain('ORDER BY so.TITLE ASC, so.SCIENTIFIC_OUTPUT_ID ASC');
       expect(itemsQuery).toContain('OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY');
 
       const countQuery = mockDb.query.mock.calls[1][0] as string;
@@ -182,9 +180,7 @@ describe('ScientificProductionRepository', () => {
       await repository.findPaginated(1, 10);
 
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
-      expect(itemsQuery).toContain(
-        'ORDER BY so.TITLE ASC, so.SCIENTIFIC_OUTPUT_ID ASC',
-      );
+      expect(itemsQuery).toContain('ORDER BY so.TITLE ASC, so.SCIENTIFIC_OUTPUT_ID ASC');
     });
 
     it('should filter by type, open access, year, and keywords', async () => {

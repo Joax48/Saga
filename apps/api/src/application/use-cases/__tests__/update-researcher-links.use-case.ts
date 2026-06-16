@@ -43,7 +43,6 @@ describe('UpdateResearcherLinksUseCase', () => {
 
   describe('execute — happy path', () => {
     it('should verify researcher exists then call updateLinks', async () => {
-
       repo.findById.mockResolvedValue(mockResearcher);
       repo.updateLinks.mockResolvedValue(undefined);
 
@@ -55,7 +54,6 @@ describe('UpdateResearcherLinksUseCase', () => {
     });
 
     it('should pass only the provided fields to updateLinks — not touch fields that were not sent', async () => {
-
       repo.findById.mockResolvedValue(mockResearcher);
       repo.updateLinks.mockResolvedValue(undefined);
 
@@ -69,7 +67,6 @@ describe('UpdateResearcherLinksUseCase', () => {
     });
 
     it('should strip undefined own-properties injected by class-transformer on absent DTO fields', async () => {
-
       repo.findById.mockResolvedValue(mockResearcher);
       repo.updateLinks.mockResolvedValue(undefined);
 
@@ -90,7 +87,6 @@ describe('UpdateResearcherLinksUseCase', () => {
     });
 
     it('should pass linkedin, researchGate and scopus through without transformation', async () => {
-
       repo.findById.mockResolvedValue(mockResearcher);
       repo.updateLinks.mockResolvedValue(undefined);
       const links = {
