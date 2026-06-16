@@ -18,10 +18,15 @@ export class PinoLoggerProvider implements LoggerService {
 
   constructor(private readonly configService: ConfigService) {
     const logDir = join(process.cwd(), 'logs');
+
+    // Create log directory if it does not exist, creating parent directories if necessary
+    // Use synchronous function to ensure the directory is created before it is registered in the pino-roll transport
+    // and to avoid making the constructor asynchronous
     mkdirSync(logDir, { recursive: true });
 
     const streams: { level: pino.Level; stream: pino.DestinationStream }[] = [
       {
+        // Transport for file logging with rotation
         level: 'debug',
         stream: pino.transport({
           target: 'pino-roll',
@@ -39,6 +44,7 @@ export class PinoLoggerProvider implements LoggerService {
 
     if (nodeEnv !== 'production') {
       streams.push({
+        // Transport for logging to stdout/console
         level: 'debug',
         stream: pino.transport({
           target: 'pino-pretty',
@@ -52,11 +58,11 @@ export class PinoLoggerProvider implements LoggerService {
 
     this.logger = pino(
       {
-        level: 'debug',
+        level: 'debug', // Logger will log all levels from debug and above
         base: undefined,
         timestamp: pino.stdTimeFunctions.isoTime,
         formatters: {
-          level: (label) => ({ level: label }),
+          level: (label) => ({ level: label }), // Output level as a string instead of a number
         },
       },
       pino.multistream(streams),
