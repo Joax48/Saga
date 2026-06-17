@@ -11,3 +11,4 @@ coverage/
 .turbo/
 *.tsbuildinfo
 oracle-database
+.pnpm-store
