@@ -9,7 +9,7 @@ describe('GetProjectsFiltersUseCase', () => {
     projectsReader = {
       getPaginatedList: jest.fn(),
       getById: jest.fn(),
-      getFilterOptions: jest.fn(),
+      getFilters: jest.fn(),
     } as unknown as jest.Mocked<ProjectsReader>;
 
     useCase = new GetProjectsFiltersUseCase(projectsReader);
@@ -29,7 +29,7 @@ describe('GetProjectsFiltersUseCase', () => {
       keywords: [{ label: 'Economia', value: 'economia', count: 5 }],
     };
 
-    projectsReader.getFilterOptions.mockResolvedValue(mockResponse);
+    projectsReader.getFilters.mockResolvedValue(mockResponse);
 
     const result = await useCase.execute({
       q: 'clima',
@@ -42,7 +42,7 @@ describe('GetProjectsFiltersUseCase', () => {
     });
 
     expect(result).toEqual(mockResponse);
-    expect(projectsReader.getFilterOptions).toHaveBeenCalledWith('clima', {
+    expect(projectsReader.getFilters).toHaveBeenCalledWith('clima', {
       researchType: ['Basica'],
       projectType: ['Proyecto'],
       startYear: ['2024'],
@@ -50,7 +50,7 @@ describe('GetProjectsFiltersUseCase', () => {
       participants: ['Koen Voorend'],
       keywords: ['Economia'],
     });
-    expect(projectsReader.getFilterOptions).toHaveBeenCalledTimes(1);
+    expect(projectsReader.getFilters).toHaveBeenCalledTimes(1);
   });
 
   it('should pass undefined filters through unchanged', async () => {
@@ -63,12 +63,12 @@ describe('GetProjectsFiltersUseCase', () => {
       keywords: [],
     };
 
-    projectsReader.getFilterOptions.mockResolvedValue(mockResponse);
+    projectsReader.getFilters.mockResolvedValue(mockResponse);
 
     const result = await useCase.execute({});
 
     expect(result).toEqual(mockResponse);
-    expect(projectsReader.getFilterOptions).toHaveBeenCalledWith(undefined, {
+    expect(projectsReader.getFilters).toHaveBeenCalledWith(undefined, {
       researchType: undefined,
       projectType: undefined,
       startYear: undefined,

@@ -15,7 +15,7 @@ describe('GetHomeSearchUseCase', () => {
     projectsReader = {
       getPaginatedList: jest.fn(),
       getById: jest.fn(),
-      getFilterOptions: jest.fn(),
+      getFilters: jest.fn(),
     } as unknown as jest.Mocked<ProjectsReader>;
     researchersReader = {
       getPaginatedList: jest.fn(),

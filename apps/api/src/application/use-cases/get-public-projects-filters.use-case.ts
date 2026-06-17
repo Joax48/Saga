@@ -15,7 +15,7 @@ export class GetProjectsFiltersUseCase {
   ) {}
 
   async execute(input: ProjectsFiltersRequestDto): Promise<ProjectsFiltersResponseDto> {
-    return this.projectsReader.getFilterOptions(input.q, {
+    return this.projectsReader.getFilters(input.q, {
       researchType: input.researchType,
       projectType: input.projectType,
       startYear: input.startYear,

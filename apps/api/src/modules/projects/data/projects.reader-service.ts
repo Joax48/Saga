@@ -68,7 +68,7 @@ export class ProjectsReaderService implements ProjectsReader {
     };
   }
 
-  async getFilterOptions(
+  async getFilters(
     query?: string,
     filters?: ProjectsFiltersRequestDto,
   ): Promise<ProjectsFiltersDto> {

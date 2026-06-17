@@ -181,7 +181,7 @@ describe('ProjectsReaderService', () => {
 
       repository.findFilterOptions.mockResolvedValue(mockFilters);
 
-      const result = await service.getFilterOptions('clima', {
+      const result = await service.getFilters('clima', {
         researchType: ['Basica'],
         keywords: ['Economia'],
       });

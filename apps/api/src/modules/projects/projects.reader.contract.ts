@@ -98,7 +98,7 @@ export interface ProjectsReader {
     sort?: ProjectsSortRequestDto,
   ): Promise<ProjectsPaginatedListDto>;
 
-  getFilterOptions(
+  getFilters(
     query?: string,
     filters?: ProjectsFiltersRequestDto,
   ): Promise<ProjectsFiltersDto>;
