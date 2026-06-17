@@ -2,15 +2,7 @@
 import { Type, Transform } from 'class-transformer';
 import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
 
-function normalizeQueryArray(value: unknown): string[] | undefined {
-  if (value === undefined || value === null) return undefined;
-  const rawValues = Array.isArray(value) ? value : [value];
-  const normalized = rawValues
-    .flatMap((item) => String(item).split(','))
-    .map((item) => item.trim())
-    .filter(Boolean);
-  return normalized.length > 0 ? normalized : undefined;
-}
+import { normalizeStringArray } from '../../common/dtos/query-transformers';
 
 export class ScientificProductionsFiltersRequestDto {
   @IsOptional()
@@ -18,7 +10,7 @@ export class ScientificProductionsFiltersRequestDto {
   q?: string;
 
   @IsOptional()
-  @Transform(({ value }) => normalizeQueryArray(value))
+  @Transform(({ value }) => normalizeStringArray(value))
   @IsArray()
   @IsString({ each: true })
   type?: string[];
@@ -29,13 +21,13 @@ export class ScientificProductionsFiltersRequestDto {
   openAccess?: boolean;
 
   @IsOptional()
-  @Transform(({ value }) => normalizeQueryArray(value))
+  @Transform(({ value }) => normalizeStringArray(value))
   @IsArray()
   @IsString({ each: true })
   year?: string[];
 
   @IsOptional()
-  @Transform(({ value }) => normalizeQueryArray(value))
+  @Transform(({ value }) => normalizeStringArray(value))
   @IsArray()
   @IsString({ each: true })
   keywords?: string[];
