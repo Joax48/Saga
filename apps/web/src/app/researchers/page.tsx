@@ -5,11 +5,12 @@ import {
   startTransition,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
 import { ResearcherCardSkeleton } from '@/components/skeletons/CardSkeleton';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { ChevronUp } from 'lucide-react';
 
 import PageHeroSearch from '../../components/PageHeroSearch';
@@ -29,33 +30,26 @@ import type { ResearcherQueryFilters } from '@/services/researchers';
 
 const BREADCRUMB_ITEMS = [{ label: 'Perfiles' }];
 
-const DEFAULT_FILTERS: ResearcherQueryFilters = {
-  baseUnit: [],
-  collaborationCountry: [],
-  sortOrder: 'asc',
-};
-
-function toggleValue(values: string[] | undefined, value: string): string[] {
-  const currentValues = values ?? [];
-  return currentValues.includes(value)
-    ? currentValues.filter((item) => item !== value)
-    : [...currentValues, value];
-}
-
 function ResearchersPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
 
-  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') ?? '');
-  const [filters, setFilters] = useState<ResearcherQueryFilters>(() => ({
-    baseUnit: searchParams.getAll('unit'),
-    collaborationCountry: searchParams.getAll('collaborationCountry'),
-    sortOrder: (searchParams.get('sort') as 'asc' | 'desc') ?? 'asc',
-  }));
-  const [currentPage, setCurrentPage] = useState(() => {
+  // URL is the single source of truth — derive state on every render
+  const searchQuery = searchParams.get('q') ?? '';
+  const currentPage = useMemo(() => {
     const p = parseInt(searchParams.get('page') ?? '1', 10);
     return isNaN(p) || p < 1 ? 1 : p;
-  });
+  }, [searchParams]);
+  const filters = useMemo<ResearcherQueryFilters>(
+    () => ({
+      baseUnit: searchParams.getAll('unit'),
+      collaborationCountry: searchParams.getAll('collaborationCountry'),
+      sortOrder: (searchParams.get('sort') as 'asc' | 'desc') ?? 'asc',
+    }),
+    [searchParams],
+  );
+
   const listContainerRef = useRef<HTMLDivElement>(null);
   const isFirstPageRender = useRef(true);
   const [filterOptions, setFilterOptions] = useState<ResearcherFilters>({
@@ -67,8 +61,6 @@ function ResearchersPageContent() {
   const [total, setTotal] = useState<number | null>(null);
   const [listLoadError, setListLoadError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
-  // External profiles temporarily disabled — only UCR profiles are listed.
-  // const [profileType, setProfileType] = useState<'UCR' | 'EXTERNAL' | undefined>(undefined);
   const shouldScrollToListRef = useRef(false);
   const SCROLL_KEY = 'researchers-scroll-y';
 
@@ -87,13 +79,8 @@ function ResearchersPageContent() {
       isFirstPageRender.current = false;
       return;
     }
-
-    if (!shouldScrollToListRef.current) {
-      return;
-    }
-
+    if (!shouldScrollToListRef.current) return;
     shouldScrollToListRef.current = false;
-
     if (listContainerRef.current) {
       const navbar = document.querySelector('header') ?? document.querySelector('nav');
       const navbarHeight = navbar ? navbar.getBoundingClientRect().height : 0;
@@ -106,59 +93,62 @@ function ResearchersPageContent() {
     }
   }, [currentPage, searchQuery, filters]);
 
-  // Sync state to URL — skip first render and wrap in startTransition to avoid
-  // triggering the Suspense fallback during URL updates.
-  const isFirstSyncRender = useRef(true);
-  useEffect(() => {
-    if (isFirstSyncRender.current) {
-      isFirstSyncRender.current = false;
-      return;
-    }
-    const params = new URLSearchParams();
-    if (searchQuery) params.set('q', searchQuery);
-    for (const unit of filters.baseUnit ?? []) params.append('unit', unit);
-    for (const country of filters.collaborationCountry ?? [])
-      params.append('collaborationCountry', country);
-    if (currentPage > 1) params.set('page', String(currentPage));
-    if (filters.sortOrder && filters.sortOrder !== 'asc')
-      params.set('sort', filters.sortOrder);
-    const qs = params.toString();
-    startTransition(() => {
-      router.replace(`/researchers${qs ? `?${qs}` : ''}`, { scroll: false });
-    });
-  }, [searchQuery, filters, currentPage, router]);
+  // Builds a new URLSearchParams from the current ones, applies updates, and navigates.
+  const pushParams = useCallback(
+    (build: (params: URLSearchParams) => void, resetPage = true) => {
+      const params = new URLSearchParams(searchParams.toString());
+      build(params);
+      if (resetPage) params.set('page', '1');
+      startTransition(() => {
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      });
+    },
+    [router, pathname, searchParams],
+  );
 
-  const handleSearch = useCallback((query: string) => {
-    shouldScrollToListRef.current = true;
-    setSearchQuery(query);
-    setCurrentPage(1);
-  }, []);
+  // Handlers for user interactions that update the URL parameters, which in turn trigger data fetching and UI updates via the useEffect hooks.
+  const handleSearch = useCallback(
+    (query: string) => {
+      shouldScrollToListRef.current = true;
+      pushParams((params) => {
+        if (query) params.set('q', query);
+        else params.delete('q');
+      });
+    },
+    [pushParams],
+  );
 
   const handleToggleFilter = useCallback(
     (key: keyof ResearcherQueryFilters, value: string) => {
       shouldScrollToListRef.current = true;
-      // Only array-valued filters (baseUnit, collaborationCountry) are toggled
-      // through this handler, so the value is always a string[].
-      setFilters((prev) => ({
-        ...prev,
-        [key]: toggleValue(prev[key] as string[] | undefined, value),
-      }));
-      setCurrentPage(1);
+      // Only array-valued filters (baseUnit, collaborationCountry) are toggled here
+      const urlKey = key === 'baseUnit' ? 'unit' : 'collaborationCountry';
+      pushParams((params) => {
+        const current = params.getAll(urlKey);
+        params.delete(urlKey);
+        const updated = current.includes(value)
+          ? current.filter((v) => v !== value)
+          : [...current, value];
+        updated.forEach((v) => params.append(urlKey, v));
+      });
     },
-    [],
+    [pushParams],
   );
 
   const handleClearAll = useCallback(() => {
     shouldScrollToListRef.current = true;
-    setFilters(DEFAULT_FILTERS);
-    setSearchQuery('');
-    setCurrentPage(1);
-  }, []);
+    startTransition(() => {
+      router.replace(pathname, { scroll: false });
+    });
+  }, [router, pathname]);
 
-  const handlePageChange = useCallback((page: number) => {
-    shouldScrollToListRef.current = true;
-    setCurrentPage(page);
-  }, []);
+  const handlePageChange = useCallback(
+    (page: number) => {
+      shouldScrollToListRef.current = true;
+      pushParams((params) => params.set('page', String(page)), false);
+    },
+    [pushParams],
+  );
 
   useEffect(() => {
     const handleScroll = () => setShowScrollTopButton(window.scrollY > 400);
@@ -175,18 +165,22 @@ function ResearchersPageContent() {
   // changes so the sidebar counts stay in sync with the visible list.
   useEffect(() => {
     let cancelled = false;
-    getResearcherFilters(searchQuery, filters.baseUnit, filters.collaborationCountry)
+    getResearcherFilters({
+      q: searchQuery,
+      baseUnit: filters.baseUnit,
+      collaborationCountry: filters.collaborationCountry,
+    })
       .then((options) => {
         if (!cancelled) {
           setFilterOptions((prev) => ({ ...prev, baseUnit: options.baseUnit }));
         }
       })
       .catch(() => {});
-    getResearcherCollaborationFacet(
-      searchQuery,
-      filters.baseUnit,
-      filters.collaborationCountry,
-    )
+    getResearcherCollaborationFacet({
+      q: searchQuery,
+      baseUnit: filters.baseUnit,
+      collaborationCountry: filters.collaborationCountry,
+    })
       .then((collaborationCountry) => {
         if (!cancelled) {
           setFilterOptions((prev) => ({ ...prev, collaborationCountry }));
@@ -243,11 +237,10 @@ function ResearchersPageContent() {
           onSortByChange={() => {}}
           onSortOrderChange={(value) => {
             shouldScrollToListRef.current = true;
-            setFilters((prev) => ({
-              ...prev,
-              sortOrder: value,
-            }));
-            setCurrentPage(1);
+            pushParams((params) => {
+              if (value && value !== 'asc') params.set('sort', value);
+              else params.delete('sort');
+            });
           }}
           sortByOptions={[{ value: 'name', label: 'Nombre del perfil' }]}
           sortOrderOptions={[

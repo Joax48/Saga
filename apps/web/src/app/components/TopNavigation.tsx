@@ -54,7 +54,12 @@ export default function TopNavigation() {
     // Each list endpoint returns the full `total`, so we request a single
     // item per entity just to read the count without fetching whole pages.
     const loaders: Array<[TopNavKey, Promise<number>]> = [
-      ['researchers', getResearchers(1, 1, '', undefined, 'UCR').then((r) => r.total)],
+      [
+        'researchers',
+        getResearchers({ page: 1, limit: 1, filters: { profileType: 'UCR' } }).then(
+          (r) => r.total,
+        ),
+      ],
       ['units', getUnits(1, 1).then((r) => r.total)],
       [
         'productions',

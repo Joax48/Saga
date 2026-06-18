@@ -61,15 +61,17 @@ export default function ResearchersList({
       setLoadError(null);
       onLoadErrorChange?.(null);
       try {
-        const response = await getResearchers(
-          currentPage,
-          PAGE_SIZE,
-          searchQuery,
-          filters.baseUnit,
-          profileType,
-          filters.collaborationCountry,
-          filters.sortOrder,
-        );
+        const response = await getResearchers({
+          page: currentPage,
+          limit: PAGE_SIZE,
+          q: searchQuery,
+          filters: {
+            baseUnit: filters.baseUnit,
+            collaborationCountry: filters.collaborationCountry,
+            profileType,
+          },
+          sort: { order: filters.sortOrder },
+        });
 
         if (cancelled) return;
 
