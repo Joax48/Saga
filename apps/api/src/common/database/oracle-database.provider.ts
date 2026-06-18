@@ -47,8 +47,8 @@ export class OracleDatabaseProvider
       await connection.execute(
         `ALTER SESSION SET CURRENT_SCHEMA = ${schema.toUpperCase()}`,
       );
-      await connection.execute(`ALTER SESSION SET NLS_COMP=LINGUISTIC;`);
-      await connection.execute(`ALTER SESSION SET NLS_SORT=SPANISH_M_AI;`);
+      await connection.execute(`ALTER SESSION SET NLS_COMP=LINGUISTIC`);
+      await connection.execute(`ALTER SESSION SET NLS_SORT=SPANISH_M_AI`);
 
       const result = await connection.execute(statement, params as BindParameters);
 
