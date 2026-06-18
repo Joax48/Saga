@@ -53,15 +53,17 @@ describe('GetScientificProductionPaginatedListUseCase (sorting)', () => {
     expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(
       1,
       10,
+      undefined,
       {
-        q: undefined,
         type: undefined,
         openAccess: undefined,
         year: undefined,
         keywords: undefined,
       },
-      sortBy,
-      sortOrder,
+      {
+        sortBy,
+        sortOrder,
+      },
     );
     expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledTimes(1);
   };
@@ -73,15 +75,17 @@ describe('GetScientificProductionPaginatedListUseCase (sorting)', () => {
     expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(
       1,
       10,
+      undefined,
       {
-        q: undefined,
         type: undefined,
         openAccess: undefined,
         year: undefined,
         keywords: undefined,
       },
-      'publication_year',
-      'desc',
+      {
+        sortBy: 'publication_year',
+        sortOrder: 'desc',
+      },
     );
   });
 

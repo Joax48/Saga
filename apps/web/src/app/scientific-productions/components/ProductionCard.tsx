@@ -37,8 +37,8 @@ export function ProductionCard({ production }: ProductionCardProps) {
     title,
     authors,
     type,
-    open_access,
-    publication_year,
+    openAccess,
+    publicationYear,
     journal,
     volume,
     issue,
@@ -57,7 +57,7 @@ export function ProductionCard({ production }: ProductionCardProps) {
     pages ?? null,
   ].filter(Boolean);
 
-  const metaSuffix = [String(publication_year), ...journalParts]
+  const metaSuffix = [String(publicationYear), ...journalParts]
     .filter(Boolean)
     .join(', ');
 
@@ -70,7 +70,7 @@ export function ProductionCard({ production }: ProductionCardProps) {
 
   // keywords ahora son KeywordReference[] — usar .value para el tag label
   const keywordTags = Array.from(keywords).map((kw) => kw.value);
-  const allTags = open_access ? ['Acceso abierto', ...keywordTags] : keywordTags;
+  const allTags = openAccess ? ['Acceso abierto', ...keywordTags] : keywordTags;
 
   /* Authors (blue links) + year/journal meta (grey) on the same line */
   const authorArray = Array.from(authors);

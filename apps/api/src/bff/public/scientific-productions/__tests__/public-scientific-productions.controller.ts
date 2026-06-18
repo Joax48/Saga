@@ -85,11 +85,32 @@ describe('PublicScientificProductionsController', () => {
 
   describe('getScientificProductionsDetail', () => {
     it('should return detail', async () => {
-      detailUseCase.execute.mockResolvedValue({ id: '1' });
-
-      await expect(controller.getScientificProductionDetail('1')).resolves.toEqual({
+      const mockDetail = {
         id: '1',
-      });
+        title: 'Test Publication',
+        ucrAuthors: [],
+        externalAuthors: [],
+        unit: [],
+        affiliations: [],
+        type: 'Article',
+        openAccess: true,
+        publicationYear: 2025,
+        abstract: null,
+        doi: null,
+        journal: null,
+        volume: null,
+        issue: null,
+        pages: null,
+        citationCount: null,
+        source: 'Scopus',
+        keywords: [],
+      };
+
+      detailUseCase.execute.mockResolvedValue(mockDetail);
+
+      await expect(controller.getScientificProductionDetail('1')).resolves.toEqual(
+        mockDetail,
+      );
 
       expect(detailUseCase.execute).toHaveBeenCalledWith('1');
     });
@@ -105,15 +126,21 @@ describe('PublicScientificProductionsController', () => {
 
   describe('getScientificProductionsFilters', () => {
     it('should return filters', async () => {
-      filtersUseCase.execute.mockResolvedValue({
-        years: [2025],
-      });
+      const filtersResponse = {
+        years: [
+          {
+            value: '2025',
+            label: '2025',
+            count: 1,
+          },
+        ],
+      };
+
+      filtersUseCase.execute.mockResolvedValue(filtersResponse);
 
       await expect(
         controller.getScientificProductionsFilters({} as any),
-      ).resolves.toEqual({
-        years: [2025],
-      });
+      ).resolves.toEqual(filtersResponse);
       expect(filtersUseCase.execute).toHaveBeenCalledWith({});
     });
   });

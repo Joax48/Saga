@@ -50,6 +50,8 @@ export interface UnitScientificProductionDto {
   journal: string | null;
   pages: string | null;
   source: string | null;
+  volume: string | null;
+  issue: string | null;
   keywords: UnitScientificProductionKeywordDto[] | null;
 }
 

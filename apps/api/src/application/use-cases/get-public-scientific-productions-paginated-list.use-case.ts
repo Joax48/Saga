@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { PaginatedListResponseDto } from '../../bff/public/common/dtos/paginated-list-response.dto';
-import { ScientificProductioSummaryResponseDto } from '../../bff/public/scientific-productions/dtos/public-scientific-productions-summary-response.dto';
+import { ScientificProductionSummaryResponseDto } from '../../bff/public/scientific-productions/dtos/public-scientific-productions-summary-response.dto';
 
 import {
   SCIENTIFIC_PRODUCTIONS_READER,
@@ -19,26 +19,28 @@ export class GetScientificProductionPaginatedListUseCase {
 
   async execute(
     input: ScientificProductionsListRequestDto,
-  ): Promise<PaginatedListResponseDto<ScientificProductioSummaryResponseDto>> {
+  ): Promise<PaginatedListResponseDto<ScientificProductionSummaryResponseDto>> {
     const scientificProductions = await this.scientificProductionsReader.getPaginatedList(
       input.page,
       input.limit,
+      input.q,
       {
-        q: input.q,
         type: input.type,
         openAccess: input.openAccess,
         year: input.year,
         keywords: input.keywords,
       },
-      input.sortBy,
-      input.sortOrder,
+      {
+        sortBy: input.sortBy,
+        sortOrder: input.sortOrder,
+      },
     );
     return this.mapToResponseDto(scientificProductions);
   }
 
   private mapToResponseDto(
     scientificProductions: ScientificProductionsPaginatedListDto,
-  ): PaginatedListResponseDto<ScientificProductioSummaryResponseDto> {
+  ): PaginatedListResponseDto<ScientificProductionSummaryResponseDto> {
     return {
       items: scientificProductions.items.map((scientificProduction) => ({
         id: scientificProduction.id,

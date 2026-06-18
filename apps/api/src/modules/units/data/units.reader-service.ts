@@ -89,6 +89,8 @@ export class UnitsReaderService implements UnitsReader {
       journal: row.journal,
       pages: row.pages,
       source: row.source,
+      volume: row.volume,
+      issue: row.issue,
       keywords: this.parseJsonSafely<{ id: number; value: string }[]>(row.keywords, []),
     }));
   }

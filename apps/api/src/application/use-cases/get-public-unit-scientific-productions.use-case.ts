@@ -25,6 +25,8 @@ export class GetPublicUnitScientificProductionsUseCase {
       publicationYear: p.publicationYear,
       doi: p.doi,
       journal: p.journal,
+      volume: p.volume,
+      issue: p.issue,
       pages: p.pages,
       source: p.source,
       keywords: p.keywords,

@@ -260,7 +260,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
                   className="text-[56px] font-light leading-none text-center"
                   style={{ color: 'var(--color-text-brand-primary)' }}
                 >
-                  {production.citation_count}
+                  {production.citationCount}
                 </p>
               </div>
 
@@ -331,7 +331,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
                     )}
                     <DetailRow
                       label="Año de publicación"
-                      value={String(production.publication_year)}
+                      value={String(production.publicationYear)}
                     />
                   </div>
                 </div>
@@ -342,7 +342,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
                     Acceso
                   </p>
 
-                  {production.open_access && (
+                  {production.openAccess && (
                     <div className="flex items-center gap-2">
                       <svg
                         width="20"

@@ -53,14 +53,21 @@ export class ScientificProductionRepository {
   async findPaginated(
     page: number,
     limit: number,
+    query?: string,
     filters?: ScientificProductionsFiltersRequestDto,
-    sortBy: ScientificProductionSortBy = 'title',
-    sortOrder: ScientificProductionSortOrder = 'asc',
+    sort?: {
+      sortBy?: ScientificProductionSortBy;
+      sortOrder?: ScientificProductionSortOrder;
+    },
   ): Promise<PaginatedResult<ScientificProductionSummary>> {
     const offset = this.calculateOffset(page, limit);
-    const { clause, params } = this.buildFilterWhereClause(filters);
+    const requestFilters: ScientificProductionsFiltersRequestDto | undefined =
+      query || filters ? { ...filters, ...(query && { q: query }) } : undefined;
+    const { clause, params } = this.buildFilterWhereClause(requestFilters);
 
     // mapear el campo de ordenamiento al alias correcto en el SELECT
+    const sortBy = sort?.sortBy ?? 'title';
+    const sortOrder = sort?.sortOrder ?? 'asc';
     const sortColumn = sortBy === 'title' ? 'so.TITLE' : 'so.PUBLICATION_YEAR';
 
     // ASC o DESC

@@ -52,26 +52,32 @@ export default async function ScientificProductionsPage({ searchParams }: PagePr
     ? searchParams.keywords.split(',').map((k) => k.trim())
     : undefined;
 
-  const sortBy =
+  const sortBy: 'title' | 'publication_year' =
     searchParams.sortBy === 'title' || searchParams.sortBy === 'publication_year'
       ? searchParams.sortBy
       : 'publication_year';
 
-  const sortOrder =
+  const sortOrder: 'asc' | 'desc' =
     searchParams.sortOrder === 'asc' || searchParams.sortOrder === 'desc'
       ? searchParams.sortOrder
       : 'desc';
 
   const filterParams = {
     q: searchParams.q,
-    type,
-    openAccess: searchParams.openAccess === 'true' ? true : undefined,
-    year,
-    keywords,
+    filters: {
+      type,
+      openAccess: searchParams.openAccess === 'true' ? true : undefined,
+      year,
+      keywords,
+    },
+    sort: {
+      sortBy,
+      sortOrder,
+    },
   };
 
   const [productionsResult, filtersResult] = await Promise.allSettled([
-    getScientificProductions({ page, limit, ...filterParams, sortBy, sortOrder }),
+    getScientificProductions({ page, limit, ...filterParams }),
     getScientificProductionFilters(filterParams),
   ]);
 

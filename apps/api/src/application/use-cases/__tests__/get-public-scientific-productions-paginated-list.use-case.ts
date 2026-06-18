@@ -39,6 +39,7 @@ describe('GetScientificProductionPaginatedListUseCase', () => {
             volume: '12',
             issue: '1',
             pages: '10-20',
+            source: 'Scopus',
             keywords: [
               { id: 1, value: 'biodiversidad' },
               { id: 2, value: 'conservacion' },
@@ -56,6 +57,7 @@ describe('GetScientificProductionPaginatedListUseCase', () => {
             volume: '7',
             issue: '2',
             pages: '45-60',
+            source: 'Web of Science',
             keywords: [
               { id: 3, value: 'clima' },
               { id: 4, value: 'oceanos' },
@@ -77,15 +79,17 @@ describe('GetScientificProductionPaginatedListUseCase', () => {
       expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(
         1,
         10,
+        undefined,
         {
-          q: undefined,
           type: undefined,
           openAccess: undefined,
           year: undefined,
           keywords: undefined,
         },
-        undefined,
-        undefined,
+        {
+          sortBy: undefined,
+          sortOrder: undefined,
+        },
       );
     });
 
@@ -107,6 +111,7 @@ describe('GetScientificProductionPaginatedListUseCase', () => {
             volume: '18',
             issue: '4',
             pages: '80-95',
+            source: 'Scopus',
             keywords: [
               { id: 5, value: 'agroecologia' },
               { id: 6, value: 'sostenibilidad' },
@@ -136,6 +141,7 @@ describe('GetScientificProductionPaginatedListUseCase', () => {
         volume: '18',
         issue: '4',
         pages: '80-95',
+        source: 'Scopus',
         keywords: [
           { id: 5, value: 'agroecologia' },
           { id: 6, value: 'sostenibilidad' },
@@ -164,15 +170,17 @@ describe('GetScientificProductionPaginatedListUseCase', () => {
       expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(
         2,
         5,
+        'clima',
         {
-          q: 'clima',
           type: ['Articulo'],
           openAccess: true,
           year: ['2024'],
           keywords: ['clima', 'agua'],
         },
-        undefined,
-        undefined,
+        {
+          sortBy: undefined,
+          sortOrder: undefined,
+        },
       );
       expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledTimes(1);
     });
@@ -190,15 +198,17 @@ describe('GetScientificProductionPaginatedListUseCase', () => {
       expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(
         1,
         10,
+        'clima',
         {
-          q: 'clima',
           type: undefined,
           openAccess: undefined,
           year: undefined,
           keywords: undefined,
         },
-        undefined,
-        undefined,
+        {
+          sortBy: undefined,
+          sortOrder: undefined,
+        },
       );
       expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledTimes(1);
     });
@@ -247,15 +257,17 @@ describe('GetScientificProductionPaginatedListUseCase', () => {
       expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(
         1,
         10,
+        'vcrno$·"!12',
         {
-          q: 'vcrno$·"!12',
           type: undefined,
           openAccess: undefined,
           year: undefined,
           keywords: undefined,
         },
-        undefined,
-        undefined,
+        {
+          sortBy: undefined,
+          sortOrder: undefined,
+        },
       );
     });
 
@@ -308,6 +320,7 @@ describe('GetScientificProductionPaginatedListUseCase', () => {
             volume: '1',
             issue: '1',
             pages: '1-10',
+            source: 'Scopus',
             authors: [],
             keywords: [{ id: 1, value: 'clima' }],
           },
@@ -378,6 +391,7 @@ describe('GetScientificProductionPaginatedListUseCase', () => {
             volume: '',
             issue: '',
             pages: '',
+            source: '',
             authors: [],
             keywords: [],
           },

@@ -86,7 +86,7 @@ describe('GetHomeSearchUseCase', () => {
             linkedin: null,
             researchGate: null,
             scopus: null,
-            photoUrl: null,
+            photo: null,
             linkedUnits: [],
             profileType: 'UCR',
             workUnits: [],
@@ -144,9 +144,11 @@ describe('GetHomeSearchUseCase', () => {
       expect(researchersReader.getPaginatedList).toHaveBeenCalledWith(1, 10, 'ciencia', {
         profileType: 'UCR',
       });
-      expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(1, 10, {
-        q: 'ciencia',
-      });
+      expect(scientificProductionsReader.getPaginatedList).toHaveBeenCalledWith(
+        1,
+        10,
+        'ciencia',
+      );
       expect(unitsReader.getPaginatedList).toHaveBeenCalledWith({
         page: 1,
         limit: 10,

@@ -3,7 +3,7 @@ import {
   KeywordReference,
 } from '../../../../modules/scientific-productions/scientific-productions.reader.contract';
 
-export class ScientificProductioSummaryResponseDto {
+export class ScientificProductionSummaryResponseDto {
   id!: string;
   title!: string;
   authors!: AuthorReference[] | null;

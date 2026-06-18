@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 
 import { PaginatedListResponseDto } from '../common/dtos/paginated-list-response.dto';
-import { ScientificProductioSummaryResponseDto } from './dtos/public-scientific-productions-summary-response.dto';
+import { ScientificProductionSummaryResponseDto } from './dtos/public-scientific-productions-summary-response.dto';
 import { ScientificProductionDetailResponseDto } from './dtos/public-scientific-production-detail-response.dto';
 import { ScientificProductionsFiltersResponseDto } from './dtos/public-scientific-production-filters-response.dto';
 import { ScientificProductionsFiltersRequestDto } from './dtos/scientific-productions-filters-request.dto';
@@ -23,7 +23,7 @@ export class PublicScientificProductionsController {
   @Get()
   async getScientificProductionsPaginatedList(
     @Query() query: ScientificProductionsListRequestDto,
-  ): Promise<PaginatedListResponseDto<ScientificProductioSummaryResponseDto>> {
+  ): Promise<PaginatedListResponseDto<ScientificProductionSummaryResponseDto>> {
     return this.getScientificProductionPaginatedListUseCase.execute(query);
   }
 

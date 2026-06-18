@@ -1,8 +1,8 @@
-import { ScientificProductionsService } from '../data/scientific-productions.reader-service';
+import { ScientificProductionsReaderService } from '../data/scientific-productions.reader-service';
 import { ScientificProductionRepository } from '../data/scientific-productions.repository';
 
 describe('ScientificProductionsService', () => {
-  let service: ScientificProductionsService;
+  let service: ScientificProductionsReaderService;
   let repository: jest.Mocked<ScientificProductionRepository>;
 
   beforeEach(() => {
@@ -11,7 +11,7 @@ describe('ScientificProductionsService', () => {
       findById: jest.fn(),
     } as unknown as jest.Mocked<ScientificProductionRepository>;
 
-    service = new ScientificProductionsService(repository);
+    service = new ScientificProductionsReaderService(repository);
   });
 
   afterEach(() => {
@@ -41,6 +41,7 @@ describe('ScientificProductionsService', () => {
             volume: '12',
             issue: '1',
             pages: '10-20',
+            source: 'Journal Source',
             citationCount: 5,
             keywords: JSON.stringify([
               { id: 'k1', value: 'biodiversidad' },
@@ -87,6 +88,7 @@ describe('ScientificProductionsService', () => {
             volume: '7',
             issue: '2',
             pages: '45-60',
+            source: 'Journal Source',
             citationCount: 3,
             keywords: JSON.stringify([
               { id: 'k2', value: 'clima' },
@@ -113,6 +115,7 @@ describe('ScientificProductionsService', () => {
         volume: '7',
         issue: '2',
         pages: '45-60',
+        source: 'Journal Source',
         keywords: [
           { id: 'k2', value: 'clima' },
           { id: 'k3', value: 'oceanos' },
@@ -140,12 +143,12 @@ describe('ScientificProductionsService', () => {
       const mockRepositoryResult = { items: [], total: 0 };
       repository.findPaginated.mockResolvedValue(mockRepositoryResult);
 
-      await service.getPaginatedList(2, 5, { q: 'clima' });
+      await service.getPaginatedList(2, 5, 'clima');
 
       expect(repository.findPaginated).toHaveBeenCalledWith(
         2,
         5,
-        { q: 'clima' },
+        'clima',
         undefined,
         undefined,
       );
@@ -170,6 +173,7 @@ describe('ScientificProductionsService', () => {
           volume: '10',
           issue: '3',
           pages: '101-110',
+          source: 'Journal Source',
           citationCount: 1,
           keywords: JSON.stringify([{ id: 'k3', value: 'tecnologia' }]),
         },
@@ -179,7 +183,7 @@ describe('ScientificProductionsService', () => {
         .mockResolvedValueOnce({ items: [], total: 3 })
         .mockResolvedValueOnce({ items: lastPageItems, total: 3 });
 
-      const result = await service.getPaginatedList(5, 2, { q: 'tecnologia' });
+      const result = await service.getPaginatedList(5, 2, 'tecnologia');
 
       expect(result.page).toBe(2);
       expect(result.items).toHaveLength(1);
@@ -188,15 +192,18 @@ describe('ScientificProductionsService', () => {
         1,
         5,
         2,
-        {
-          q: 'tecnologia',
-        },
+        'tecnologia',
         undefined,
         undefined,
       );
-      expect(repository.findPaginated).toHaveBeenNthCalledWith(2, 2, 2, {
-        q: 'tecnologia',
-      });
+      expect(repository.findPaginated).toHaveBeenNthCalledWith(
+        2,
+        2,
+        2,
+        'tecnologia',
+        undefined,
+        undefined,
+      );
     });
 
     it('should maintain the requested page when it is within range', async () => {
@@ -218,6 +225,7 @@ describe('ScientificProductionsService', () => {
             volume: '5',
             issue: '2',
             pages: '50-60',
+            source: 'Journal Source',
             citationCount: 2,
             keywords: JSON.stringify([{ id: 'k4', value: 'sistemas' }]),
           },
@@ -227,7 +235,7 @@ describe('ScientificProductionsService', () => {
 
       repository.findPaginated.mockResolvedValue(mockRepositoryResult);
 
-      const result = await service.getPaginatedList(2, 2, { q: 'sistemas' });
+      const result = await service.getPaginatedList(2, 2, 'sistemas');
 
       expect(result.page).toBe(2);
       expect(repository.findPaginated).toHaveBeenCalledTimes(1);
@@ -252,6 +260,7 @@ describe('ScientificProductionsService', () => {
         volume: '12',
         issue: '1',
         pages: '10-20',
+        source: 'Journal Source',
         citationCount: 5,
         keywords: JSON.stringify([
           { id: 'k1', value: 'biodiversidad' },
@@ -278,6 +287,7 @@ describe('ScientificProductionsService', () => {
         volume: '12',
         issue: '1',
         pages: '10-20',
+        source: 'Journal Source',
         citationCount: 5,
         keywords: [
           { id: 'k1', value: 'biodiversidad' },

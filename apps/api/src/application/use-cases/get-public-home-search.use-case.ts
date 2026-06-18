@@ -4,7 +4,7 @@ import { PaginatedListResponseDto } from '../../bff/public/common/dtos/paginated
 import { HomeSearchRequestDto } from '../../bff/public/home/dtos/home-search-request.dto';
 import { ProjectSummaryResponseDto } from '../../bff/public/projects/dtos/project-summary-response.dto';
 import { ResearcherSummaryResponseDto } from '../../bff/public/researchers/dtos/researcher-summary-response.dto';
-import { ScientificProductioSummaryResponseDto } from '../../bff/public/scientific-productions/dtos/public-scientific-productions-summary-response.dto';
+import { ScientificProductionSummaryResponseDto } from '../../bff/public/scientific-productions/dtos/public-scientific-productions-summary-response.dto';
 import { UnitSummaryResponseDto } from '../../bff/public/units/dtos/unit-summary-response.dto';
 import {
   PROJECTS_READER,
@@ -55,7 +55,7 @@ export class GetHomeSearchUseCase {
       this.researchersReader.getPaginatedList(1, HOMEPAGE_SEARCH_LIMIT, q, {
         profileType: 'UCR',
       }),
-      this.scientificProductionsReader.getPaginatedList(1, HOMEPAGE_SEARCH_LIMIT, { q }),
+      this.scientificProductionsReader.getPaginatedList(1, HOMEPAGE_SEARCH_LIMIT, q),
       this.unitsReader.getPaginatedList({
         page: 1,
         limit: HOMEPAGE_SEARCH_LIMIT,
@@ -81,7 +81,7 @@ export class GetHomeSearchUseCase {
       projects: this.createEmptyPaginatedResponse<ProjectSummaryResponseDto>(),
       researchers: this.createEmptyPaginatedResponse<ResearcherSummaryResponseDto>(),
       scientificProductions:
-        this.createEmptyPaginatedResponse<ScientificProductioSummaryResponseDto>(),
+        this.createEmptyPaginatedResponse<ScientificProductionSummaryResponseDto>(),
       units: this.createEmptyPaginatedResponse<UnitSummaryResponseDto>(),
     };
   }
@@ -119,7 +119,7 @@ export class GetHomeSearchUseCase {
 
   private mapScientificProductionsResponse(
     scientificProductions: ScientificProductionsPaginatedListDto,
-  ): PaginatedListResponseDto<ScientificProductioSummaryResponseDto> {
+  ): PaginatedListResponseDto<ScientificProductionSummaryResponseDto> {
     return {
       items: scientificProductions.items.map((scientificProduction) => ({
         ...scientificProduction,

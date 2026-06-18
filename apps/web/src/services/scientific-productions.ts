@@ -2,16 +2,24 @@
 import { request } from './api';
 import type { SummaryScientificProduction, ScientificProduction } from '@/types';
 
-interface GetScientificProductionsParams {
-  page?: number;
-  limit?: number;
-  q?: string;
+interface ScientificProductionsFilters {
   type?: string[];
   openAccess?: boolean;
   year?: string[];
   keywords?: string[];
+}
+
+interface ScientificProductionsSort {
   sortBy?: 'title' | 'publication_year';
   sortOrder?: 'asc' | 'desc';
+}
+
+interface GetScientificProductionsParams {
+  page?: number;
+  limit?: number;
+  q?: string;
+  filters?: ScientificProductionsFilters;
+  sort?: ScientificProductionsSort;
 }
 
 interface AuthorReference {
@@ -94,8 +102,8 @@ function parseSummaryScientificProduction(
     title: item.title,
     authors: item.authors ?? [],
     type: item.type ?? '',
-    open_access: item.openAccess ?? false,
-    publication_year: item.publicationYear,
+    openAccess: item.openAccess ?? false,
+    publicationYear: item.publicationYear,
     doi: item.doi ?? '',
     journal: item.journal ?? undefined,
     volume: item.volume != null ? Number(item.volume) : undefined,
@@ -126,15 +134,15 @@ function parseDetailScientificProduction(
     unit: item.unit?.map((u) => u.unit).join(', ') ?? '',
     affiliations: item.affiliations?.map((a) => a.affiliation) ?? [],
     type: item.type ?? '',
-    open_access: item.openAccess ?? false,
-    publication_year: item.publicationYear,
+    openAccess: item.openAccess ?? false,
+    publicationYear: item.publicationYear,
     abstract: item.abstract ?? '',
     doi: item.doi ?? '',
     journal: item.journal ?? undefined,
     volume: item.volume != null ? Number(item.volume) : undefined,
     issue: item.issue != null ? Number(item.issue) : undefined,
     pages: item.pages ?? undefined,
-    citation_count: item.citationCount ?? 0,
+    citationCount: item.citationCount ?? 0,
     source: item.source ?? '',
     keywords: item.keywords?.map((k) => k.value) ?? [],
     collaborationCountries: [...countryMap.entries()].map(([country, count]) => ({
@@ -147,29 +155,19 @@ function parseDetailScientificProduction(
 export async function getScientificProductions(
   params: GetScientificProductionsParams = {},
 ): Promise<{ items: SummaryScientificProduction[]; total: number }> {
-  const {
-    page = 1,
-    limit = 10,
-    q,
-    type,
-    openAccess,
-    year,
-    keywords,
-    sortBy,
-    sortOrder,
-  } = params;
+  const { page = 1, limit = 10, q, filters, sort } = params;
 
   const searchParams = new URLSearchParams();
   searchParams.set('page', String(page));
   searchParams.set('limit', String(limit));
 
   if (q) searchParams.set('q', q);
-  if (type?.length) searchParams.set('type', type.join(','));
-  if (openAccess) searchParams.set('openAccess', 'true');
-  if (year?.length) searchParams.set('year', year.join(','));
-  if (keywords?.length) searchParams.set('keywords', keywords.join(','));
-  if (sortBy) searchParams.set('sortBy', sortBy);
-  if (sortOrder) searchParams.set('sortOrder', sortOrder);
+  if (filters?.type?.length) searchParams.set('type', filters.type.join(','));
+  if (filters?.openAccess) searchParams.set('openAccess', 'true');
+  if (filters?.year?.length) searchParams.set('year', filters.year.join(','));
+  if (filters?.keywords?.length) searchParams.set('keywords', filters.keywords.join(','));
+  if (sort?.sortBy) searchParams.set('sortBy', sort.sortBy);
+  if (sort?.sortOrder) searchParams.set('sortOrder', sort.sortOrder);
 
   const endpoint = `/scientific-productions?${searchParams.toString()}`;
 
@@ -193,14 +191,14 @@ export async function getScientificProductionById(
 export async function getScientificProductionFilters(
   params: Omit<GetScientificProductionsParams, 'page' | 'limit'> = {},
 ): Promise<FiltersApiResponse> {
-  const { q, type, openAccess, year, keywords } = params;
+  const { q, filters } = params;
 
   const searchParams = new URLSearchParams();
   if (q) searchParams.set('q', q);
-  if (type?.length) searchParams.set('type', type.join(','));
-  if (openAccess) searchParams.set('openAccess', 'true');
-  if (year?.length) searchParams.set('year', year.join(','));
-  if (keywords?.length) searchParams.set('keywords', keywords.join(','));
+  if (filters?.type?.length) searchParams.set('type', filters.type.join(','));
+  if (filters?.openAccess) searchParams.set('openAccess', 'true');
+  if (filters?.year?.length) searchParams.set('year', filters.year.join(','));
+  if (filters?.keywords?.length) searchParams.set('keywords', filters.keywords.join(','));
 
   const query = searchParams.toString();
   return request<FiltersApiResponse>(

@@ -23,35 +23,58 @@ describe('GetScientificProductionDetailUseCase', () => {
     it('should return the scientific production detail when the id exists', async () => {
       const scientificProduction = {
         id: '1',
-        title: 'Investigación sobre biodiversidad en Costa Rica',
+        title: 'Test Publication',
+
         ucrAuthors: [
           {
             id: 1,
-            name: 'Ana Gomez',
+            name: 'Juan Pérez',
           },
         ],
+
         externalAuthors: [
           {
-            name: 'John Smith',
+            id: 2,
+            name: 'John Doe',
           },
         ],
-        unit: 'Universidad de Costa Rica',
-        affiliations: ['UCR'],
-        type: 'Articulo',
+
+        unit: [
+          {
+            id: 1,
+            unit: 'CICIMA',
+          },
+        ],
+
+        affiliations: [
+          {
+            id: 1,
+            affiliation: 'Universidad de Costa Rica',
+          },
+        ],
+
+        type: 'Article',
         openAccess: true,
         publicationYear: 2024,
-        abstract: 'Resumen de la investigación',
-        doi: '10.1234/example.2024',
-        journal: 'Revista de Ciencias',
-        volume: '12',
-        issue: '1',
+
+        abstract: 'Abstract test',
+        doi: '10.1234/test',
+        journal: 'Test Journal',
+        volume: '1',
+        issue: '2',
         pages: '10-20',
+
         citationCount: 5,
         source: 'Scopus',
+
         keywords: [
           {
             id: 1,
-            value: 'biodiversidad',
+            value: 'AI',
+          },
+          {
+            id: 2,
+            value: 'Machine Learning',
           },
         ],
       };
@@ -62,35 +85,50 @@ describe('GetScientificProductionDetailUseCase', () => {
 
       expect(result).toEqual({
         id: '1',
-        title: 'Investigación sobre biodiversidad en Costa Rica',
+        title: 'Test Publication',
         ucrAuthors: [
           {
             id: 1,
-            name: 'Ana Gomez',
+            name: 'Juan Pérez',
           },
         ],
         externalAuthors: [
           {
-            name: 'John Smith',
+            id: 2,
+            name: 'John Doe',
           },
         ],
-        unit: 'Universidad de Costa Rica',
-        affiliations: ['UCR'],
-        type: 'Articulo',
+        unit: [
+          {
+            id: 1,
+            unit: 'CICIMA',
+          },
+        ],
+        affiliations: [
+          {
+            id: 1,
+            affiliation: 'Universidad de Costa Rica',
+          },
+        ],
+        type: 'Article',
         openAccess: true,
         publicationYear: 2024,
-        abstract: 'Resumen de la investigación',
-        doi: '10.1234/example.2024',
-        journal: 'Revista de Ciencias',
-        volume: '12',
-        issue: '1',
+        abstract: 'Abstract test',
+        doi: '10.1234/test',
+        journal: 'Test Journal',
+        volume: '1',
+        issue: '2',
         pages: '10-20',
         citationCount: 5,
         source: 'Scopus',
         keywords: [
           {
             id: 1,
-            value: 'biodiversidad',
+            value: 'AI',
+          },
+          {
+            id: 2,
+            value: 'Machine Learning',
           },
         ],
       });

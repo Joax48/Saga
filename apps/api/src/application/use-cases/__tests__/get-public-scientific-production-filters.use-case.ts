@@ -15,9 +15,27 @@ describe('GetScientificProductionsFiltersUseCase', () => {
 
   it('should return filters from the reader', async () => {
     const response = {
-      years: ['2024', '2023'],
-      types: ['Articulo', 'Libro'],
-      keywords: ['clima'],
+      years: [
+        {
+          value: '2025',
+          label: '2025',
+          count: 10,
+        },
+      ],
+      types: [
+        {
+          value: 'ARTICLE',
+          label: 'Article',
+          count: 5,
+        },
+      ],
+      keywords: [
+        {
+          value: 'AI',
+          label: 'AI',
+          count: 3,
+        },
+      ],
     };
 
     reader.getFilters.mockResolvedValue(response);

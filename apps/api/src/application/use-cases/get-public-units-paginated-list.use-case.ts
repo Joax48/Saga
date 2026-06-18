@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { PaginatedListRequestDto } from '../../bff/public/common/dtos/paginated-list-request.dto';
 import { PaginatedListResponseDto } from '../../bff/public/common/dtos/paginated-list-response.dto';
 import { UnitSummaryResponseDto } from '../../bff/public/units/dtos/unit-summary-response.dto';
 

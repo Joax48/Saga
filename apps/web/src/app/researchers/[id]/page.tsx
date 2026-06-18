@@ -214,8 +214,8 @@ function toSummaryScientificProduction(
     // used as a stable key; the displayed names are correct.
     authors: output.authors.map((name, index) => ({ id: index, name })),
     type: output.type.category,
-    open_access: output.openAccess,
-    publication_year: output.publicationYear,
+    openAccess: output.openAccess,
+    publicationYear: output.publicationYear,
     doi: output.doi ?? '',
     journal: output.journal ?? undefined,
     volume: output.volume != null ? Number(output.volume) : undefined,
@@ -387,7 +387,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
 
   const allProductions = profile.scientificOutputs.map(toSummaryScientificProduction);
   const productions = selectedYearFilter
-    ? allProductions.filter((p) => p.publication_year === selectedYearFilter)
+    ? allProductions.filter((p) => p.publicationYear === selectedYearFilter)
     : allProductions;
   // Counts the projects per status key (lowercased) so the filter chips can
   // show "Terminado (12)" / "En desarrollo (3)" etc. Built from the full

@@ -112,7 +112,7 @@ describe('ScientificProductionRepository', () => {
 
       mockDb.query.mockResolvedValueOnce(mockRows).mockResolvedValueOnce(mockCount);
 
-      const result = await repository.findPaginated(1, 10, { q: 'clima' });
+      const result = await repository.findPaginated(1, 10, 'clima');
 
       expect(result.items).toEqual(mockRows);
       expect(result.total).toBe(1);
@@ -130,7 +130,7 @@ describe('ScientificProductionRepository', () => {
     it('should ignore blank search terms and avoid WHERE/params', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ TOTALCOUNT: 0 }]);
 
-      await repository.findPaginated(1, 10, { q: '   ' });
+      await repository.findPaginated(1, 10, '   ');
 
       const itemsQuery = mockDb.query.mock.calls[0][0] as string;
       const countQuery = mockDb.query.mock.calls[1][0] as string;
@@ -143,7 +143,7 @@ describe('ScientificProductionRepository', () => {
     it('should build an EXISTS clause for each keyword filter', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ TOTALCOUNT: 0 }]);
 
-      await repository.findPaginated(1, 10, {
+      await repository.findPaginated(1, 10, undefined, {
         keywords: [' Clima ', 'clima', 'Impacto'],
       });
 
@@ -163,7 +163,7 @@ describe('ScientificProductionRepository', () => {
     it('should preserve query and keyword parameter order when both are used', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ TOTALCOUNT: 0 }]);
 
-      await repository.findPaginated(1, 10, { q: 'clima', keywords: ['impacto'] });
+      await repository.findPaginated(1, 10, 'clima', { keywords: ['impacto'] });
 
       expect(mockDb.query.mock.calls[0][1]).toEqual({
         q: '%clima%',
@@ -186,7 +186,7 @@ describe('ScientificProductionRepository', () => {
     it('should filter by type, open access, year, and keywords', async () => {
       mockDb.query.mockResolvedValueOnce([]).mockResolvedValueOnce([{ TOTALCOUNT: 0 }]);
 
-      await repository.findPaginated(1, 10, {
+      await repository.findPaginated(1, 10, undefined, {
         type: ['Articulo'],
         openAccess: true,
         year: ['2024'],

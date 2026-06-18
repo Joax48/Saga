@@ -17,6 +17,8 @@ export class UnitScientificProductionResponseDto {
   publicationYear!: number;
   doi!: string | null;
   journal!: string | null;
+  volume!: string | null;
+  issue!: string | null;
   pages!: string | null;
   source!: string | null;
   keywords!: KeywordDto[] | null;

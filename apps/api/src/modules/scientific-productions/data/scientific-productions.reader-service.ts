@@ -10,13 +10,12 @@ import type {
   KeywordReference,
   UnitReference,
   AffiliationReference,
-  ScientificProductionSortBy,
-  ScientificProductionSortOrder,
+  ScientificProductionsSortRequestDto,
 } from '../scientific-productions.reader.contract';
 import { ScientificProductionRepository } from './scientific-productions.repository';
 
 @Injectable()
-export class ScientificProductionsService implements ScientificProductionsReader {
+export class ScientificProductionsReaderService implements ScientificProductionsReader {
   constructor(
     private readonly scientificProductionsRepository: ScientificProductionRepository,
   ) {}
@@ -24,17 +23,17 @@ export class ScientificProductionsService implements ScientificProductionsReader
   async getPaginatedList(
     page: number,
     limit: number,
+    query?: string,
     filters?: ScientificProductionsFiltersRequestDto,
-    sortBy?: ScientificProductionSortBy,
-    sortOrder?: ScientificProductionSortOrder,
+    sort?: ScientificProductionsSortRequestDto,
   ): Promise<ScientificProductionsPaginatedListDto> {
     const scientificProductionsPage =
       await this.scientificProductionsRepository.findPaginated(
         page,
         limit,
+        query,
         filters,
-        sortBy,
-        sortOrder,
+        sort,
       );
 
     let effectivePage = page;
@@ -46,7 +45,9 @@ export class ScientificProductionsService implements ScientificProductionsReader
       const lastPage = await this.scientificProductionsRepository.findPaginated(
         effectivePage,
         limit,
+        query,
         filters,
+        sort,
       );
       effectiveItems = lastPage.items;
     }
