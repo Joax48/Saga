@@ -572,7 +572,7 @@ export class ResearchersRepository {
     {
       name: string;
       firstSurname: string;
-      lastSurname: string | null;
+      secondSurname: string | null;
     }[]
   > {
     return this.databaseClient.query(
@@ -580,7 +580,7 @@ export class ResearchersRepository {
         SELECT
           NAME          AS "name",
           FIRST_SURNAME AS "firstSurname",
-          LAST_SURNAME  AS "lastSurname"
+          LAST_SURNAME  AS "secondSurname"
         FROM PRODUCCION_CIENTIFICA.UCR_PROFILE_ALTERNATIVE_NAME
         WHERE PROFILE_ID = :1
         ORDER BY ALTERNATIVE_NAME_ID ASC

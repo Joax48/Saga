@@ -219,7 +219,7 @@ export class ResearchersReaderService implements ResearchersReader {
       alternativeNames: alternativeNamesRows.map((row) => ({
         name: row.name,
         firstSurname: row.firstSurname,
-        lastSurname: row.lastSurname,
+        secondSurname: row.secondSurname,
       })),
       linkedUnits: linkedUnitsRows.map((row) => ({
         id: String(row.id),

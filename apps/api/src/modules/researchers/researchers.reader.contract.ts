@@ -39,17 +39,12 @@ export interface ResearcherInstitutionDto {
   country: string | null;
 }
 
-export interface ResearcherInstitutionDto {
-  name: string;
-  country: string | null;
-}
-
 // ─── Profile DTOs (full researcher profile) ───────────────────────────────────
 
 export interface ResearcherAlternativeNameDto {
   name: string;
   firstSurname: string;
-  lastSurname: string | null;
+  secondSurname: string | null;
 }
 
 export interface ResearcherEducationDto {

@@ -44,8 +44,8 @@ describe('GetResearcherProfileUseCase', () => {
         workUnits: [],
         hIndex: null,
         alternativeNames: [
-          { name: 'Juan C.', firstSurname: 'Pérez', lastSurname: 'Mora' },
-          { name: 'J.C.', firstSurname: 'Perez', lastSurname: null },
+          { name: 'Juan C.', firstSurname: 'Pérez', secondSurname: 'Mora' },
+          { name: 'J.C.', firstSurname: 'Perez', secondSurname: null },
         ],
         keywords: ['machine-learning', 'artificial-intelligence', 'data-science'],
         education: [

@@ -3,7 +3,7 @@ import { ResearcherSummaryResponseDto } from './researcher-summary-response.dto'
 export class ResearcherAlternativeNameResponseDto {
   name!: string;
   firstSurname!: string;
-  lastSurname!: string | null;
+  secondSurname!: string | null;
 }
 
 export class ResearcherEducationResponseDto {

@@ -17,7 +17,7 @@ import { PaginatedListResponseDto } from '../common/dtos/paginated-list-response
 import { ResearcherProfileResponseDto } from './dtos/researcher-profile-response.dto';
 import { ResearcherSummaryResponseDto } from './dtos/researcher-summary-response.dto';
 import { ResearchersListRequestDto } from './dtos/researchers-list-request.dto';
-import { ResearchersListRequestAnidatedDto } from './dtos/researchers-list-request-anidated.dto';
+import { ResearchersListRequestNestedDto } from './dtos/researchers-list-request-nested.dto';
 import { ResearchersFiltersRequestQueryDto } from './dtos/researchers-filters-request.dto';
 import { GetResearchersPaginatedListUseCase } from '../../../application/use-cases/get-public-researchers-paginated-list.use-case';
 import { GetResearcherDetailUseCase } from '../../../application/use-cases/get-public-researcher-detail.use-case';
@@ -61,9 +61,9 @@ export class PublicResearchersController {
     });
   }
 
-  @Get('anidated')
-  async getResearchersPaginatedListAnidated(
-    @Query() query: ResearchersListRequestAnidatedDto,
+  @Get('nested')
+  async getResearchersPaginatedListNested(
+    @Query() query: ResearchersListRequestNestedDto,
   ): Promise<PaginatedListResponseDto<ResearcherSummaryResponseDto>> {
     const researchers = await this.getResearchersPaginatedListUseCase.execute(query);
 
