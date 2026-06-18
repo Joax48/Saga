@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { FileText, Tag, Globe } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
 import BackButton from '@/components/BackButton';
@@ -14,6 +13,7 @@ import ApiErrorMessage from '@/components/ApiErrorMessage';
 import { DetailPageSkeleton } from '@/components/skeletons/DetailPageSkeleton';
 import CollaborationMapPreview from '@/components/CollaborationMapPreview';
 import { countriesToCollaborationPoints } from '@/utils/collaboration-map';
+import ScientificProductionPanel from './components/ScientificProductionPanel';
 
 interface Props {
   params: { id: string };
@@ -29,24 +29,6 @@ const MOCK_COLLABORATION_COUNTRIES = [
   { country: 'Alemania', count: 1 },
   { country: 'Francia', count: 1 },
 ];
-
-const SOURCE_LOGOS: Record<
-  string,
-  { src: string; alt: string; width: number; height: number }
-> = {
-  Clarivate: {
-    src: '/icons/logo_Clarivate.png',
-    alt: 'Clarivate logo',
-    width: 330,
-    height: 99,
-  },
-  Scopus: {
-    src: '/icons/logo_Scopus.png',
-    alt: 'Scopus logo',
-    width: 330,
-    height: 99,
-  },
-};
 
 /** Circular DOI badge — matches the official doi.org disc logo style */
 function DoiBadge() {
@@ -162,8 +144,6 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
     },
   ];
 
-  const logo = SOURCE_LOGOS[production.source];
-
   return (
     <main className="bg-[var(--color-bg-neutral-secondary)]">
       {/* ── Header ─────────────────────────────────────────────────────── */}
@@ -247,57 +227,13 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
               </p>
             </div>
 
-            {/* Vertical divider */}
-            <div className="hidden lg:block w-px bg-gray-300 self-stretch mx-2" />
-
             {/* Right */}
-            <div className="flex flex-col gap-6 mt-6 lg:mt-0 lg:pl-10 lg:w-55 shrink-0">
-              <div className="space-y-1">
-                <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
-                  Citas
-                </p>
-                <p
-                  className="text-[56px] font-light leading-none text-center"
-                  style={{ color: 'var(--color-text-brand-primary)' }}
-                >
-                  {production.citationCount}
-                </p>
-              </div>
-
-              {production.doi && (
-                <div className="space-y-2">
-                  <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
-                    Métricas alternativas
-                  </p>
-                  <div className="flex justify-center text-[var(--color-text-neutral-primary)]">
-                    <a
-                      href={`https://plu.mx/plum/a/?doi=${production.doi}`}
-                      data-hide-when-empty="true"
-                      className="plumx-plum-print-popup"
-                      data-site="plum"
-                      data-orientation="vertical"
-                    >
-                      {production.title}
-                    </a>
-                  </div>
-                </div>
-              )}
-              {production.source && (
-                <div className="space-y-1">
-                  <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
-                    Fuente
-                  </p>
-                  {logo && (
-                    <Image
-                      src={logo.src}
-                      alt={logo.alt}
-                      width={logo.width}
-                      height={logo.height}
-                    />
-                  )}
-                </div>
-              )}
-            </div>
+            <ScientificProductionPanel
+              production_title={production.title}
+              production_doi={production.doi}
+              production_source={production.source}
+              citation_count={production.citation_count}
+            />
           </div>
         </div>
       </section>
