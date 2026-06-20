@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Breadcrumb from '../../../components/Breadcrumb';
 import BackButton from '../../../components/BackButton';
 import DetailNavbar from '../../../components/DetailNavbar';
@@ -23,11 +24,17 @@ import ProjectListItem from '../../projects/components/ProjectListItem';
 import MetricsPanel from '../components/MetricsPanel';
 import Button from '@/components/Button';
 import Pagination from '@/components/Pagination';
+import { formatCeaCategory } from '@/utils/text';
 import type { SummaryScientificProduction } from '../../../types';
 import type {
   ResearcherProfile,
   ResearcherScientificOutput,
-} from '../../../types/researcher-profile';
+} from '../../../types/researcher-detail';
+
+const DownloadInfoButton = dynamic(() => import('./components/DownloadInfoButton'), {
+  ssr: false,
+  loading: () => null,
+});
 
 interface ResearchersDetailPageProps {
   params: { id: string };
@@ -552,7 +559,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                 {(!EXTERNAL_PROFILES_ENABLED || profile.profileType !== 'EXTERNAL') &&
                   profile.ceaCategory && (
                     <p className="text-body-lg text-[var(--color-text-neutral-secondary)]">
-                      {profile.ceaCategory}
+                      {formatCeaCategory(profile.ceaCategory)}
                     </p>
                   )}
 
@@ -597,16 +604,16 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                   <>
                     <div className="space-y-1">
                       <p
-                        className="text-body-lg font-bold uppercase tracking-wide"
+                        className="text-body-lg font-bold tracking-wide"
                         style={{ color: 'var(--color-text-neutral-secondary)' }}
                       >
                         {profile.workUnits.length === 1
-                          ? 'Unidad de pago'
-                          : 'Unidades de pago'}
+                          ? 'Unidad de Trabajo'
+                          : 'Unidades de Trabajo'}
                       </p>
                       <UnitsList
                         units={profile.workUnits}
-                        emptyText="Sin unidad de pago registrada"
+                        emptyText="Sin unidad de trabajo registrada"
                         ulClassName="list-disc pl-5 text-body-lg space-y-1"
                         emptyClassName="text-body-lg"
                       />
@@ -614,7 +621,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
 
                     <div className="space-y-1 pt-4">
                       <p
-                        className="text-body-lg font-bold uppercase tracking-wide"
+                        className="text-body-lg font-bold tracking-wide"
                         style={{ color: 'var(--color-text-neutral-secondary)' }}
                       >
                         Unidades de Colaboración
@@ -632,10 +639,10 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
 
                 <div className="space-y-1 pt-4">
                   <p
-                    className="text-body-lg font-bold uppercase tracking-wide"
+                    className="text-body-lg font-bold tracking-wide"
                     style={{ color: 'var(--color-text-neutral-secondary)' }}
                   >
-                    Enlaces de interés
+                    Enlaces de Interés
                   </p>
                   {profileLinks.length > 0 ? (
                     <div className="flex items-center gap-3 pt-1">
@@ -664,11 +671,16 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
               </div>
             </div>
 
-            <MetricsPanel
-              scientificOutputs={profile.scientificOutputs}
-              onYearSelected={handleYearSelected}
-              hIndex={profile.hIndex}
-            />
+            <div className="flex flex-col gap-4 lg:self-stretch lg:justify-between">
+              <MetricsPanel
+                scientificOutputs={profile.scientificOutputs}
+                onYearSelected={handleYearSelected}
+                hIndex={profile.hIndex}
+              />
+              <div className="flex justify-end">
+                <DownloadInfoButton profile={profile} />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -769,13 +781,13 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                     <div className="space-y-4 text-body-lg sm:text-[16px]">
                       <div>
                         <p
-                          className="text-body-lg font-bold uppercase tracking-wide mb-1"
+                          className="text-body-lg font-bold tracking-wide mb-1"
                           style={{ color: 'var(--color-text-neutral-primary)' }}
                         >
                           Categoría
                         </p>
                         <p className="text-body-lg text-[var(--color-text-neutral-primary)] break-words">
-                          {profile.ceaCategory ?? (
+                          {formatCeaCategory(profile.ceaCategory) ?? (
                             <span
                               style={{ color: 'var(--color-text-neutral-secondary)' }}
                             >

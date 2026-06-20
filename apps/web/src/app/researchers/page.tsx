@@ -27,6 +27,8 @@ import {
 } from '@/services/researchers';
 import type { ResearcherFilters } from '@/services/researchers';
 import type { ResearcherQueryFilters } from '@/services/researchers';
+import type { Researcher } from '@/services/researchers';
+import ExportXlsButton, { type XlsColumn } from '@/components/ExportXlsButton';
 
 const BREADCRUMB_ITEMS = [{ label: 'Perfiles' }];
 
@@ -61,8 +63,31 @@ function ResearchersPageContent() {
   const [total, setTotal] = useState<number | null>(null);
   const [listLoadError, setListLoadError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
+  // Holds the current page's researchers so the Excel export can read them.
+  const [currentResearchers, setCurrentResearchers] = useState<Researcher[]>([]);
   const shouldScrollToListRef = useRef(false);
   const SCROLL_KEY = 'researchers-scroll-y';
+
+  const RESEARCHER_COLUMNS: XlsColumn<Researcher>[] = [
+    {
+      header: 'Nombre',
+      getValue: (r) =>
+        [r.name, r.firstSurname, r.secondSurname].filter(Boolean).join(' '),
+    },
+    {
+      header: 'Nombres alternativos',
+      getValue: (r) => (r.altNames ?? []).join('; '),
+    },
+    {
+      header: 'Unidades de trabajo',
+      getValue: (r) => r.workUnits.map((u) => u.name).join('; '),
+    },
+    {
+      header: 'Unidades de colaboración',
+      getValue: (r) => r.linkedUnits.map((u) => u.name).join('; '),
+    },
+    { header: 'Id del perfil', getValue: (r) => r.id },
+  ];
 
   // Restore scroll position when returning from a detail page
   useEffect(() => {
@@ -221,12 +246,19 @@ function ResearchersPageContent() {
         )}
 
         {total !== null && (
-          <p
-            className="mb-4 text-body-md"
-            style={{ color: 'var(--color-text-neutral-secondary)' }}
-          >
-            {total} resultado{total !== 1 ? 's' : ''}
-          </p>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p
+              className="text-body-md"
+              style={{ color: 'var(--color-text-neutral-secondary)' }}
+            >
+              {total} resultado{total !== 1 ? 's' : ''}
+            </p>
+            <ExportXlsButton
+              data={currentResearchers}
+              columns={RESEARCHER_COLUMNS}
+              filename="perfiles"
+            />
+          </div>
         )}
 
         <SortControls
@@ -273,6 +305,7 @@ function ResearchersPageContent() {
               onTotalChange={setTotal}
               onLoadErrorChange={setListLoadError}
               onTotalPagesChange={setTotalPages}
+              onDataChange={setCurrentResearchers}
               profileType="UCR"
             />
           </div>

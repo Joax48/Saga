@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Info } from 'lucide-react';
-import type { ResearcherScientificOutput } from '../../../types/researcher-profile';
+import type { ResearcherScientificOutput } from '../../../types/researcher-detail';
 
 interface MetricsPanelProps {
   scientificOutputs: ResearcherScientificOutput[];

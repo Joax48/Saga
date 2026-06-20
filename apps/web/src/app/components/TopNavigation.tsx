@@ -45,14 +45,22 @@ const ITEMS: TopNavItem[] = [
   },
 ];
 
+function formatCount(n: number): { label: string; tooltip: string | null } {
+  if (n >= 100_000) {
+    return {
+      label: '+100k',
+      tooltip: `Total: ${n.toLocaleString('es-CR')}`,
+    };
+  }
+  return { label: n.toLocaleString('es-CR'), tooltip: null };
+}
+
 export default function TopNavigation() {
   const [counts, setCounts] = useState<Partial<Record<TopNavKey, number>>>({});
 
   useEffect(() => {
     let cancelled = false;
 
-    // Each list endpoint returns the full `total`, so we request a single
-    // item per entity just to read the count without fetching whole pages.
     const loaders: Array<[TopNavKey, Promise<number>]> = [
       [
         'researchers',
@@ -73,9 +81,7 @@ export default function TopNavigation() {
         .then((total) => {
           if (!cancelled) setCounts((prev) => ({ ...prev, [key]: total }));
         })
-        .catch(() => {
-          // Leave the badge hidden if a count fails to load.
-        });
+        .catch(() => {});
     }
 
     return () => {
@@ -88,6 +94,7 @@ export default function TopNavigation() {
       <div className="max-w-6xl mx-auto grid grid-cols-2 gap-4 text-center md:grid-cols-3 lg:grid-cols-4">
         {ITEMS.map((item) => {
           const count = counts[item.key];
+          const formatted = count !== undefined ? formatCount(count) : null;
           return (
             <Link
               key={item.label}
@@ -102,9 +109,12 @@ export default function TopNavigation() {
                   height={70}
                   className="object-contain transition-transform duration-200 group-hover:scale-110"
                 />
-                {count !== undefined && (
-                  <span className="absolute right-0 top-1 inline-flex min-w-6 items-center justify-center rounded-md border border-[var(--color-secondary)] bg-white px-1.5 py-0.5 text-caption font-bold text-[var(--color-secondary)]">
-                    {count}
+                {formatted && (
+                  <span
+                    title={formatted.tooltip ?? undefined}
+                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 inline-flex min-w-6 items-center justify-center rounded-md border border-[var(--color-secondary)] bg-white px-1.5 py-0.5 text-caption font-bold text-[var(--color-secondary)]"
+                  >
+                    {formatted.label}
                   </span>
                 )}
               </div>

@@ -32,6 +32,7 @@ const COSTA_RICA_NODE: CollaborationPoint = {
   isMain: true,
 };
 
+
 export function buildCollaborationPoints(
   countries: { country: string; count: number }[],
 ): CollaborationPoint[] {
@@ -67,6 +68,9 @@ type CollaborationMapPreviewProps = {
   subtitle?: string;
   scopeLabel?: string;
   points?: CollaborationPoint[];
+  // When true (default) shows the "Simulación visual" badge used by the mock
+  // placeholders. Pass false when feeding real backend data.
+  simulation?: boolean;
 };
 
 const DEFAULT_POINTS: CollaborationPoint[] = [
@@ -179,6 +183,7 @@ export default function CollaborationMapPreview({
   subtitle = 'Haga clic en los puntos para mostrar los detalles.',
   scopeLabel = 'Mapa general',
   points = DEFAULT_POINTS,
+  simulation = true,
 }: CollaborationMapPreviewProps) {
   const [selected, setSelected] = useState<CollaborationPoint | null>(null);
 
@@ -201,8 +206,11 @@ export default function CollaborationMapPreview({
         {subtitle}
       </p>
 
-      {/* Map container — relative so the panel can be absolute inside */}
-      <div className="relative mt-6 h-[520px] overflow-hidden">
+      {/* Map container — relative so the panel can be absolute inside.
+          Height scales down on smaller screens: the map is a wide panorama
+          (~2.3:1) that fits to the container width, so a tall fixed height
+          would leave large empty bands on narrow viewports. */}
+      <div className="relative mt-6 h-[320px] sm:h-[440px] lg:h-[520px] overflow-hidden">
         <ComposableMap
           projection="geoMercator"
           projectionConfig={{ scale: 124, center: [0, 40] }}

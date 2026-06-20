@@ -27,7 +27,7 @@ export default function FilterSection({
     return [
       {
         kind: 'options',
-        title: 'Unidad de Pago',
+        title: 'Unidad de Trabajo',
         groupKey: 'base-unit',
         options: filterOptions.baseUnit,
         selectedValues: filters.baseUnit ?? [],

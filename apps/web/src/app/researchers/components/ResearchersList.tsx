@@ -9,7 +9,7 @@ import {
 import ResearchersCardsGrid from './ResearchersCardsGrid';
 import ApiErrorMessage from '@/components/ApiErrorMessage';
 
-import type { Researcher } from '@/types/researcher-data.js';
+import type { Researcher } from '@/types/researcher-list';
 
 // Number of profiles displayed per page
 const PAGE_SIZE = 18;
@@ -22,6 +22,7 @@ interface ResearchersListProps {
   onTotalChange?: (total: number) => void;
   onLoadErrorChange?: (error: string | null) => void;
   onTotalPagesChange?: (totalPages: number) => void;
+  onDataChange?: (items: Researcher[]) => void;
   profileType?: 'UCR' | 'EXTERNAL';
 }
 
@@ -33,6 +34,7 @@ export default function ResearchersList({
   onTotalChange,
   onLoadErrorChange,
   onTotalPagesChange,
+  onDataChange,
   profileType,
 }: ResearchersListProps) {
   const [researchers, setResearchers] = useState<Researcher[]>([]);
@@ -76,6 +78,7 @@ export default function ResearchersList({
         if (cancelled) return;
 
         setResearchers(response.data);
+        onDataChange?.(response.data);
         const nextTotalPages = Math.max(1, Math.ceil(response.total / response.limit));
         setTotalPages(nextTotalPages);
         onTotalChange?.(response.total);

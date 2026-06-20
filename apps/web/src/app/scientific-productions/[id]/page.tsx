@@ -232,7 +232,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
               production_title={production.title}
               production_doi={production.doi}
               production_source={production.source}
-              citation_count={production.citation_count}
+              citation_count={production.citationCount}
             />
           </div>
         </div>

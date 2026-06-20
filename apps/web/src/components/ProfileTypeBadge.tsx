@@ -1,4 +1,4 @@
-import type { ProfileType } from '@/types/researcher-data';
+import type { ProfileType } from '@/types';
 
 interface ProfileTypeBadgeProps {
   type: ProfileType;

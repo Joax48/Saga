@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Pagination from '@/components/Pagination';
 import Card from '@/components/Card';
 import { ResearcherCardSkeleton } from '@/components/skeletons/CardSkeleton';
+import { formatCeaCategory } from '@/utils/text';
 import type { Researcher } from '@/types/researcher-data';
 
 interface ResearchersCardsGridProps {
@@ -108,10 +109,10 @@ export default function ResearchersCardsGrid({
                   description={
                     <span className="flex flex-col gap-0.5">
                       <span
-                        className="text-caption font-bold uppercase tracking-wide"
+                        className="text-caption font-bold tracking-wide"
                         style={{ color: 'var(--color-text-neutral-secondary)' }}
                       >
-                        {workUnits.length === 1 ? 'Unidad de pago' : 'Unidades de pago'}
+                        {workUnits.length === 1 ? 'Unidad de Trabajo' : 'Unidades de Trabajo'}
                       </span>
                       {primaryWorkUnit ? (
                         <span className="relative z-[1] inline-flex flex-wrap items-center gap-1.5">
@@ -145,7 +146,7 @@ export default function ResearchersCardsGrid({
                         </span>
                       ) : (
                         <span style={{ color: 'var(--color-text-neutral-secondary)' }}>
-                          Sin unidad de pago registrada
+                          Sin unidad de trabajo registrada
                         </span>
                       )}
                       {participationStartDate && (
@@ -159,7 +160,10 @@ export default function ResearchersCardsGrid({
                       )}
                     </span>
                   }
-                  excerpt={researcher.ceaCategory ?? 'Sin categoría registrada'}
+                  excerpt={
+                    formatCeaCategory(researcher.ceaCategory) ??
+                    'Sin categoría registrada'
+                  }
                   imageSrc={
                     researcher.photo ||
                     getAvatarUrl(

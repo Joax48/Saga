@@ -35,39 +35,43 @@ export function SortControls<SortBy extends string, SortOrder extends string>({
 }: SortControlsProps<SortBy, SortOrder>) {
   return (
     <div
-      className={`flex flex-col gap-3 lg:flex-row lg:items-center ${className}`.trim()}
+      className={`flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-3 ${className}`.trim()}
     >
       <span className="text-sm" style={{ color: 'var(--color-text-neutral-secondary)' }}>
         {label}
       </span>
 
-      <select
-        value={sortBy}
-        onChange={(event) => onSortByChange(event.target.value as SortBy)}
-        className="text-sm border rounded px-2 py-1"
-        style={{ color: 'var(--color-text-neutral-secondary)' }}
-        aria-label={label}
-      >
-        {sortByOptions.map((option) => (
-          <option key={option.value} value={option.value} className="text-sm">
-            {option.label}
-          </option>
-        ))}
-      </select>
+      {/* Selects share their own row so they size to their content instead of
+          stretching to the full width on mobile (flex-col stretch). */}
+      <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+        <select
+          value={sortBy}
+          onChange={(event) => onSortByChange(event.target.value as SortBy)}
+          className="text-sm border rounded px-2 py-1"
+          style={{ color: 'var(--color-text-neutral-secondary)' }}
+          aria-label={label}
+        >
+          {sortByOptions.map((option) => (
+            <option key={option.value} value={option.value} className="text-sm">
+              {option.label}
+            </option>
+          ))}
+        </select>
 
-      <select
-        value={sortOrder}
-        onChange={(event) => onSortOrderChange(event.target.value as SortOrder)}
-        className="text-sm border rounded px-2 py-1"
-        style={{ color: 'var(--color-text-neutral-secondary)' }}
-        aria-label="Orden de ordenamiento"
-      >
-        {sortOrderOptions.map((option) => (
-          <option key={option.value} value={option.value} className="text-sm">
-            {option.label}
-          </option>
-        ))}
-      </select>
+        <select
+          value={sortOrder}
+          onChange={(event) => onSortOrderChange(event.target.value as SortOrder)}
+          className="text-sm border rounded px-2 py-1"
+          style={{ color: 'var(--color-text-neutral-secondary)' }}
+          aria-label="Orden de ordenamiento"
+        >
+          {sortOrderOptions.map((option) => (
+            <option key={option.value} value={option.value} className="text-sm">
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }

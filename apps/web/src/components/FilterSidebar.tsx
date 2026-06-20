@@ -408,7 +408,7 @@ function OptionsPopup({
             {filteredOptions.length > 0 ? (
               <>
                 <div ref={gridContainerRef} style={{ overflow: 'hidden' }}>
-                  <div className="grid grid-cols-3 gap-x-8 gap-y-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-1">
                     {visibleOptions.map((opt) => (
                       <CheckboxOption
                         key={opt.value}
@@ -622,14 +622,19 @@ export function FilterSidebar({
     }
   }, [maxWidthPx, minWidthPx, resizable]);
 
+  // Expose the resizable width as a CSS variable so it only takes effect from
+  // `lg` upward (see the className below). On smaller screens the sidebar stays
+  // full width, which keeps it from overflowing narrow mobile viewports.
   const sidebarStyle = useMemo<React.CSSProperties>(() => {
     if (!resizable) return {};
-    return { width: `${sidebarWidth}px`, minWidth: `${sidebarWidth}px` };
+    return { ['--sidebar-w' as string]: `${sidebarWidth}px` };
   }, [resizable, sidebarWidth]);
 
   return (
     <aside
-      className="relative w-full shrink-0 lg:flex-none"
+      className={`relative w-full shrink-0 lg:flex-none${
+        resizable ? ' lg:w-[var(--sidebar-w)] lg:min-w-[var(--sidebar-w)]' : ''
+      }`}
       style={sidebarStyle}
       aria-label="Filtros"
     >

@@ -120,6 +120,7 @@ export function getResearchers({
 
   if (sort?.order) params.set('sortOrder', sort.order);
 
+
   return request<PaginatedListResponseDto<ResearcherSummaryApiDto>>(
     `/researchers?${params.toString()}`,
   ).then((response) => ({

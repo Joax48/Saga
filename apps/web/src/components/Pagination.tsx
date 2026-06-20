@@ -59,7 +59,8 @@ export default function Pagination({
     <nav
       aria-label="Paginación"
       className="
-        flex w-full items-center justify-center gap-3 pt-2 pb-16 text-sm
+        flex w-full flex-wrap items-center justify-center gap-1.5 pt-2 pb-16 text-sm
+        sm:gap-3
         text-[var(--color-text-neutral-secondary)]
       "
     >
@@ -67,26 +68,28 @@ export default function Pagination({
       <button
         onClick={() => onPageChange(1)}
         disabled={isFirst}
+        aria-label="Primera página"
         className="
           flex items-center gap-1 transition-colors
           disabled:opacity-30
           hover:text-[var(--color-text-brand-primary)]
         "
       >
-        <span>«</span> Primero
+        <span>«</span> <span className="hidden sm:inline">Primero</span>
       </button>
 
       {/* Previous */}
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={isFirst}
+        aria-label="Página anterior"
         className="
           flex items-center gap-1 transition-colors
           disabled:opacity-30
           hover:text-[var(--color-text-brand-primary)]
         "
       >
-        <span>‹</span> Anterior
+        <span>‹</span> <span className="hidden sm:inline">Anterior</span>
       </button>
 
       {/* Pages */}
@@ -111,26 +114,28 @@ export default function Pagination({
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={isLast}
+        aria-label="Página siguiente"
         className="
           flex items-center gap-1 transition-colors
           disabled:opacity-30
           hover:text-[var(--color-text-brand-primary)]
         "
       >
-        Siguiente <span>›</span>
+        <span className="hidden sm:inline">Siguiente</span> <span>›</span>
       </button>
 
       {/* Last */}
       <button
         onClick={() => onPageChange(totalPages)}
         disabled={isLast}
+        aria-label="Última página"
         className="
           flex items-center gap-1 transition-colors
           disabled:opacity-30
           hover:text-[var(--color-text-brand-primary)]
         "
       >
-        Último <span>»</span>
+        <span className="hidden sm:inline">Último</span> <span>»</span>
       </button>
     </nav>
   );

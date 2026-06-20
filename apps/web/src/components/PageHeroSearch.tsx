@@ -74,7 +74,9 @@ export default function PageHeroSearch({
           <Breadcrumb items={items} />
         </div>
         <div className={isHome ? 'flex justify-start h-10' : 'flex justify-start h-4'} />
-        <h1 className="mb-6 text-h1 text-center font-bold text-white">{title}</h1>
+        <h1 className="mb-6 text-h2 sm:text-h1 text-center font-bold text-white">
+          {title}
+        </h1>
 
         <SearchBar
           placeholder={searchPlaceholder}

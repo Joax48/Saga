@@ -2,6 +2,15 @@
  * Shared TypeScript type definitions for the web application.
  */
 
+/* ─── Researchers (shared) ───────────────────────────────────────────── */
+
+export type ProfileType = 'UCR' | 'EXTERNAL';
+
+export interface ResearcherLinkedUnit {
+  id: string;
+  name: string;
+}
+
 /* ─── Scientific Productions ─────────────────────────────────────────── */
 
 interface AuthorReference {
