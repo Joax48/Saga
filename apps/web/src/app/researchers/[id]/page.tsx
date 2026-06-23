@@ -19,7 +19,7 @@ import CollaborationMapPreview, {
 import ApiErrorMessage from '@/components/ApiErrorMessage';
 import { ResearcherDetailSkeleton } from '@/components/skeletons/DetailPageSkeleton';
 import ProfileTypeBadge from '@/components/ProfileTypeBadge';
-import { ProductionCard } from '../../scientific-productions/components';
+import { ProductionCard } from '../../scientific-productions/components/ProductionCard';
 import ProjectListItem from '../../projects/components/ProjectListItem';
 import MetricsPanel from '../components/MetricsPanel';
 import Button from '@/components/Button';

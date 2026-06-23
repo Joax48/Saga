@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import Pagination from '@/components/Pagination';
-import { ProductionCard } from '@/app/scientific-productions/components';
+import { ProductionCard } from '@/app/scientific-productions/components/ProductionCard';
 import type { UnitScientificProduction } from '@/services/units';
 import type { SummaryScientificProduction } from '@/types';
 

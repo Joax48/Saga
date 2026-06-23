@@ -1,5 +1,11 @@
 import ProjectsViewClient from './components/ProjectsViewClient';
-import type { ProjectQueryFilters } from '@/services/projects';
+import {
+  getProjectFilters,
+  getProjects,
+  type ProjectFilters,
+  type ProjectQueryFilters,
+  type ProjectSummaryItem,
+} from '@/services/projects';
 import type { ProjectSortBy, ProjectSortOrder } from '@/types/projects.types';
 
 interface PageProps {
@@ -7,6 +13,7 @@ interface PageProps {
     page?: string;
     limit?: string;
     q?: string;
+    type?: string;
     researchType?: string;
     projectType?: string;
     startYear?: string;
@@ -17,6 +24,27 @@ interface PageProps {
     sortOrder?: string;
   };
 }
+
+const EMPTY_PROJECTS_RESPONSE: {
+  data: ProjectSummaryItem[];
+  total: number;
+  page: number;
+  limit: number;
+} = {
+  data: [],
+  total: 0,
+  page: 1,
+  limit: 10,
+};
+
+const EMPTY_FILTER_OPTIONS: ProjectFilters = {
+  researchType: [],
+  projectType: [],
+  startYear: [],
+  status: [],
+  participants: [],
+  keywords: [],
+};
 
 function parseFilterParam(value?: string): string[] {
   if (!value) return [];
@@ -36,9 +64,10 @@ function parseSortOrder(value?: string): ProjectSortOrder {
 
 export default async function ProjectsPage({ searchParams }: PageProps) {
   const page = Number(searchParams.page ?? 1);
+  const limit = Number(searchParams.limit ?? 10);
 
   const initialFilters: ProjectQueryFilters = {
-    researchType: parseFilterParam(searchParams.researchType),
+    researchType: parseFilterParam(searchParams.type ?? searchParams.researchType),
     projectType: parseFilterParam(searchParams.projectType),
     startYear: parseFilterParam(searchParams.startYear),
     status: parseFilterParam(searchParams.status),
@@ -48,16 +77,50 @@ export default async function ProjectsPage({ searchParams }: PageProps) {
   const initialSortBy = parseSortBy(searchParams.sortBy);
   const initialSortOrder = parseSortOrder(searchParams.sortOrder);
 
+  const queryFilters: ProjectQueryFilters = {
+    ...initialFilters,
+    sortBy: initialSortBy,
+    sortOrder: initialSortOrder,
+  };
+
+  const [projectsResult, filtersResult] = await Promise.allSettled([
+    getProjects(page, limit, searchParams.q ?? '', queryFilters),
+    getProjectFilters(initialFilters, searchParams.q ?? ''),
+  ]);
+
+  const projectsResponse =
+    projectsResult.status === 'fulfilled'
+      ? projectsResult.value
+      : { ...EMPTY_PROJECTS_RESPONSE, page, limit };
+
+  const filterOptions =
+    filtersResult.status === 'fulfilled' ? filtersResult.value : EMPTY_FILTER_OPTIONS;
+
+  const hasApiError =
+    projectsResult.status === 'rejected' || filtersResult.status === 'rejected';
+
+  if (projectsResult.status === 'rejected') {
+    console.error('Error fetching projects:', projectsResult.reason);
+  }
+
+  if (filtersResult.status === 'rejected') {
+    console.error('Error fetching project filters:', filtersResult.reason);
+  }
+
   return (
     <ProjectsViewClient
-      initialProjects={[]}
-      initialTotal={0}
-      initialFilterOptions={null}
-      initialSearchQuery={searchParams.q ?? ''}
-      initialPage={page}
-      initialFilters={initialFilters}
-      initialSortBy={initialSortBy}
-      initialSortOrder={initialSortOrder}
+      projects={projectsResponse.data}
+      total={projectsResponse.total}
+      currentPage={page}
+      limit={limit}
+      activeFilters={{
+        q: searchParams.q,
+        ...initialFilters,
+      }}
+      filterOptions={filterOptions}
+      sortBy={initialSortBy}
+      sortOrder={initialSortOrder}
+      hasApiError={hasApiError}
     />
   );
 }

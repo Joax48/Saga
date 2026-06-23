@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { ChevronUp } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import PageHeroSearch from '@/components/PageHeroSearch';
 import Pagination from '@/components/Pagination';
@@ -17,28 +18,13 @@ import ProjectListItem from '@/app/projects/components/ProjectListItem';
 import { CardSkeleton } from '@/components/skeletons/CardSkeleton';
 
 import {
-  getProjectFilters,
-  getProjects,
   type ProjectSummaryItem,
   type ProjectFilters,
   type ProjectQueryFilters,
 } from '@/services/projects';
 import type { ProjectSortBy, ProjectSortOrder } from '@/types/projects.types';
 
-const PAGE_SIZE = 10;
 const BREADCRUMB_ITEMS = [{ label: 'Proyectos' }];
-
-const DEFAULT_FILTERS: ProjectQueryFilters = {
-  researchType: [],
-  projectType: [],
-  startYear: [],
-  status: [],
-  participants: [],
-  keywords: [],
-};
-
-const DEFAULT_SORT_BY: ProjectSortBy = 'title';
-const DEFAULT_SORT_ORDER: ProjectSortOrder = 'asc';
 
 type ProjectFilterKey = Exclude<keyof ProjectQueryFilters, 'sortBy' | 'sortOrder'>;
 
@@ -68,115 +54,124 @@ function keepSelectedOptionsVisible(
 }
 
 interface Props {
-  initialProjects: ProjectSummaryItem[];
-  initialTotal: number;
-  initialFilterOptions: ProjectFilters | null;
-  initialSearchQuery: string;
-  initialPage: number;
-  initialFilters: ProjectQueryFilters;
-  initialSortBy: ProjectSortBy;
-  initialSortOrder: ProjectSortOrder;
+  projects: ProjectSummaryItem[];
+  total: number;
+  currentPage: number;
+  limit: number;
+  activeFilters: ProjectQueryFilters & { q?: string };
+  filterOptions: ProjectFilters;
+  sortBy: ProjectSortBy;
+  sortOrder: ProjectSortOrder;
+  hasApiError?: boolean;
 }
 
 export default function ProjectsViewClient({
-  initialProjects,
-  initialTotal,
-  initialFilterOptions,
-  initialSearchQuery,
-  initialPage,
-  initialFilters,
-  initialSortBy,
-  initialSortOrder,
+  projects,
+  total,
+  currentPage,
+  limit,
+  activeFilters,
+  filterOptions,
+  sortBy,
+  sortOrder,
+  hasApiError = false,
 }: Props) {
-  const [projects, setProjects] = useState<ProjectSummaryItem[]>(initialProjects);
-  const [totalResults, setTotalResults] = useState(initialTotal);
-  const [filterOptions, setFilterOptions] = useState<ProjectFilters | null>(
-    initialFilterOptions,
-  );
-  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
-  const [filters, setFilters] = useState<ProjectQueryFilters>(initialFilters);
-  const [sortBy, setSortBy] = useState<ProjectSortBy>(initialSortBy);
-  const [sortOrder, setSortOrder] = useState<ProjectSortOrder>(initialSortOrder);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
-  const [currentPage, setCurrentPage] = useState(initialPage);
-  const [totalPages, setTotalPages] = useState(
-    Math.max(1, Math.ceil(initialTotal / PAGE_SIZE)),
-  );
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const resultsRef = useRef<HTMLElement>(null);
 
   const scrollToResults = useCallback(() => {
     resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
+  const updateParams = useCallback(
+    (
+      updates: Record<string, string | null>,
+      resetPage = true,
+      mode: 'push' | 'replace' = 'push',
+    ) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === '') {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+
+      if (resetPage) {
+        params.set('page', '1');
+      }
+
+      startTransition(() => {
+        const query = params.toString();
+        const url = query ? `${pathname}?${query}` : pathname;
+        mode === 'replace'
+          ? router.replace(url, { scroll: false })
+          : router.push(url, { scroll: false });
+
+        router.refresh();
+      });
+    },
+    [pathname, router, searchParams],
+  );
+
   const handleSearch = useCallback(
     (query: string) => {
-      setSearchQuery(query);
-      setCurrentPage(1);
+      updateParams({ q: query || null });
       scrollToResults();
     },
-    [scrollToResults],
+    [scrollToResults, updateParams],
   );
 
   const handleToggleFilter = useCallback(
     (key: ProjectFilterKey, value: string) => {
-      setFilters((prev) => ({
-        ...prev,
-        [key]: toggleValue(prev[key], value),
-      }));
-      setCurrentPage(1);
+      const updated = toggleValue(activeFilters[key], value);
+      const urlKey = key === 'researchType' ? 'type' : key;
+      updateParams({
+        [urlKey]: updated.length > 0 ? updated.join(',') : null,
+        ...(key === 'researchType' ? { researchType: null } : {}),
+      });
       scrollToResults();
     },
-    [scrollToResults],
+    [activeFilters, scrollToResults, updateParams],
   );
 
   const handleClearAll = useCallback(() => {
-    setFilters(DEFAULT_FILTERS);
-    setSortBy(DEFAULT_SORT_BY);
-    setSortOrder(DEFAULT_SORT_ORDER);
-    setCurrentPage(1);
-  }, []);
+    startTransition(() => {
+      router.push(pathname, { scroll: false });
+      router.refresh();
+    });
+  }, [pathname, router]);
 
   const handleSortByChange = useCallback(
     (value: ProjectSortBy) => {
-      setSortBy(value);
-      setCurrentPage(1);
+      updateParams({ sortBy: value });
       scrollToResults();
     },
-    [scrollToResults],
+    [scrollToResults, updateParams],
   );
 
   const handleSortOrderChange = useCallback(
     (value: ProjectSortOrder) => {
-      setSortOrder(value);
-      setCurrentPage(1);
+      updateParams({ sortOrder: value });
       scrollToResults();
     },
-    [scrollToResults],
+    [scrollToResults, updateParams],
   );
 
   const handlePageChange = useCallback(
     (page: number) => {
-      setCurrentPage(page);
+      updateParams({ page: String(page) }, false);
       scrollToResults();
     },
-    [scrollToResults],
+    [scrollToResults, updateParams],
   );
-
-  useEffect(() => {
-    const loadFilters = async () => {
-      try {
-        const options = await getProjectFilters(filters, searchQuery);
-        setFilterOptions(options);
-      } catch (error) {
-        console.error('Error loading project filters:', error);
-      }
-    };
-
-    loadFilters();
-  }, [filters, searchQuery]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -191,40 +186,7 @@ export default function ProjectsViewClient({
     };
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setLoadError(null);
-      try {
-        const projectsResponse = await getProjects(currentPage, PAGE_SIZE, searchQuery, {
-          ...filters,
-          sortBy,
-          sortOrder,
-        });
-        setProjects(projectsResponse.data);
-        setTotalResults(projectsResponse.total);
-        setTotalPages(
-          Math.max(1, Math.ceil(projectsResponse.total / projectsResponse.limit)),
-        );
-      } catch (error) {
-        console.error('Error loading projects:', error);
-        setProjects([]);
-        setTotalResults(0);
-        setTotalPages(1);
-        setLoadError(
-          'No se pudieron cargar los proyectos. Intenta nuevamente más tarde.',
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [currentPage, searchQuery, filters, sortBy, sortOrder]);
-
   const filterGroups = useMemo<FilterGroupConfig[]>(() => {
-    if (!filterOptions) return [];
-
     return [
       {
         kind: 'options',
@@ -232,9 +194,9 @@ export default function ProjectsViewClient({
         groupKey: 'research-type',
         options: keepSelectedOptionsVisible(
           filterOptions.researchType,
-          filters.researchType,
+          activeFilters.researchType,
         ),
-        selectedValues: filters.researchType ?? [],
+        selectedValues: activeFilters.researchType ?? [],
         onToggle: (value) => handleToggleFilter('researchType', value),
       },
       {
@@ -243,25 +205,28 @@ export default function ProjectsViewClient({
         groupKey: 'project-type',
         options: keepSelectedOptionsVisible(
           filterOptions.projectType,
-          filters.projectType,
+          activeFilters.projectType,
         ),
-        selectedValues: filters.projectType ?? [],
+        selectedValues: activeFilters.projectType ?? [],
         onToggle: (value) => handleToggleFilter('projectType', value),
       },
       {
         kind: 'options',
         title: 'Años de inicio',
         groupKey: 'start-year',
-        options: keepSelectedOptionsVisible(filterOptions.startYear, filters.startYear),
-        selectedValues: filters.startYear ?? [],
+        options: keepSelectedOptionsVisible(
+          filterOptions.startYear,
+          activeFilters.startYear,
+        ),
+        selectedValues: activeFilters.startYear ?? [],
         onToggle: (value) => handleToggleFilter('startYear', value),
       },
       {
         kind: 'options',
         title: 'Estado',
         groupKey: 'status',
-        options: keepSelectedOptionsVisible(filterOptions.status, filters.status),
-        selectedValues: filters.status ?? [],
+        options: keepSelectedOptionsVisible(filterOptions.status, activeFilters.status),
+        selectedValues: activeFilters.status ?? [],
         onToggle: (value) => handleToggleFilter('status', value),
       },
       {
@@ -270,29 +235,35 @@ export default function ProjectsViewClient({
         groupKey: 'participants',
         options: keepSelectedOptionsVisible(
           filterOptions.participants,
-          filters.participants,
+          activeFilters.participants,
         ),
-        selectedValues: filters.participants ?? [],
+        selectedValues: activeFilters.participants ?? [],
         onToggle: (value) => handleToggleFilter('participants', value),
       },
       {
         kind: 'options',
         title: 'Palabras clave',
         groupKey: 'keywords',
-        options: keepSelectedOptionsVisible(filterOptions.keywords, filters.keywords),
-        selectedValues: filters.keywords ?? [],
+        options: keepSelectedOptionsVisible(
+          filterOptions.keywords,
+          activeFilters.keywords,
+        ),
+        selectedValues: activeFilters.keywords ?? [],
         onToggle: (value) => handleToggleFilter('keywords', value),
       },
     ];
-  }, [filterOptions, filters, handleToggleFilter]);
+  }, [activeFilters, filterOptions, handleToggleFilter]);
 
   const hasActiveFilters =
-    (filters.researchType?.length ?? 0) > 0 ||
-    (filters.projectType?.length ?? 0) > 0 ||
-    (filters.startYear?.length ?? 0) > 0 ||
-    (filters.status?.length ?? 0) > 0 ||
-    (filters.participants?.length ?? 0) > 0 ||
-    (filters.keywords?.length ?? 0) > 0;
+    !!activeFilters.q ||
+    (activeFilters.researchType?.length ?? 0) > 0 ||
+    (activeFilters.projectType?.length ?? 0) > 0 ||
+    (activeFilters.startYear?.length ?? 0) > 0 ||
+    (activeFilters.status?.length ?? 0) > 0 ||
+    (activeFilters.participants?.length ?? 0) > 0 ||
+    (activeFilters.keywords?.length ?? 0) > 0;
+
+  const totalPages = Math.max(1, Math.ceil(total / limit));
 
   return (
     <main className="bg-[var(--color-bg-neutral-secondary)] min-h-screen flex flex-col">
@@ -301,7 +272,7 @@ export default function ProjectsViewClient({
         title="Proyectos"
         searchPlaceholder="Buscar por código o nombre del proyecto"
         onSearch={handleSearch}
-        initialSearchValue={initialSearchQuery}
+        initialSearchValue={activeFilters.q ?? ''}
       />
 
       <section
@@ -309,7 +280,7 @@ export default function ProjectsViewClient({
         className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14 scroll-mt-10 flex-1"
       >
         <div className="max-w-6xl mx-auto">
-          {!loadError && (
+          {!hasApiError && (
             <div className="mb-4 lg:hidden">
               <Button
                 variant="brandOutline"
@@ -323,18 +294,23 @@ export default function ProjectsViewClient({
             </div>
           )}
 
-          {!loadError && (
+          {!hasApiError && (
             <p
               className="mb-4 text-body-md"
               style={{ color: 'var(--color-text-neutral-secondary)' }}
             >
-              {totalResults} resultado{totalResults !== 1 ? 's' : ''}
+              {total} resultado{total !== 1 ? 's' : ''}
             </p>
           )}
 
-          {loadError && <ApiErrorMessage className="mb-6" message={loadError} />}
+          {hasApiError && (
+            <ApiErrorMessage
+              className="mb-6"
+              message="No se pudieron cargar los proyectos. Intenta nuevamente más tarde."
+            />
+          )}
 
-          {!loadError && (
+          {!hasApiError && (
             <SortControls
               className="mb-4"
               sortBy={sortBy}
@@ -354,7 +330,7 @@ export default function ProjectsViewClient({
           )}
 
           <div className="flex flex-col gap-8 lg:flex-row">
-            {!loadError && (
+            {!hasApiError && (
               <div
                 id="projects-filter-sidebar"
                 className={`${filtersVisible ? 'block' : 'hidden'} lg:block`}
@@ -369,9 +345,9 @@ export default function ProjectsViewClient({
 
             <div className="flex-1 min-w-0">
               <div className="space-y-12">
-                {isLoading ? (
+                {isPending ? (
                   Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />)
-                ) : loadError ? null : projects.length > 0 ? (
+                ) : hasApiError ? null : projects.length > 0 ? (
                   projects.map((project) => {
                     const managerProfile = project.associatedProfiles.find(
                       (profile: { id: string; name: string; role?: string }) =>
@@ -412,7 +388,7 @@ export default function ProjectsViewClient({
             </div>
           </div>
 
-          {!isLoading && !loadError && projects.length > 0 && totalPages > 1 && (
+          {!isPending && !hasApiError && projects.length > 0 && totalPages > 1 && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

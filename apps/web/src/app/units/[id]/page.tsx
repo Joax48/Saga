@@ -18,11 +18,9 @@ import type {
   UnitProject,
 } from '@/services/units';
 import CollaborationMapPreview from '@/components/CollaborationMapPreview';
-import {
-  UnitScientificProductionsTab,
-  UnitProjectsTab,
-  UnitProfilesTab,
-} from '@/app/units/components';
+import { UnitScientificProductionsTab } from '@/app/units/components/UnitScientificProductionsTab';
+import { UnitProjectsTab } from '@/app/units/components/UnitProjectsTab';
+import { UnitProfilesTab } from '@/app/units/components/UnitProfilesTab';
 import {
   CardSkeleton,
   ResearcherCardSkeleton,

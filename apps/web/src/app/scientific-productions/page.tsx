@@ -3,7 +3,7 @@ import {
   getScientificProductions,
   getScientificProductionFilters,
 } from '@/services/scientific-productions';
-import { ScientificProductionsView } from './components';
+import { ScientificProductionsView } from './components/ScientificProductionsView';
 import type { FiltersApiResponse } from '@/services/scientific-productions';
 import type { SummaryScientificProduction } from '@/types';
 

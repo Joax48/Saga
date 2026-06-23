@@ -6,7 +6,7 @@ import { type ReactNode } from 'react';
 
 import ProjectListItem from '@/app/projects/components/ProjectListItem';
 import ResearchersCardsGrid from '@/app/researchers/components/ResearchersCardsGrid';
-import { ProductionCard } from '@/app/scientific-productions/components';
+import { ProductionCard } from '@/app/scientific-productions/components/ProductionCard';
 import UnitCard from '@/app/units/components/unitCard';
 import ApiErrorMessage from '@/components/ApiErrorMessage';
 import { CardSkeleton, UnitCardSkeleton } from '@/components/skeletons/CardSkeleton';
