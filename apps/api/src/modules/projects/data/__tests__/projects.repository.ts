@@ -521,6 +521,9 @@ describe('ProjectsRepository', () => {
             name: 'Maria Perez',
             role: 'Asociado',
             participationTypeId: 3,
+            workUnits: Buffer.from(
+              JSON.stringify([{ id: 7, name: 'Escuela de Ciencias Políticas' }]),
+            ),
             participationStartDate: '2023-06-01',
             participationEndDate: '',
             participationStartTs: new Date('2023-06-01'),
@@ -561,6 +564,7 @@ describe('ProjectsRepository', () => {
           {
             id: 12,
             name: 'Maria Perez',
+            workUnits: [{ id: 7, name: 'Escuela de Ciencias Políticas' }],
             role: 'Asociado',
             participationStartDate: '2023-06-01',
           },
@@ -580,6 +584,10 @@ describe('ProjectsRepository', () => {
       const associatedProfilesQuery = mockDatabaseClient.query.mock.calls[1][0] as string;
       expect(associatedProfilesQuery).toContain(
         'FROM UCR_PROFILE_PROJECT_UNIT member_participation',
+      );
+      expect(associatedProfilesQuery).toContain('FROM UCR_PROFILE_WORK_UNIT');
+      expect(associatedProfilesQuery).toContain(
+        'work_unit_membership.YEAR = EXTRACT(YEAR FROM SYSDATE)',
       );
       expect(mockDatabaseClient.query.mock.calls[1][1]).toEqual({ projectId: 'C3992' });
 

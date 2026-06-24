@@ -101,6 +101,10 @@ export class ProjectsReaderService implements ProjectsReader {
         (profile): ProjectAssociatedProfileDto => ({
           id: String(profile.id),
           name: profile.name,
+          workUnits: profile.workUnits.map((unit) => ({
+            id: String(unit.id),
+            name: unit.name,
+          })),
           ...(profile.role ? { role: profile.role } : {}),
           ...(profile.participationStartDate
             ? { participationStartDate: profile.participationStartDate }

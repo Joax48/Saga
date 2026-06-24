@@ -19,6 +19,7 @@ export interface Project {
   associatedProfiles: Array<{
     id: string;
     name: string;
+    workUnits: Array<{ id: string; name: string }>;
     role?: string;
     participationStartDate?: string;
     participationEndDate?: string;
@@ -69,6 +70,7 @@ export interface UnitReferenceApiDto {
 export interface ProjectAssociatedProfileApiDto {
   id: string;
   name: string;
+  workUnits: Array<{ id: string; name: string }>;
   role?: string;
   participationStartDate?: string;
   participationEndDate?: string;
@@ -87,6 +89,7 @@ export interface ProjectSummaryItem {
   associatedProfiles: Array<{
     id: string;
     name: string;
+    workUnits?: Array<{ id: string; name: string }>;
     role?: string;
     participationStartDate?: string;
     participationEndDate?: string;

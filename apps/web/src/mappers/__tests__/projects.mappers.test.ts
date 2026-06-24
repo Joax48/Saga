@@ -56,6 +56,7 @@ describe('projects.mappers', () => {
           {
             id: '4',
             name: 'Luis Mora',
+            workUnits: [{ id: '8', name: 'Escuela de Computación' }],
             participationStartDate: '2026-02-01',
           },
         ],
@@ -82,6 +83,7 @@ describe('projects.mappers', () => {
         {
           id: '4',
           name: 'Luis Mora',
+          workUnits: [{ id: '8', name: 'Escuela de Computación' }],
           participationStartDate: '2026-02-01',
         },
       ],

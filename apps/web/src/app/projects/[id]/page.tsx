@@ -99,7 +99,7 @@ function mapAssociatedProfileToResearcher(
     photo: null,
     profileType: 'UCR',
     linkedUnits: [],
-    workUnits: [],
+    workUnits: profile.workUnits,
     participationStartDate: profile.participationStartDate,
     participationEndDate: profile.participationEndDate,
   };

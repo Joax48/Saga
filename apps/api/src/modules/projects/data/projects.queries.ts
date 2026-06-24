@@ -258,6 +258,7 @@ const PROJECT_PARTICIPATIONS_SELECT = `
     ${PARTICIPANT_PROFILE_NAME_SQL} AS "name",
     participation_kind.PROJECT_PARTICIPATION_NAME AS "role",
     member_participation.PARTICIPATION AS "participationTypeId",
+    participant_work_units."workUnits" AS "workUnits",
     CASE
       WHEN member_participation.PARTICIPATION_START_DATE IS NULL THEN ''
       ELSE TO_CHAR(member_participation.PARTICIPATION_START_DATE, 'YYYY-MM-DD')
@@ -273,6 +274,25 @@ const PROJECT_PARTICIPATIONS_SELECT = `
     ON member_participation.PROFILE_ID = member_profile.PROFILE_ID
   INNER JOIN PROJECT_PARTICIPATION participation_kind
     ON member_participation.PARTICIPATION = participation_kind.PROJECT_PARTICIPATION_ID
+  LEFT JOIN (
+    SELECT
+      work_unit_membership.PROFILE_ID,
+      JSON_ARRAYAGG(
+        JSON_OBJECT(
+          'id' VALUE work_unit.UNIT_ID,
+          'name' VALUE work_unit.UNIT_NAME
+        )
+        ORDER BY work_unit.UNIT_NAME
+        RETURNING BLOB
+      ) AS "workUnits"
+    FROM UCR_PROFILE_WORK_UNIT work_unit_membership
+    INNER JOIN UNIT work_unit
+      ON work_unit_membership.UNIT_ID = work_unit.UNIT_ID
+    WHERE work_unit_membership.YEAR = EXTRACT(YEAR FROM SYSDATE)
+      AND work_unit.UNIT_NAME IS NOT NULL
+    GROUP BY work_unit_membership.PROFILE_ID
+  ) participant_work_units
+    ON participant_work_units.PROFILE_ID = member_profile.PROFILE_ID
 `;
 
 const PROJECT_DISCIPLINES_BY_PROJECT_SELECT = `

@@ -156,7 +156,12 @@ describe('PublicProjectsController', () => {
         endDate: '2025-12-31',
         keywords: ['pobreza'],
         associatedProfiles: [
-          { id: '2', name: 'Koen Voorend', role: 'Investigador principal' },
+          {
+            id: '2',
+            name: 'Koen Voorend',
+            workUnits: [{ id: '15', name: 'Instituto de Investigaciones Sociales' }],
+            role: 'Investigador principal',
+          },
         ],
       };
       detailUseCase.execute.mockResolvedValue(mockResponse);

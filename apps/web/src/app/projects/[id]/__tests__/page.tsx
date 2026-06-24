@@ -44,6 +44,7 @@ jest.mock('../../../researchers/components/ResearchersCardsGrid', () => {
     researchers: Array<{
       id: string;
       name: string;
+      workUnits: Array<{ id: string; name: string }>;
       participationStartDate?: string;
       participationEndDate?: string;
     }>;
@@ -58,6 +59,7 @@ jest.mock('../../../researchers/components/ResearchersCardsGrid', () => {
         {researchers.map((researcher) => (
           <div key={researcher.id}>
             <span>{researcher.name}</span>
+            <span>{researcher.workUnits.map((unit) => unit.name).join(', ')}</span>
             <span>{researcher.participationStartDate ?? 'sin inicio'}</span>
             <span>{researcher.participationEndDate ?? 'sin fin'}</span>
           </div>
@@ -99,6 +101,7 @@ describe('projects/[id]/page', () => {
         {
           id: '77',
           name: 'Luis Mora',
+          workUnits: [{ id: '8', name: 'Escuela de Computación' }],
           role: 'Colaborador',
           participationStartDate: '2026-02-01',
         },
@@ -124,6 +127,7 @@ describe('projects/[id]/page', () => {
     expect(screen.getByTestId('researchers-cards-grid')).toBeInTheDocument();
     expect(screen.getByText('Page 1 of 1')).toBeInTheDocument();
     expect(screen.getByText('Luis Mora')).toBeInTheDocument();
+    expect(screen.getByText('Escuela de Computación')).toBeInTheDocument();
     expect(screen.getByText('2026-02-01')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Palabras claves' }));
@@ -158,7 +162,9 @@ describe('projects/[id]/page', () => {
     render(<ProjectsDetailPage params={{ id: 'p-1' }} />);
 
     await waitFor(() => {
-      expect(screen.getByText('PI-2026-03 | Proyecto con fecha parcial')).toBeInTheDocument();
+      expect(
+        screen.getByText('PI-2026-03 | Proyecto con fecha parcial'),
+      ).toBeInTheDocument();
     });
 
     expect(screen.getByText(/Desde 01\/02\/2026/)).toBeInTheDocument();

@@ -57,6 +57,7 @@ export function mapProjectDetailToProject(item: ProjectDetailApiDto): Project {
     associatedProfiles: (item.associatedProfiles ?? []).map((profile) => ({
       id: profile.id,
       name: profile.name,
+      workUnits: profile.workUnits ?? [],
       ...(profile.role ? { role: profile.role } : {}),
       ...(profile.participationStartDate
         ? { participationStartDate: profile.participationStartDate }

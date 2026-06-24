@@ -89,6 +89,7 @@ describe('GET /api/projects/:id', () => {
         {
           id: '12',
           name: 'Maria Perez',
+          workUnits: [],
           role: 'Asociado',
           participationStartDate: '2023-06-01',
         },

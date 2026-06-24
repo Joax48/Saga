@@ -1,6 +1,7 @@
 export class ProjectAssociatedProfileResponseDto {
   id!: string;
   name!: string;
+  workUnits!: UnitReferenceResponseDto[];
   role?: string;
   participationStartDate?: string;
   participationEndDate?: string;

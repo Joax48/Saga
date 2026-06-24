@@ -6,6 +6,7 @@ export interface NamedExternalReference {
 export interface ProjectAssociatedProfile {
   id: number;
   name: string;
+  workUnits: NamedExternalReference[];
   role?: string;
   participationStartDate?: string;
   participationEndDate?: string;

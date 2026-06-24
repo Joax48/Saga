@@ -18,6 +18,7 @@ export interface UnitReferenceDto {
 export interface ProjectAssociatedProfileDto {
   id: string;
   name: string;
+  workUnits: UnitReferenceDto[];
   role?: string;
   participationStartDate?: string;
   participationEndDate?: string;

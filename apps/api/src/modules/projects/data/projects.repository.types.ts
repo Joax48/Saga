@@ -56,6 +56,7 @@ export type ProjectParticipationRow = {
   name: string;
   role: string;
   participationTypeId: number;
+  workUnits?: Buffer | string | null;
   participationStartDate: string;
   participationEndDate: string;
   participationStartTs: Date | string | null;

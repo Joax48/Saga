@@ -92,6 +92,7 @@ export class ProjectsMapper {
     return deduped.map((row) => ({
       id: row.id,
       name: row.name,
+      workUnits: this.parseJsonSafely(row.workUnits, []),
       ...(row.role ? { role: row.role } : {}),
       ...(row.participationStartDate
         ? { participationStartDate: row.participationStartDate }
@@ -196,6 +197,19 @@ export class ProjectsMapper {
     const time = date.getTime();
 
     return Number.isNaN(time) ? Number.NEGATIVE_INFINITY : time;
+  }
+
+  private parseJsonSafely<T>(value: unknown, fallback: T): T {
+    if (value === null || value === undefined || value === '') return fallback;
+
+    const normalizedValue = Buffer.isBuffer(value) ? value.toString('utf8') : value;
+    if (typeof normalizedValue !== 'string') return fallback;
+
+    try {
+      return JSON.parse(normalizedValue) as T;
+    } catch {
+      return fallback;
+    }
   }
 
   private normalizeFacetValue(value: string | undefined, fallbackLabel: string): string {

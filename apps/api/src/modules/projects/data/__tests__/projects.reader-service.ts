@@ -292,8 +292,18 @@ describe('ProjectsReaderService', () => {
         startDate: '2023-06-01',
         endDate: '2025-12-31',
         associatedProfiles: [
-          { id: 2, name: 'Koen Voorend', role: 'Investigador principal' },
-          { id: 12, name: 'Maria Perez', role: 'Co-investigadora' },
+          {
+            id: 2,
+            name: 'Koen Voorend',
+            workUnits: [{ id: 15, name: 'Instituto de Investigaciones Sociales' }],
+            role: 'Investigador principal',
+          },
+          {
+            id: 12,
+            name: 'Maria Perez',
+            workUnits: [{ id: 7, name: 'Escuela de Ciencias Políticas' }],
+            role: 'Co-investigadora',
+          },
         ],
       });
 
@@ -320,8 +330,18 @@ describe('ProjectsReaderService', () => {
         endDate: '2025-12-31',
         keywords: ['pobreza', 'economia social'],
         associatedProfiles: [
-          { id: '2', name: 'Koen Voorend', role: 'Investigador principal' },
-          { id: '12', name: 'Maria Perez', role: 'Co-investigadora' },
+          {
+            id: '2',
+            name: 'Koen Voorend',
+            workUnits: [{ id: '15', name: 'Instituto de Investigaciones Sociales' }],
+            role: 'Investigador principal',
+          },
+          {
+            id: '12',
+            name: 'Maria Perez',
+            workUnits: [{ id: '7', name: 'Escuela de Ciencias Políticas' }],
+            role: 'Co-investigadora',
+          },
         ],
       });
     });
