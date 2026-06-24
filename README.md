@@ -99,20 +99,100 @@ pnpm run dev:api
 pnpm run dev:web
 ```
 
-### 4. Run with Docker Compose
+### 4. Run with Docker
+
+#### 4.1 Stop the database container
+
+If you were previously running the project locally, you probably have the database running inside a container. 
+
+Find the name of the database container:
 
 ```bash
-# Build and start all services (db, api, web)
-docker compose up --build
+docker ps
+```
 
-# Or in detached mode
-docker compose up --build -d
+Then stop it (replace the name if different):
 
-# Stop
-docker compose down
+```bash
+docker stop oracle-database
+```
 
-# Stop and remove volumes (deletes database data)
-docker compose down -v
+*Docker compose will start its own database container on the same port (1521), which will conflict with one already running locally.*
+
+#### 4.2 Set additional environment variables
+
+Assuming your project already runs locally, **make sure you also have the following variables in apps/api/.env**:
+
+- **DB_PATH**: A full path to where the oracle database is located.
+
+- **NEXT_PUBLIC_API_URL**: Default value should work (`http://localhost:3001`),
+
+  - The API URL used by the browser. Must be reachable from the user's machine, even when running in Docker.
+
+- **API_URL_INTERNAL**: Default value should work (`http://api:3001`).
+
+  - The API URL used by the Next.js server itself (server-side rendering, API routes). In Docker, this must use the service name instead of localhost, since the request happens container-to-container.
+
+#### 4.3 Start the project
+
+***Note:** `make` is available on Linux/macOS. In Windows, use the second command below.*
+
+```bash
+make docker-up
+```
+
+or 
+
+```bash
+docker compose -f docker-compose.yml --env-file apps/api/.env up --build -d
+```
+
+#### 4.4 Stop the project
+
+```bash
+make docker-down
+```
+
+or
+
+```bash
+docker compose -f docker-compose.yml --env-file apps/api/.env down
+```
+
+#### 4.5 Verify the containers were created
+
+Check running containers:
+
+```bash
+docker ps
+```
+
+Successfully starting the project will create three containers:
+
+- saga_ucr-web-1: The frontend
+- saga_ucr-api-1: The backend
+- saga_ucr-db-1: The database
+
+*The database could take a while to fully start. If you see no results when navigating the project, consider giving it a minute.*
+
+***Windows users**: if hot-reloading doesn't seem to work (changes don't appear without restarting containers), uncomment `CHOKIDAR_USEPOLLING` and `WATCHPACK_POLLING` in `docker-compose.yml` for the `api` and `web` services respectively.*
+
+#### 4.6 Viewing the logs
+
+Use the Makefile shortcuts to follow logs:
+
+```bash
+make docker-api-logs  # Backend logs
+make docker-web-logs  # Frontend logs
+make docker-db-logs   # Database logs
+```
+
+or
+
+```bash
+docker compose -f docker-compose.yml --env-file apps/api/.env logs -f --no-log-prefix api
+docker compose -f docker-compose.yml --env-file apps/api/.env logs -f --no-log-prefix web
+docker compose -f docker-compose.yml --env-file apps/api/.env logs -f --no-log-prefix db
 ```
 
 ## Testing Structure
@@ -173,6 +253,10 @@ make format       # Format code
 make ci           # Full CI pipeline
 make docker-up    # Docker compose up --build
 make docker-down  # Docker compose down
+make docker-rebuild    # Recreate containers and volumes
+make docker-api-logs   # Follow API logs
+make docker-web-logs   # Follow web logs
+make docker-db-logs    # Follow database logs
 make clean        # Remove node_modules, dist, .next
 ```
 

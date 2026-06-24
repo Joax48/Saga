@@ -1,42 +1,52 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: gvenzl/oracle-free:latest
     restart: unless-stopped
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "1521:1521"
     environment:
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      ORACLE_PASSWORD: ${DB_PASSWORD}
+      APP_USER: ${DB_USER}
+      APP_USER_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - ${DB_PATH}:/opt/oracle/oradata
 
   api:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
+      dockerfile: apps/api/Dockerfile.dev
     restart: unless-stopped
     ports:
       - "${API_PORT:-3001}:3001"
     environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USERNAME: ${DB_USERNAME}
+      DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-      JWT_SECRET: ${JWT_SECRET}
-      NODE_ENV: ${NODE_ENV:-development}
+      DB_CONNECT_STRING: db:1521/FREEPDB1
+      NODE_ENV: ${NODE_ENV}
       PORT: 3001
+      # Polling keeps hot reload reliable across Docker Desktop, Windows, WSL, and mounted filesystems.
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+    # Use bind mounts to enable hot-reloading
+      - ./apps/api:/app/apps/api
+      - /app/apps/api/node_modules
+    depends_on:
+      - db
 
   web:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: apps/web/Dockerfile.dev
     restart: unless-stopped
     ports:
       - "${WEB_PORT:-3000}:3000"
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-
-volumes:
-  pgdata:
+      API_URL_INTERNAL: ${API_URL_INTERNAL}
+      # Polling keeps hot reload reliable across Docker Desktop, Windows, WSL, and mounted filesystems.
+      WATCHPACK_POLLING: "true"
+    volumes:
+      # Use bind mounts to enable hot-reloading
+      - ./apps/web:/app/apps/web
+      - /app/apps/web/node_modules
+      - /app/apps/web/.next 

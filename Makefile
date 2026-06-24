@@ -2,7 +2,7 @@
 # Scientific Production Portal — Makefile
 # ───────────────────────────────────────────────
 
-.PHONY: install dev-api dev-web build lint typecheck test e2e format format-check ci docker-up docker-down docker-rebuild clean
+.PHONY: install dev-api dev-web build lint typecheck test e2e format format-check ci docker-up docker-down docker-rebuild docker-api-logs docker-web-logs docker-db-logs clean
 
 # ── Setup ──────────────────────────────────────
 
@@ -48,14 +48,23 @@ ci:
 # ── Docker ─────────────────────────────────────
 
 docker-up:
-	docker compose up --build -d
+	docker compose -f docker-compose.yml --env-file apps/api/.env up --build -d
 
 docker-down:
-	docker compose down
+	docker compose -f docker-compose.yml --env-file apps/api/.env down
 
 docker-rebuild:
-	docker compose down -v
-	docker compose up --build -d
+	docker compose -f docker-compose.yml --env-file apps/api/.env down -v
+	docker compose -f docker-compose.yml --env-file apps/api/.env up --build -d
+
+docker-api-logs:
+	docker compose -f docker-compose.yml --env-file apps/api/.env logs -f --no-log-prefix api
+
+docker-web-logs:
+	docker compose -f docker-compose.yml --env-file apps/api/.env logs -f --no-log-prefix web
+
+docker-db-logs:
+	docker compose -f docker-compose.yml --env-file apps/api/.env logs -f --no-log-prefix db
 
 # ── Cleanup ────────────────────────────────────
 
