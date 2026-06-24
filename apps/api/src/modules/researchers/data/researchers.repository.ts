@@ -839,6 +839,7 @@ export class ResearchersRepository {
       id: string;
       code: string;
       name: string;
+      managerId: string | null;
       manager: string | null;
       startDate: Date | null;
       endDate: Date | null;
@@ -853,6 +854,7 @@ export class ResearchersRepository {
           p.PROJECT_ID                   AS "id",
           p.PROJECT_ID                   AS "code",
           p.PROJECT_NAME                 AS "name",
+          manager_profile.PROFILE_ID     AS "managerId",
           ${PROFILE_FULL_NAME_SQL('manager_profile')} AS "manager",
           period.PROJECT_START_DATE      AS "startDate",
           period.PROJECT_END_DATE        AS "endDate",

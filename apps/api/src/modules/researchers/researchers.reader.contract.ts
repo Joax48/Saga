@@ -66,6 +66,7 @@ export interface ResearcherProjectDto {
   id: string;
   code: string;
   name: string;
+  managerId: string | null;
   manager: string;
   startDate: string | null;
   endDate: string | null;
@@ -75,10 +76,15 @@ export interface ResearcherProjectDto {
   keywords: string[];
 }
 
+export interface ResearcherScientificOutputAuthorDto {
+  id: number;
+  name: string;
+}
+
 export interface ResearcherScientificOutputDto {
   id: string;
   title: string;
-  authors: string[];
+  authors: ResearcherScientificOutputAuthorDto[];
   type: {
     category: string;
     subcategory: string;

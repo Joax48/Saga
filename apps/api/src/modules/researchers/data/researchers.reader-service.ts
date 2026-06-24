@@ -178,9 +178,7 @@ export class ResearchersReaderService implements ResearchersReader {
     const scientificOutputs: ResearcherScientificOutputDto[] = outputsRows.map((row) => ({
       id: String(row.id),
       title: row.title,
-      authors: this.parseJsonSafely<{ name: string }[]>(row.authors, []).map(
-        (a) => a.name,
-      ),
+      authors: this.parseJsonSafely<{ id: number; name: string }[]>(row.authors, []),
       type: {
         category: row.typeName ?? 'Producción científica',
         subcategory: row.typeName ?? '',
@@ -247,6 +245,7 @@ export class ResearchersReaderService implements ResearchersReader {
         id: String(row.id),
         code: row.code,
         name: row.name,
+        managerId: row.managerId == null ? null : String(row.managerId),
         manager: row.manager ?? '',
         startDate: row.startDate ? row.startDate.toISOString() : null,
         endDate: row.endDate ? row.endDate.toISOString() : null,

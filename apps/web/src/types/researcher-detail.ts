@@ -25,6 +25,7 @@ export interface ResearcherProject {
   id: string;
   code: string;
   name: string;
+  managerId: string | null;
   manager: string;
   startDate: string | null;
   endDate: string | null;
@@ -37,7 +38,7 @@ export interface ResearcherProject {
 export interface ResearcherScientificOutput {
   id: string;
   title: string;
-  authors: string[];
+  authors: { id: number; name: string }[];
   type: {
     category: string;
     subcategory: string;

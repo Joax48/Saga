@@ -217,9 +217,7 @@ function toSummaryScientificProduction(
   return {
     id: output.id,
     title: output.title,
-    // The researcher output exposes author names only (no IDs), so the index is
-    // used as a stable key; the displayed names are correct.
-    authors: output.authors.map((name, index) => ({ id: index, name })),
+    authors: output.authors,
     type: output.type.category,
     openAccess: output.openAccess,
     publicationYear: output.publicationYear,
@@ -1043,12 +1041,14 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
                           <ProjectListItem
                             code={project.code}
                             title={project.name}
-                            href={`/projects/${project.id}`}
+                            href={`/projects/${encodeURIComponent(project.id)}`}
                             manager={project.manager || 'Sin asignar'}
                             managerHref={
-                              project.manager
-                                ? `/researchers?q=${encodeURIComponent(project.manager)}`
-                                : undefined
+                              project.managerId
+                                ? `/researchers/${project.managerId}`
+                                : project.manager
+                                  ? `/researchers?q=${encodeURIComponent(project.manager)}`
+                                  : undefined
                             }
                             startDate={formatDateOnly(project.startDate)}
                             endDate={formatDateOnly(project.endDate)}

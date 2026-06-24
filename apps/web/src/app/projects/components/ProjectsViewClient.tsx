@@ -359,7 +359,7 @@ export default function ProjectsViewClient({
                         key={project.id}
                         code={project.code}
                         title={project.title}
-                        href={`/projects/${project.id}`}
+                        href={`/projects/${encodeURIComponent(project.id)}`}
                         manager={project.manager}
                         managerHref={
                           managerProfile

@@ -25,6 +25,7 @@ export class ResearcherProjectResponseDto {
   id!: string;
   code!: string;
   name!: string;
+  managerId!: string | null;
   manager!: string;
   startDate!: string | null;
   endDate!: string | null;
@@ -34,10 +35,15 @@ export class ResearcherProjectResponseDto {
   keywords!: string[];
 }
 
+export class ResearcherScientificOutputAuthorResponseDto {
+  id!: number;
+  name!: string;
+}
+
 export class ResearcherScientificOutputResponseDto {
   id!: string;
   title!: string;
-  authors!: string[];
+  authors!: ResearcherScientificOutputAuthorResponseDto[];
   type!: { category: string; subcategory: string };
   openAccess!: boolean;
   publicationYear!: number;
