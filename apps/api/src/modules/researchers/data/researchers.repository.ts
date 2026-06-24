@@ -923,7 +923,7 @@ export class ResearchersRepository {
     {
       id: string;
       title: string;
-      authors: string | null;
+      authors: Buffer | string | null;
       typeName: string | null;
       openAccess: number | null;
       publicationYear: number | null;
@@ -933,7 +933,7 @@ export class ResearchersRepository {
       issue: string | null;
       pages: string | null;
       citationCount: number | null;
-      keywords: string | null;
+      keywords: Buffer | string | null;
     }[]
   > {
     return this.databaseClient.query(

@@ -648,6 +648,42 @@ describe('ResearchersReaderService', () => {
       expect(result!.scientificOutputs[0].authors).toEqual(['Juan Perez', 'Maria Lopez']);
     });
 
+    it('should decode scientific output JSON returned as UTF-8 BLOBs', async () => {
+      repository.findById.mockResolvedValueOnce(baseResearcher);
+      repository.findAlternativeNames.mockResolvedValueOnce([]);
+      repository.findLinkedUnits.mockResolvedValueOnce([]);
+      repository.findKeywords.mockResolvedValueOnce([]);
+      repository.findEducation.mockResolvedValueOnce([]);
+      repository.findExperience.mockResolvedValueOnce([]);
+      repository.findProjects.mockResolvedValueOnce([]);
+      repository.findScientificOutputs.mockResolvedValueOnce([
+        {
+          id: 'out-1',
+          title: 'A Study',
+          authors: Buffer.from(
+            JSON.stringify([{ id: '1', name: 'María López' }]),
+            'utf8',
+          ),
+          typeName: null,
+          openAccess: 0,
+          publicationYear: 2022,
+          doi: null,
+          journal: null,
+          volume: null,
+          issue: null,
+          pages: null,
+          citationCount: null,
+          keywords: Buffer.from(JSON.stringify([{ value: 'Educación' }]), 'utf8'),
+        },
+      ]);
+      repository.findKeywordsByProjectIds.mockResolvedValueOnce(new Map());
+
+      const result = await service.getProfile('1');
+
+      expect(result!.scientificOutputs[0].authors).toEqual(['María López']);
+      expect(result!.scientificOutputs[0].keywords).toEqual(['Educación']);
+    });
+
     it('should propagate errors from sub-queries', async () => {
       repository.findById.mockResolvedValueOnce(baseResearcher);
       repository.findAlternativeNames.mockRejectedValueOnce(

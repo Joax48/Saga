@@ -24,15 +24,17 @@ export type UnitProfile = {
 export type UnitScientificProduction = {
   id: string;
   title: string;
-  authors: { id: number; name: string }[] | null;
+  authors: Buffer | string | null;
   type: string | null;
   openAccess: number | null;
   publicationYear: number;
   doi: string | null;
   journal: string | null;
+  volume: string | null;
+  issue: string | null;
   pages: string | null;
   source: string | null;
-  keywords: { id: number; value: string }[] | null;
+  keywords: Buffer | string | null;
 };
 
 export type UnitProject = {
@@ -245,6 +247,14 @@ export class UnitsRepository {
         so.DOI                                                        AS "doi",
         src.SOURCE_NAME                                               AS "journal",
         CASE
+          WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN sc.VOLUME
+          ELSE cl.VOLUME
+        END                                                           AS "volume",
+        CASE
+          WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN sc.ISSUE_IDENTIFIER
+          ELSE cl.ISSUE_IDENTIFIER
+        END                                                           AS "issue",
+        CASE
           WHEN sc.SCIENTIFIC_OUTPUT_ID IS NOT NULL THEN sc.SCOPUS_PAGE_RANGE
           ELSE cl.CLARIVATE_PAGE_RANGE
         END                                                           AS "pages",
@@ -275,7 +285,7 @@ export class UnitsRepository {
               )
             )
             ORDER BY p.PROFILE_NAME
-            RETURNING CLOB
+            RETURNING BLOB
           ) AS authors
         FROM Scientific_Output_Profile sop
         JOIN Profile p ON p.PROFILE_ID = sop.PROFILE_ID
@@ -294,7 +304,7 @@ export class UnitsRepository {
               'value' VALUE INITCAP(k.KEYWORD)
             )
             ORDER BY k.KEYWORD
-            RETURNING CLOB
+            RETURNING BLOB
           ) AS keywords
         FROM Scientific_Output_Keyword sok
         JOIN Keyword k ON k.KEYWORD_ID = sok.KEYWORD_ID
