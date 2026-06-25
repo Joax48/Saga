@@ -1,388 +1,52 @@
-'use client';
-
-import {
-  Suspense,
-  startTransition,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { ResearcherCardSkeleton } from '@/components/skeletons/CardSkeleton';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { ChevronUp } from 'lucide-react';
-
-import PageHeroSearch from '../../components/PageHeroSearch';
-import Button from '../../components/Button';
-import ApiErrorMessage from '@/components/ApiErrorMessage';
-import Pagination from '@/components/Pagination';
 import ResearchersList from './components/ResearchersList';
-import FilterSection from './components/FilterSection';
-import { SortControls } from '@/components/SortControls';
-
-import {
-  getResearcherFilters,
-  getResearcherCollaborationFacet,
-} from '@/services/researchers';
-import type { ResearcherFilters } from '@/services/researchers';
 import type { ResearcherQueryFilters } from '@/services/researchers';
-import type { Researcher } from '@/services/researchers';
-import ExportXlsButton, { type XlsColumn } from '@/components/ExportXlsButton';
 
-const BREADCRUMB_ITEMS = [{ label: 'Perfiles' }];
-
-function ResearchersPageContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  // URL is the single source of truth — derive state on every render
-  const searchQuery = searchParams.get('q') ?? '';
-  const currentPage = useMemo(() => {
-    const p = parseInt(searchParams.get('page') ?? '1', 10);
-    return isNaN(p) || p < 1 ? 1 : p;
-  }, [searchParams]);
-  const filters = useMemo<ResearcherQueryFilters>(
-    () => ({
-      baseUnit: searchParams.getAll('unit'),
-      collaborationCountry: searchParams.getAll('collaborationCountry'),
-      sortOrder: (searchParams.get('sort') as 'asc' | 'desc') ?? 'asc',
-    }),
-    [searchParams],
-  );
-
-  const listContainerRef = useRef<HTMLDivElement>(null);
-  const isFirstPageRender = useRef(true);
-  const [filterOptions, setFilterOptions] = useState<ResearcherFilters>({
-    baseUnit: [],
-    collaborationCountry: [],
-  });
-  const [filtersVisible, setFiltersVisible] = useState(false);
-  const [showScrollTopButton, setShowScrollTopButton] = useState(false);
-  const [total, setTotal] = useState<number | null>(null);
-  const [listLoadError, setListLoadError] = useState<string | null>(null);
-  const [totalPages, setTotalPages] = useState(1);
-  // Holds the current page's researchers so the Excel export can read them.
-  const [currentResearchers, setCurrentResearchers] = useState<Researcher[]>([]);
-  const shouldScrollToListRef = useRef(false);
-  const SCROLL_KEY = 'researchers-scroll-y';
-
-  const RESEARCHER_COLUMNS: XlsColumn<Researcher>[] = [
-    {
-      header: 'Nombre',
-      getValue: (r) =>
-        [r.name, r.firstSurname, r.secondSurname].filter(Boolean).join(' '),
-    },
-    {
-      header: 'Nombres alternativos',
-      getValue: (r) => (r.altNames ?? []).join('; '),
-    },
-    {
-      header: 'Unidades de trabajo',
-      getValue: (r) => r.workUnits.map((u) => u.name).join('; '),
-    },
-    {
-      header: 'Unidades de colaboración',
-      getValue: (r) => r.linkedUnits.map((u) => u.name).join('; '),
-    },
-    { header: 'Id del perfil', getValue: (r) => r.id },
-  ];
-
-  // Restore scroll position when returning from a detail page
-  useEffect(() => {
-    const saved = sessionStorage.getItem(SCROLL_KEY);
-    if (saved) {
-      sessionStorage.removeItem(SCROLL_KEY);
-      requestAnimationFrame(() => window.scrollTo({ top: parseInt(saved, 10) }));
-    }
-  }, []);
-
-  // Scroll to the list only after an explicit user action (page, search, filter).
-  useEffect(() => {
-    if (isFirstPageRender.current) {
-      isFirstPageRender.current = false;
-      return;
-    }
-    if (!shouldScrollToListRef.current) return;
-    shouldScrollToListRef.current = false;
-    if (listContainerRef.current) {
-      const navbar = document.querySelector('header') ?? document.querySelector('nav');
-      const navbarHeight = navbar ? navbar.getBoundingClientRect().height : 0;
-      const top =
-        listContainerRef.current.getBoundingClientRect().top +
-        window.scrollY -
-        navbarHeight -
-        16;
-      window.scrollTo({ top, behavior: 'smooth' });
-    }
-  }, [currentPage, searchQuery, filters]);
-
-  // Builds a new URLSearchParams from the current ones, applies updates, and navigates.
-  const pushParams = useCallback(
-    (build: (params: URLSearchParams) => void, resetPage = true) => {
-      const params = new URLSearchParams(searchParams.toString());
-      build(params);
-      if (resetPage) params.set('page', '1');
-      startTransition(() => {
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
-      });
-    },
-    [router, pathname, searchParams],
-  );
-
-  // Handlers for user interactions that update the URL parameters, which in turn trigger data fetching and UI updates via the useEffect hooks.
-  const handleSearch = useCallback(
-    (query: string) => {
-      shouldScrollToListRef.current = true;
-      pushParams((params) => {
-        if (query) params.set('q', query);
-        else params.delete('q');
-      });
-    },
-    [pushParams],
-  );
-
-  const handleToggleFilter = useCallback(
-    (key: keyof ResearcherQueryFilters, value: string) => {
-      shouldScrollToListRef.current = true;
-      // Only array-valued filters (baseUnit, collaborationCountry) are toggled here
-      const urlKey = key === 'baseUnit' ? 'unit' : 'collaborationCountry';
-      pushParams((params) => {
-        const current = params.getAll(urlKey);
-        params.delete(urlKey);
-        const updated = current.includes(value)
-          ? current.filter((v) => v !== value)
-          : [...current, value];
-        updated.forEach((v) => params.append(urlKey, v));
-      });
-    },
-    [pushParams],
-  );
-
-  const handleClearAll = useCallback(() => {
-    shouldScrollToListRef.current = true;
-    startTransition(() => {
-      router.replace(pathname, { scroll: false });
-    });
-  }, [router, pathname]);
-
-  const handlePageChange = useCallback(
-    (page: number) => {
-      shouldScrollToListRef.current = true;
-      pushParams((params) => params.set('page', String(page)), false);
-    },
-    [pushParams],
-  );
-
-  useEffect(() => {
-    const handleScroll = () => setShowScrollTopButton(window.scrollY > 400);
-    handleScroll();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const hasActiveFilters =
-    Object.values(filters).some((value) => Array.isArray(value) && value.length > 0) ||
-    searchQuery.length > 0;
-
-  // Refetch the filter facets whenever the search term or any selected filter
-  // changes so the sidebar counts stay in sync with the visible list.
-  useEffect(() => {
-    let cancelled = false;
-    getResearcherFilters({
-      q: searchQuery,
-      baseUnit: filters.baseUnit,
-      collaborationCountry: filters.collaborationCountry,
-    })
-      .then((options) => {
-        if (!cancelled) {
-          setFilterOptions((prev) => ({ ...prev, baseUnit: options.baseUnit }));
-        }
-      })
-      .catch(() => {});
-    getResearcherCollaborationFacet({
-      q: searchQuery,
-      baseUnit: filters.baseUnit,
-      collaborationCountry: filters.collaborationCountry,
-    })
-      .then((collaborationCountry) => {
-        if (!cancelled) {
-          setFilterOptions((prev) => ({ ...prev, collaborationCountry }));
-        }
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [searchQuery, filters]);
-
-  return (
-    <main
-      className="min-h-screen"
-      style={{ backgroundColor: 'var(--color-bg-neutral-primary)' }}
-    >
-      <PageHeroSearch
-        items={BREADCRUMB_ITEMS}
-        title="Perfiles"
-        searchPlaceholder="Buscar perfil por nombre, apellido o nombre completo"
-        onSearch={handleSearch}
-        initialSearchValue={searchQuery}
-      />
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {!listLoadError && (
-          <div className="mb-4 lg:hidden">
-            <Button
-              variant="brandOutline"
-              size="sm"
-              onClick={() => setFiltersVisible((prev) => !prev)}
-              aria-expanded={filtersVisible}
-              aria-controls="researchers-filter-sidebar"
-            >
-              {filtersVisible ? 'Ocultar filtros' : 'Mostrar filtros'}
-            </Button>
-          </div>
-        )}
-
-        {total !== null && (
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <p
-              className="text-body-md"
-              style={{ color: 'var(--color-text-neutral-secondary)' }}
-            >
-              {total} resultado{total !== 1 ? 's' : ''}
-            </p>
-            <ExportXlsButton
-              data={currentResearchers}
-              columns={RESEARCHER_COLUMNS}
-              filename="perfiles"
-            />
-          </div>
-        )}
-
-        <SortControls
-          className="mb-4"
-          label="Ordenamiento alfabético"
-          sortBy="name"
-          sortOrder={filters.sortOrder ?? 'asc'}
-          onSortByChange={() => {}}
-          onSortOrderChange={(value) => {
-            shouldScrollToListRef.current = true;
-            pushParams((params) => {
-              if (value && value !== 'asc') params.set('sort', value);
-              else params.delete('sort');
-            });
-          }}
-          sortByOptions={[{ value: 'name', label: 'Nombre del perfil' }]}
-          sortOrderOptions={[
-            { value: 'asc', label: 'Ascendente' },
-            { value: 'desc', label: 'Descendente' },
-          ]}
-        />
-        <div className="flex flex-col gap-8 lg:flex-row">
-          {!listLoadError && (
-            <div
-              id="researchers-filter-sidebar"
-              className={`${filtersVisible ? 'block' : 'hidden'} lg:block`}
-            >
-              <FilterSection
-                filters={filters}
-                filterOptions={filterOptions}
-                onToggleFilter={handleToggleFilter}
-                onClearAll={handleClearAll}
-                hasActiveFilters={hasActiveFilters}
-              />
-            </div>
-          )}
-
-          <div ref={listContainerRef} className="flex-1 min-w-0 pb-20">
-            <ResearchersList
-              searchQuery={searchQuery}
-              filters={filters}
-              currentPage={currentPage}
-              onPageChange={handlePageChange}
-              onTotalChange={setTotal}
-              onLoadErrorChange={setListLoadError}
-              onTotalPagesChange={setTotalPages}
-              onDataChange={setCurrentResearchers}
-              profileType="UCR"
-            />
-          </div>
-        </div>
-
-        {!listLoadError && total !== null && total > 0 && totalPages > 1 && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        )}
-      </div>
-
-      {showScrollTopButton && (
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] text-white shadow-lg transition-transform hover:scale-110"
-          aria-label="Volver al inicio"
-        >
-          <ChevronUp size={20} strokeWidth={2} />
-        </button>
-      )}
-    </main>
-  );
+// Server component: the URL is the single source of truth. It reads and
+// normalizes the search params on the server and passes them down as the
+// initial state, so deep links and bookmarks render with the right filters,
+// search term, sort order and page already applied.
+interface PageProps {
+  searchParams: {
+    page?: string;
+    q?: string;
+    unit?: string;
+    collaborationCountry?: string;
+    sort?: string;
+  };
 }
 
-function ResearchersPageFallback() {
-  return (
-    <main
-      className="min-h-screen"
-      style={{ backgroundColor: 'var(--color-bg-neutral-primary)' }}
-    >
-      <section className="px-6 lg:px-10 pt-4 pb-20 bg-[url('/ucr_hero_image.png')] bg-cover bg-center">
-        <div className="flex justify-start h-14" />
-        <div className="max-w-6xl mx-auto">
-          <div className="pt-2 pb-4">
-            <div className="skeleton h-4 w-20 rounded opacity-40" />
-          </div>
-          <div className="flex justify-start h-10" />
-          <div className="skeleton h-10 w-32 rounded mx-auto opacity-40" />
-          <div className="mt-6 skeleton h-12 w-full max-w-xl mx-auto rounded opacity-40" />
-        </div>
-        <div className="flex justify-start h-30" />
-      </section>
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex items-center gap-3 mb-4">
-          <span
-            className="text-body-md"
-            style={{ color: 'var(--color-text-neutral-secondary)' }}
-          >
-            Ordenamiento alfabético
-          </span>
-          <select
-            defaultValue="asc"
-            disabled
-            className="text-body-md border rounded px-2 py-1"
-            style={{ color: 'var(--color-text-neutral-secondary)' }}
-          >
-            <option value="asc">Ascendente</option>
-            <option value="desc">Descendente</option>
-          </select>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
-          {Array.from({ length: 18 }).map((_, i) => (
-            <ResearcherCardSkeleton key={i} />
-          ))}
-        </div>
-      </div>
-    </main>
-  );
+// Splits a comma-separated multi-value param (e.g. "unitA,unitB") into a
+// trimmed string array, matching the convention used by the projects section.
+function parseFilterParam(value?: string): string[] {
+  if (!value) return [];
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
-export default function ResearchersPage() {
+// Normalizes the sort param, defaulting to ascending for any unknown value.
+function parseSortOrder(value?: string): 'asc' | 'desc' {
+  return value === 'desc' ? 'desc' : 'asc';
+}
+
+export default async function ResearchersPage({ searchParams }: PageProps) {
+  // Default to page 1 for missing, non-numeric or out-of-range values.
+  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1);
+
+  const initialFilters: ResearcherQueryFilters = {
+    baseUnit: parseFilterParam(searchParams.unit),
+    collaborationCountry: parseFilterParam(searchParams.collaborationCountry),
+    sortOrder: parseSortOrder(searchParams.sort),
+  };
+
   return (
-    <Suspense fallback={<ResearchersPageFallback />}>
-      <ResearchersPageContent />
-    </Suspense>
+    <ResearchersList
+      initialTotal={0}
+      initialFilterOptions={null}
+      initialSearchQuery={searchParams.q ?? ''}
+      initialPage={page}
+      initialFilters={initialFilters}
+    />
   );
 }
