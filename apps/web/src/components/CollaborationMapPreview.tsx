@@ -258,18 +258,21 @@ export default function CollaborationMapPreview({
                     ? 'Nodo principal: UCR, Costa Rica'
                     : `${point.country} — ${point.count} colaborador${point.count !== 1 ? 'es' : ''}`}
                 </title>
-                {isSelected && (
-                  <circle
-                    r={14}
-                    cy={-2}
-                    fill="none"
-                    stroke={fill}
-                    strokeWidth={2}
-                    opacity={0.5}
-                  />
-                )}
-                <path d={PIN_PATH} fill={fill} stroke="#ffffff" strokeWidth={1.2} />
-                <circle r={3.5} cy={-2} fill="#ffffff" />
+                {/* Shift up so the pin's tip (its true anchor) lands on the coordinate */}
+                <g transform="translate(0, -14)">
+                  {isSelected && (
+                    <circle
+                      r={14}
+                      cy={-2}
+                      fill="none"
+                      stroke={fill}
+                      strokeWidth={2}
+                      opacity={0.5}
+                    />
+                  )}
+                  <path d={PIN_PATH} fill={fill} stroke="#ffffff" strokeWidth={1.2} />
+                  <circle r={3.5} cy={-2} fill="#ffffff" />
+                </g>
               </Marker>
             );
           })}

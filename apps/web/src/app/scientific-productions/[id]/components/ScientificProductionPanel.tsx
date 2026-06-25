@@ -38,7 +38,7 @@ export default function ScientificProductionPanel({
 
   return (
     <aside
-      className="w-full lg:w-72 lg:shrink-0 border border-gray-400 rounded-xl p-4 lg:p-5"
+      className="w-full max-w-md mx-auto sm:max-w-sm lg:mx-0 lg:w-72 lg:max-w-none lg:shrink-0 border border-gray-400 rounded-xl p-4 lg:p-5"
       aria-label="Métricas de la publicación"
     >
       <h2 className="text-h5 font-bold text-[var(--color-text-neutral-primary)] mb-3">

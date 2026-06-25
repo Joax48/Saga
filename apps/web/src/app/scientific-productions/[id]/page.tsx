@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { FileText, Tag, Globe } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
 import BackButton from '@/components/BackButton';
 import type { Category } from '@/components/DetailNavbar';
@@ -127,19 +126,16 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
     {
       id: 'general',
       name: 'Información general',
-      icon: <FileText size={18} />,
       sectionTitle: 'Información general',
     },
     {
       id: 'keywords',
       name: 'Palabras clave',
-      icon: <Tag size={18} />,
       sectionTitle: 'Palabras claves',
     },
     {
       id: 'collaborations',
       name: 'Redes de colaboración',
-      icon: <Globe size={18} />,
       sectionTitle: 'Colaboradores',
     },
   ];
@@ -246,7 +242,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
             defaultActive={activeTab}
             onCategoryChange={(id) => setActiveTab(id)}
           />
-          <div className="max-w-6xl mx-auto pt-10">
+          <div className="max-w-6xl mx-auto px-6 pt-10 lg:px-10">
             {/* ── General Information ──────────────────────────────────── */}
             {activeTab === 'general' && (
               <div className="flex flex-col lg:flex-row gap-12">
