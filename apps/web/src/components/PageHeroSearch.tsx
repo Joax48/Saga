@@ -74,7 +74,7 @@ export default function PageHeroSearch({
           <div
             className={isHome ? 'flex justify-start h-10' : 'flex justify-start h-18'}
           />
-          <h1 className="mb-6 text-h2 sm:text-h1 text-center font-bold text-white">
+          <h1 className="mb-6 text-h2 sm:text-h1 text-center font-bold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
             {title}
           </h1>
 
