@@ -24,22 +24,43 @@ export type {
   ProjectSummaryItem,
 };
 
+export interface ProjectListFilters extends Omit<ProjectQueryFilters, 'sortBy' | 'sortOrder'> {}
+
+export interface ProjectListSort {
+  sortBy?: ProjectSortBy;
+  sortOrder?: ProjectSortOrder;
+}
+
+export interface GetProjectsParams {
+  page?: number;
+  limit?: number;
+  q?: string;
+  filters?: ProjectListFilters;
+  sort?: ProjectListSort;
+}
+
+export interface GetProjectFiltersParams {
+  q?: string;
+  filters?: ProjectListFilters;
+}
+
 /**
  * Returns a paginated list of projects from backend API.
  */
-export async function getProjects(
+export async function getProjects({
   page = 1,
   limit = 10,
-  searchQuery = '',
-  queryFilters: ProjectQueryFilters = {},
-): Promise<PaginatedProjectList> {
+  q = '',
+  filters = {},
+  sort,
+}: GetProjectsParams = {}): Promise<PaginatedProjectList> {
   const params = new URLSearchParams({
     page: String(page),
     limit: String(limit),
   });
 
-  if (searchQuery.trim()) {
-    params.set('q', searchQuery.trim());
+  if (q.trim()) {
+    params.set('q', q.trim());
   }
 
   const appendArrayFilter = (key: string, values?: string[]) => {
@@ -51,19 +72,19 @@ export async function getProjects(
     params.set(key, normalizedValues.join(','));
   };
 
-  appendArrayFilter('researchType', queryFilters.researchType);
-  appendArrayFilter('projectType', queryFilters.projectType);
-  appendArrayFilter('startYear', queryFilters.startYear);
-  appendArrayFilter('status', queryFilters.status);
-  appendArrayFilter('participants', queryFilters.participants);
-  appendArrayFilter('keywords', queryFilters.keywords);
+  appendArrayFilter('researchType', filters.researchType);
+  appendArrayFilter('projectType', filters.projectType);
+  appendArrayFilter('startYear', filters.startYear);
+  appendArrayFilter('status', filters.status);
+  appendArrayFilter('participants', filters.participants);
+  appendArrayFilter('keywords', filters.keywords);
 
-  if (queryFilters.sortBy) {
-    params.set('sortBy', queryFilters.sortBy);
+  if (sort?.sortBy) {
+    params.set('sortBy', sort.sortBy);
   }
 
-  if (queryFilters.sortOrder) {
-    params.set('sortOrder', queryFilters.sortOrder);
+  if (sort?.sortOrder) {
+    params.set('sortOrder', sort.sortOrder);
   }
 
   const endpoint = `/projects?${params.toString()}`;
@@ -92,13 +113,12 @@ export async function getProjectById(id: string): Promise<Project> {
  * Returns filter facets for the projects page from backend API.
  */
 export async function getProjectFilters(
-  queryFilters: ProjectQueryFilters = {},
-  searchQuery = '',
+  { q = '', filters = {} }: GetProjectFiltersParams = {},
 ): Promise<ProjectFilters> {
   const params = new URLSearchParams();
 
-  if (searchQuery.trim()) {
-    params.set('q', searchQuery.trim());
+  if (q.trim()) {
+    params.set('q', q.trim());
   }
 
   const appendArrayFilter = (key: string, values?: string[]) => {
@@ -110,12 +130,12 @@ export async function getProjectFilters(
     params.set(key, normalizedValues.join(','));
   };
 
-  appendArrayFilter('researchType', queryFilters.researchType);
-  appendArrayFilter('projectType', queryFilters.projectType);
-  appendArrayFilter('startYear', queryFilters.startYear);
-  appendArrayFilter('status', queryFilters.status);
-  appendArrayFilter('participants', queryFilters.participants);
-  appendArrayFilter('keywords', queryFilters.keywords);
+  appendArrayFilter('researchType', filters.researchType);
+  appendArrayFilter('projectType', filters.projectType);
+  appendArrayFilter('startYear', filters.startYear);
+  appendArrayFilter('status', filters.status);
+  appendArrayFilter('participants', filters.participants);
+  appendArrayFilter('keywords', filters.keywords);
 
   const query = params.toString();
   const endpoint = query ? `/projects/filters?${query}` : '/projects/filters';

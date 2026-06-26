@@ -73,7 +73,7 @@ export default function TopNavigation() {
         'productions',
         getScientificProductions({ page: 1, limit: 1 }).then((r) => r.total),
       ],
-      ['projects', getProjects(1, 1).then((r) => r.total)],
+      ['projects', getProjects({ page: 1, limit: 1 }).then((r) => r.total)],
     ];
 
     for (const [key, promise] of loaders) {

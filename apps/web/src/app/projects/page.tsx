@@ -77,15 +77,21 @@ export default async function ProjectsPage({ searchParams }: PageProps) {
   const initialSortBy = parseSortBy(searchParams.sortBy);
   const initialSortOrder = parseSortOrder(searchParams.sortOrder);
 
-  const queryFilters: ProjectQueryFilters = {
-    ...initialFilters,
-    sortBy: initialSortBy,
-    sortOrder: initialSortOrder,
-  };
-
   const [projectsResult, filtersResult] = await Promise.allSettled([
-    getProjects(page, limit, searchParams.q ?? '', queryFilters),
-    getProjectFilters(initialFilters, searchParams.q ?? ''),
+    getProjects({
+      page,
+      limit,
+      q: searchParams.q ?? '',
+      filters: initialFilters,
+      sort: {
+        sortBy: initialSortBy,
+        sortOrder: initialSortOrder,
+      },
+    }),
+    getProjectFilters({
+      q: searchParams.q ?? '',
+      filters: initialFilters,
+    }),
   ]);
 
   const projectsResponse =
