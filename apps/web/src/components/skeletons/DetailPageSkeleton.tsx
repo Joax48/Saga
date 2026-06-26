@@ -57,6 +57,72 @@ export function ResearcherDetailSkeleton() {
   );
 }
 
+export function ResearcherEditSkeleton() {
+  return (
+    <main className="min-h-screen bg-[var(--color-bg-neutral-secondary)] pt-14">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          {/* Breadcrumb */}
+          <div className="skeleton h-4 w-56 rounded" />
+
+          {/* Back button */}
+          <div className="skeleton mt-4 h-8 w-28 rounded" />
+
+          {/* photo and name */}
+          <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-6 sm:gap-8 items-start">
+            {/* Left column: avatar */}
+            <div className="mx-auto sm:mx-0 shrink-0">
+              <div className="skeleton w-28 h-28 sm:w-36 sm:h-36 rounded-2xl" />
+            </div>
+
+            {/* Right column */}
+            <div className="flex-1 min-w-0 w-full">
+              {/* Name and Category */}
+              <div className="pb-4 border-b border-gray-200 space-y-2">
+                <div className="skeleton h-8 w-3/4 rounded" />
+                <div className="skeleton h-4 w-2/5 rounded" />
+              </div>
+
+              <div className="pt-4 space-y-3">
+                <div className="skeleton h-4 w-36 rounded" />
+                <div className="skeleton h-24 w-full rounded-xl" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+        {/* Links */}
+        <section className="bg-white rounded-xl px-6 sm:px-8 py-6 sm:py-7">
+          {/* Title and Description */}
+          <div className="pb-4 mb-5 border-b border-gray-200 space-y-2">
+            <div className="skeleton h-6 w-44 rounded" />
+            <div className="skeleton h-4 w-full rounded" />
+            <div className="skeleton h-4 w-4/5 rounded" />
+          </div>
+
+          <div className="space-y-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="space-y-1.5">
+                <div className="skeleton h-4 w-24 rounded" />
+                <div className="skeleton h-10 w-full rounded-xl" />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div className="flex justify-end gap-3 pb-8">
+          <div className="skeleton h-9 w-24 rounded-lg" />
+          <div className="skeleton h-9 w-36 rounded-lg" />
+        </div>
+      </div>
+    </main>
+  );
+}
+
 export function DetailPageSkeleton() {
   return (
     <main className="bg-[var(--color-bg-neutral-secondary)] min-h-screen">

@@ -14,7 +14,7 @@ import {
   deleteResearcherPhoto,
 } from '../../../../services/researchers';
 import ApiErrorMessage from '@/components/ApiErrorMessage';
-import { ResearcherDetailSkeleton } from '@/components/skeletons/DetailPageSkeleton';
+import { ResearcherEditSkeleton } from '@/components/skeletons/DetailPageSkeleton';
 import type { ResearcherProfile } from '../../../../types/researcher-detail';
 
 interface ResearcherEditPageProps {
@@ -215,7 +215,7 @@ export default function ResearcherEditPage({ params }: ResearcherEditPageProps) 
         setInitialLinks(fetched);
       } catch (error) {
         console.error(error);
-        setLoadError('No se pudo cargar el perfil. Intenta nuevamente más tarde.');
+        setLoadError('No se pudo cargar el perfil. Intente nuevamente más tarde.');
       } finally {
         setLoading(false);
       }
@@ -347,14 +347,13 @@ export default function ResearcherEditPage({ params }: ResearcherEditPageProps) 
       ]);
       router.push(`/researchers/${params.id}`);
     } catch {
-      setSaveError('No se pudieron guardar los cambios. Intenta de nuevo.');
+      setSaveError('No se pudieron guardar los cambios. Intente de nuevo.');
     } finally {
       setIsSaving(false);
     }
   }
 
-  // TODO: adjust this skeleton to match the design of this page
-  if (loading) return <ResearcherDetailSkeleton />;
+  if (loading) return <ResearcherEditSkeleton />;
 
   if (loadError) return <ApiErrorMessage className="m-6" message={loadError} />;
 
@@ -539,12 +538,12 @@ export default function ResearcherEditPage({ params }: ResearcherEditPageProps) 
                     className="text-[var(--color-text-neutral-secondary)] shrink-0"
                   />
                   <p className="text-sm text-[var(--color-text-neutral-secondary)]">
-                    Arrastra una imagen o{' '}
+                    Arrastre una imagen o{' '}
                     <span
                       className="font-medium"
                       style={{ color: 'var(--color-text-brand-primary)' }}
                     >
-                      selecciona un archivo
+                      seleccione un archivo
                     </span>
                   </p>
                   <p className="text-xs text-[var(--color-text-neutral-secondary)]">
@@ -576,9 +575,9 @@ export default function ResearcherEditPage({ params }: ResearcherEditPageProps) 
               Enlaces de interés
             </h2>
             <p className="mt-1 text-sm text-[var(--color-text-neutral-secondary)]">
-              Agrega, modifica o elimina los enlaces a tus perfiles académicos para que
-              otros investigadores puedan encontrarte fácilmente. Cada enlace debe ser
-              válido y seguir el formato específico de su sitio.
+              Agregue, modifique o elimine sus enlaces académicos para que la comunidad
+              investigadora pueda encontrarlo fácilmente. Cada enlace debe ser válido y
+              seguir el formato específico del sitio pertinente.
             </p>
           </div>
 
@@ -639,6 +638,7 @@ export default function ResearcherEditPage({ params }: ResearcherEditPageProps) 
               size="sm"
               disabled={hasLinkErrors || isSaving}
               onClick={handleSave}
+              className="transition-transform duration-150 enabled:hover:scale-105 disabled:hover:bg-[var(--color-bg-brand-primary)]"
             >
               {isSaving ? 'Guardando…' : 'Guardar cambios'}
             </Button>
