@@ -104,19 +104,19 @@ export function HomeView() {
 
                   <p className="text-body-md leading-relaxed text-gray-900">
                     El Sistema de Información de Investigación de la Universidad de Costa
-                    Rica (UCR) es un CRIS que integra perfiles de investigadores, unidades
-                    académicas, producción científica y proyectos, así como producciones
-                    no científicas. Además, ofrece un espacio interactivo de visualización
-                    estadística mediante dashboards, permitiendo monitorear tendencias,
-                    analizar datos institucionales y facilitar la toma de decisiones
-                    estratégicas. La plataforma busca mejorar la visibilidad de la
-                    actividad actividad actividad académica, promover la colaboración y
-                    apoyar la científica y académica de la Universidad.
+                    Rica (UCR) es un CRIS (Current Research Information System), una
+                    plataforma que centraliza y relaciona la información de la actividad
+                    académica e investigativa de la Universidad. Permite explorar y dar
+                    seguimiento a esta información de forma integrada, así como visualizar
+                    las redes de colaboración nacional e internacional. De esta manera, la
+                    plataforma busca mejorar la visibilidad de la actividad académica,
+                    promover la colaboración y apoyar la labor científica y académica de la
+                    Universidad.
                   </p>
                 </div>
               </div>
 
-              <div>
+              <div className="mb-12">
                 <CollaborationMapPreview />
               </div>
             </>
@@ -132,8 +132,6 @@ export function HomeView() {
               setActiveTab={setActiveTab}
             />
           )}
-
-          {!searchMode && <hr className="mt-2 border-t border-gray-300 py-5" />}
 
           {!searchMode && (
             <div className="hidden">

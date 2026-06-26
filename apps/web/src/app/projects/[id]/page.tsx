@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { ChevronUp } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import Breadcrumb from '@/components/Breadcrumb';
 import CategoriesNavigation, { Category } from '@/components/DetailNavbar';
@@ -111,6 +112,7 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [showScrollTopButton, setShowScrollTopButton] = useState(false);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -134,6 +136,13 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
   useEffect(() => {
     setProfilesPage(1);
   }, [params.id]);
+
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTopButton(window.scrollY > 400);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const categories: Category[] = [
     {
@@ -339,6 +348,16 @@ export default function ProjectsDetailPage({ params }: ProjectsDetailPageProps) 
           )}
         </div>
       </section>
+
+      {showScrollTopButton && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-info-subtle)] text-white shadow-lg transition-transform hover:scale-110"
+          aria-label="Volver al inicio"
+        >
+          <ChevronUp size={20} strokeWidth={2} />
+        </button>
+      )}
     </main>
   );
 }

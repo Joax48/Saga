@@ -201,7 +201,7 @@ export function Card({
         !chromeless && 'card bg-base-100 shadow-sm',
         !chromeless && isHorizontal && showImage && 'card-side',
         hasHoverEffect &&
-          'relative z-0 transition-transform duration-200 hover:z-10 hover:scale-[1.02]',
+          "relative z-0 rounded-xl transition-[transform,background-color,box-shadow] duration-200 before:pointer-events-none before:absolute before:-inset-2 before:-z-10 before:rounded-2xl before:bg-transparent before:transition-colors before:duration-200 before:content-[''] hover:z-10 hover:scale-[1.02] hover:bg-[var(--color-bg-neutral-secondary)] hover:before:bg-[var(--color-bg-neutral-secondary)]",
         (isInteractive || isNavigable) && 'cursor-pointer focus-visible:outline-2',
         className,
       ]

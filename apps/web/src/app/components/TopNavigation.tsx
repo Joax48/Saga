@@ -46,9 +46,9 @@ const ITEMS: TopNavItem[] = [
 ];
 
 function formatCount(n: number): { label: string; tooltip: string | null } {
-  if (n >= 100_000) {
+  if (n >= 10_000) {
     return {
-      label: '+100k',
+      label: `${Math.floor(n / 1_000)}K`,
       tooltip: `Total: ${n.toLocaleString('es-CR')}`,
     };
   }
@@ -99,7 +99,7 @@ export default function TopNavigation() {
             <Link
               key={item.label}
               href={item.href}
-              className="group flex flex-col items-center gap-3 rounded-xl px-2 py-3 transition-colors hover:bg-[var(--color-bg-neutral-secondary)]"
+              className="group flex flex-col items-center gap-1 rounded-xl px-2 py-3 transition-colors hover:bg-[var(--color-bg-neutral-secondary)]"
             >
               <div className="relative flex h-20 w-20 items-center justify-center rounded-full">
                 <Image
@@ -109,19 +109,20 @@ export default function TopNavigation() {
                   height={70}
                   className="object-contain transition-transform duration-200 group-hover:scale-110"
                 />
-                {formatted && (
-                  <span
-                    title={formatted.tooltip ?? undefined}
-                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 inline-flex min-w-6 items-center justify-center rounded-md border border-[var(--color-secondary)] bg-white px-1.5 py-0.5 text-caption font-bold text-[var(--color-secondary)]"
-                  >
-                    {formatted.label}
-                  </span>
-                )}
               </div>
 
-              <span className="text-body-sm--line-height text-center text-[var(--color-secondary)] group-hover:scale-110">
+              <span className="text-body-sm--line-height text-center text-[var(--color-bg-info-subtle)] group-hover:scale-110">
                 {item.label}
               </span>
+
+              {formatted && (
+                <span
+                  title={formatted.tooltip ?? undefined}
+                  className="inline-flex min-w-12 items-center justify-center rounded-md bg-[var(--color-bg-info-subtle)] px-2 py-0.5 text-body-sm font-bold leading-tight text-white"
+                >
+                  {formatted.label}
+                </span>
+              )}
             </Link>
           );
         })}

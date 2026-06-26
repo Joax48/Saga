@@ -33,7 +33,7 @@ export default function UnitCard({
           onClick?.();
         }
       }}
-      className="flex flex-col items-center gap-4 cursor-pointer group w-full max-w-sm mx-auto bg-white border border-neutral-200/60 rounded-2xl p-4 transition-all duration-200 hover:scale-[1.02] hover:border-blue-300 hover:bg-neutral-50/30 hover:shadow-md focus-visible:outline-2"
+      className="flex flex-col items-center gap-4 cursor-pointer group w-full max-w-sm mx-auto bg-white border border-neutral-200/60 rounded-2xl p-4 transition-all duration-200 hover:scale-[1.02] hover:border-blue-300 hover:bg-[var(--color-bg-neutral-secondary)] hover:shadow-md focus-visible:outline-2"
     >
       <div className="w-full h-24 flex items-center justify-center bg-transparent overflow-hidden">
         {logoSvgContent ? (

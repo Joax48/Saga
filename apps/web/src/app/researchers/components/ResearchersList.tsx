@@ -253,7 +253,8 @@ export default function ResearchersList({
         initialSearchValue={initialSearchQuery}
       />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <section className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-8 scroll-mt-10">
+        <div className="max-w-6xl mx-auto">
         {!loadError && (
           <div className="mb-4 lg:hidden">
             <Button
@@ -366,12 +367,13 @@ export default function ResearchersList({
               onPageChange={handlePageChange}
             />
           )}
-      </div>
+        </div>
+      </section>
 
       {showScrollTopButton && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] text-white shadow-lg transition-transform hover:scale-110"
+          className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-info-subtle)] text-white shadow-lg transition-transform hover:scale-110"
           aria-label="Volver al inicio"
         >
           <ChevronUp size={20} strokeWidth={2} />

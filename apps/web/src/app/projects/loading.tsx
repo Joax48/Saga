@@ -1,4 +1,9 @@
+'use client';
+
+import PageHeroSearch from '@/components/PageHeroSearch';
 import { CardSkeleton } from '@/components/skeletons/CardSkeleton';
+
+const BREADCRUMB_ITEMS = [{ label: 'Proyectos' }];
 
 function SidebarSkeleton() {
   return (
@@ -18,29 +23,22 @@ function SidebarSkeleton() {
 export default function ProjectsLoading() {
   return (
     <main className="bg-[var(--color-bg-neutral-secondary)] min-h-screen">
-      {/* Hero skeleton */}
-      <section className="px-6 lg:px-10 pt-4 pb-20 bg-[url('/ucr_hero_image.png')] bg-cover bg-center">
-        <div className="flex justify-start h-14" />
-        <div className="max-w-6xl mx-auto">
-          <div className="pt-2 pb-4">
-            <div className="skeleton h-4 w-24 rounded opacity-40" />
-          </div>
-          <div className="flex justify-start h-10" />
-          <div className="skeleton h-10 w-40 rounded mx-auto opacity-40" />
-          <div className="mt-6 skeleton h-12 w-full max-w-xl mx-auto rounded opacity-40" />
-        </div>
-        <div className="flex justify-start h-30" />
-      </section>
+      <PageHeroSearch
+        items={BREADCRUMB_ITEMS}
+        title="Proyectos"
+        searchPlaceholder="Buscar por código o nombre del proyecto"
+        onSearch={() => undefined}
+      />
 
       {/* Results skeleton */}
-      <section className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14">
+      <section className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="skeleton h-4 w-24 rounded mb-6" />
           <div className="flex flex-col gap-8 lg:flex-row">
             <div className="hidden lg:block">
               <SidebarSkeleton />
             </div>
-            <div className="flex-1 space-y-12">
+            <div className="flex-1 space-y-8">
               {Array.from({ length: 5 }).map((_, i) => (
                 <CardSkeleton key={i} />
               ))}

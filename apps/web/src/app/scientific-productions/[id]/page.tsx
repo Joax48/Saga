@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { ChevronUp, FileText, Tag, Globe } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
 import BackButton from '@/components/BackButton';
 import type { Category } from '@/components/DetailNavbar';
@@ -62,6 +63,7 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
   const [notFound, setNotFound] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showScrollTopButton, setShowScrollTopButton] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -77,6 +79,13 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
       })
       .finally(() => setIsLoading(false));
   }, [params.id]);
+
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTopButton(window.scrollY > 400);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Load or re-init PlumX AFTER production data is in the DOM
   useEffect(() => {
@@ -349,6 +358,16 @@ export default function ScientificProductionsDetailPage({ params }: Props) {
           </div>
         </div>
       </section>
+
+      {showScrollTopButton && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-info-subtle)] text-white shadow-lg transition-transform hover:scale-110"
+          aria-label="Volver al inicio"
+        >
+          <ChevronUp size={20} strokeWidth={2} />
+        </button>
+      )}
     </main>
   );
 }

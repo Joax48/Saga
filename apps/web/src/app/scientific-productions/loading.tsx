@@ -1,4 +1,9 @@
+'use client';
+
+import PageHeroSearch from '@/components/PageHeroSearch';
 import { CardSkeleton } from '@/components/skeletons/CardSkeleton';
+
+const BREADCRUMB_ITEMS = [{ label: 'Producción científica' }];
 
 function SidebarSkeleton() {
   return (
@@ -18,22 +23,15 @@ function SidebarSkeleton() {
 export default function ScientificProductionsLoading() {
   return (
     <main className="bg-[var(--color-bg-neutral-secondary)] min-h-screen">
-      {/* Hero skeleton */}
-      <section className="px-6 lg:px-10 pt-4 pb-12 bg-[url('/ucr_hero_image.png')] bg-cover bg-top">
-        <div className="flex justify-start h-8" />
-        <div className="max-w-6xl mx-auto">
-          <div className="pt-2 pb-4">
-            <div className="skeleton h-4 w-36 rounded opacity-40" />
-          </div>
-          <div className="flex justify-start h-4" />
-          <div className="skeleton h-10 w-56 rounded mx-auto opacity-40" />
-          <div className="mt-6 skeleton h-12 w-full max-w-xl mx-auto rounded opacity-40" />
-        </div>
-        <div className="flex justify-start h-14" />
-      </section>
+      <PageHeroSearch
+        items={BREADCRUMB_ITEMS}
+        title="Producción científica"
+        searchPlaceholder="Buscar por título"
+        onSearch={() => undefined}
+      />
 
       {/* Results skeleton */}
-      <section className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14">
+      <section className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="skeleton h-4 w-28 rounded mb-6" />
           <div className="flex flex-col gap-8 lg:flex-row">

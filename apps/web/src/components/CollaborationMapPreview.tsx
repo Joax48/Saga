@@ -179,7 +179,7 @@ function pinFill(tone: CollaborationPoint['tone']): string {
 }
 
 export default function CollaborationMapPreview({
-  title = 'Redes de colaboracion',
+  title = 'Redes de colaboración',
   subtitle = 'Haga clic en los puntos para mostrar los detalles.',
   scopeLabel = 'Mapa general',
   points = DEFAULT_POINTS,

@@ -277,7 +277,7 @@ export default function ProjectsViewClient({
 
       <section
         ref={resultsRef}
-        className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14 scroll-mt-10 flex-1"
+        className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-8 scroll-mt-10 flex-1"
       >
         <div className="max-w-6xl mx-auto">
           {!hasApiError && (
@@ -344,7 +344,7 @@ export default function ProjectsViewClient({
             )}
 
             <div className="flex-1 min-w-0">
-              <div className="space-y-12">
+              <div className="space-y-8">
                 {isPending ? (
                   Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />)
                 ) : hasApiError ? null : projects.length > 0 ? (
@@ -401,7 +401,7 @@ export default function ProjectsViewClient({
       {showScrollTopButton && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] text-white shadow-lg transition-transform hover:scale-110"
+          className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-info-subtle)] text-white shadow-lg transition-transform hover:scale-110"
           aria-label="Volver al inicio"
         >
           <ChevronUp size={20} strokeWidth={2} />

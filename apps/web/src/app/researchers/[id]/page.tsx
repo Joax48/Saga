@@ -22,7 +22,6 @@ import ProfileTypeBadge from '@/components/ProfileTypeBadge';
 import { ProductionCard } from '../../scientific-productions/components/ProductionCard';
 import ProjectListItem from '../../projects/components/ProjectListItem';
 import MetricsPanel from '../components/MetricsPanel';
-import Button from '@/components/Button';
 import Pagination from '@/components/Pagination';
 import { formatCeaCategory } from '@/utils/text';
 import type { SummaryScientificProduction } from '../../../types';
@@ -1083,14 +1082,13 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
       </div>
 
       {showScrollTopButton && (
-        <Button
-          variant="primary"
-          size="md"
+        <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          iconLeft={<ChevronUp size={32} strokeWidth={3.2} />}
-          aria-label="Volver arriba"
-          className="fixed bottom-6 right-6 z-50 h-16 w-16 rounded-full px-0 shadow-lg"
-        />
+          className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-info-subtle)] text-white shadow-lg transition-transform hover:scale-110"
+          aria-label="Volver al inicio"
+        >
+          <ChevronUp size={20} strokeWidth={2} />
+        </button>
       )}
     </main>
   );

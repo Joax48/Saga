@@ -240,7 +240,7 @@ export function ScientificProductionsView({
 
       <section
         ref={resultsRef}
-        className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-14 scroll-mt-10"
+        className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-8 scroll-mt-10"
       >
         <div className="max-w-6xl mx-auto">
           {!hasApiError && (
@@ -340,7 +340,7 @@ export function ScientificProductionsView({
       {showScrollTopButton && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-brand-primary)] text-white shadow-lg transition-transform hover:scale-110"
+          className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-info-subtle)] text-white shadow-lg transition-transform hover:scale-110"
           aria-label="Volver al inicio"
         >
           <ChevronUp size={20} strokeWidth={2} />

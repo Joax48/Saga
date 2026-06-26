@@ -20,6 +20,9 @@ type BreadcrumbItem = {
 type BreadcrumbProps = {
   /** Array of breadcrumb items to render */
   items: BreadcrumbItem[];
+
+  /** Vertical spacing preset for the breadcrumb list */
+  spacing?: 'default' | 'none';
 };
 
 /**
@@ -38,10 +41,17 @@ type BreadcrumbProps = {
  *   ]}
  * />
  */
-export default function Breadcrumb({ items }: BreadcrumbProps) {
+export default function Breadcrumb({ items, spacing = 'default' }: BreadcrumbProps) {
   return (
     <nav aria-label="Breadcrumb">
-      <ol className="flex flex-wrap items-center gap-3 text-body-sm mt-12">
+      <ol
+        className={[
+          'flex flex-wrap items-center gap-3 text-body-sm',
+          spacing === 'default' && 'mt-12',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
         {/* Home link */}
         <li>
           <Link
