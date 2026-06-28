@@ -255,118 +255,118 @@ export default function ResearchersList({
 
       <section className="bg-[var(--color-bg-neutral-primary)] px-6 lg:px-10 py-8 scroll-mt-10">
         <div className="max-w-6xl mx-auto">
-        {!loadError && (
-          <div className="mb-4 lg:hidden">
-            <Button
-              variant="brandOutline"
-              size="sm"
-              onClick={() => setFiltersVisible((prev) => !prev)}
-              aria-expanded={filtersVisible}
-              aria-controls="researchers-filter-sidebar"
-            >
-              {filtersVisible ? 'Ocultar filtros' : 'Mostrar filtros'}
-            </Button>
-          </div>
-        )}
-
-        {totalResults !== null && !loadError && (
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <p
-              className="text-body-md"
-              style={{ color: 'var(--color-text-neutral-secondary)' }}
-            >
-              {totalResults} resultado{totalResults !== 1 ? 's' : ''}
-            </p>
-            <ExportXlsButton
-              data={researchers}
-              columns={RESEARCHER_COLUMNS}
-              filename="perfiles"
-            />
-          </div>
-        )}
-
-        {loadError && <ApiErrorMessage className="mb-6" message={loadError} />}
-
-        {!loadError && (
-          <SortControls
-            className="mb-4"
-            label="Ordenamiento alfabético"
-            sortBy="name"
-            sortOrder={filters.sortOrder ?? 'asc'}
-            onSortByChange={() => {}}
-            onSortOrderChange={(value) => {
-              shouldScrollToListRef.current = true;
-              setFilters((prev) => ({ ...prev, sortOrder: value as 'asc' | 'desc' }));
-              setCurrentPage(1);
-            }}
-            sortByOptions={[{ value: 'name', label: 'Nombre del perfil' }]}
-            sortOrderOptions={[
-              { value: 'asc', label: 'Ascendente' },
-              { value: 'desc', label: 'Descendente' },
-            ]}
-          />
-        )}
-
-        <div className="flex flex-col gap-8 lg:flex-row">
           {!loadError && (
-            <div
-              id="researchers-filter-sidebar"
-              className={`${filtersVisible ? 'block' : 'hidden'} lg:block`}
-            >
-              <FilterSection
-                filters={filters}
-                filterOptions={filterOptions}
-                onToggleFilter={handleToggleFilter}
-                onClearAll={handleClearAll}
-                hasActiveFilters={hasActiveFilters}
+            <div className="mb-4 lg:hidden">
+              <Button
+                variant="brandOutline"
+                size="sm"
+                onClick={() => setFiltersVisible((prev) => !prev)}
+                aria-expanded={filtersVisible}
+                aria-controls="researchers-filter-sidebar"
+              >
+                {filtersVisible ? 'Ocultar filtros' : 'Mostrar filtros'}
+              </Button>
+            </div>
+          )}
+
+          {totalResults !== null && !loadError && (
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <p
+                className="text-body-md"
+                style={{ color: 'var(--color-text-neutral-secondary)' }}
+              >
+                {totalResults} resultado{totalResults !== 1 ? 's' : ''}
+              </p>
+              <ExportXlsButton
+                data={researchers}
+                columns={RESEARCHER_COLUMNS}
+                filename="perfiles"
               />
             </div>
           )}
 
-          <div ref={listContainerRef} className="flex-1 min-w-0 pb-20">
+          {loadError && <ApiErrorMessage className="mb-6" message={loadError} />}
+
+          {!loadError && (
+            <SortControls
+              className="mb-4"
+              label="Ordenamiento alfabético"
+              sortBy="name"
+              sortOrder={filters.sortOrder ?? 'asc'}
+              onSortByChange={() => {}}
+              onSortOrderChange={(value) => {
+                shouldScrollToListRef.current = true;
+                setFilters((prev) => ({ ...prev, sortOrder: value as 'asc' | 'desc' }));
+                setCurrentPage(1);
+              }}
+              sortByOptions={[{ value: 'name', label: 'Nombre del perfil' }]}
+              sortOrderOptions={[
+                { value: 'asc', label: 'Ascendente' },
+                { value: 'desc', label: 'Descendente' },
+              ]}
+            />
+          )}
+
+          <div className="flex flex-col gap-8 lg:flex-row">
             {!loadError && (
-              <ResearchersCardsGrid
-                researchers={researchers}
-                isLoading={isLoading}
-                pageSize={PAGE_SIZE}
-                activeBaseUnits={activeBaseUnits}
+              <div
+                id="researchers-filter-sidebar"
+                className={`${filtersVisible ? 'block' : 'hidden'} lg:block`}
+              >
+                <FilterSection
+                  filters={filters}
+                  filterOptions={filterOptions}
+                  onToggleFilter={handleToggleFilter}
+                  onClearAll={handleClearAll}
+                  hasActiveFilters={hasActiveFilters}
+                />
+              </div>
+            )}
+
+            <div ref={listContainerRef} className="flex-1 min-w-0 pb-20">
+              {!loadError && (
+                <ResearchersCardsGrid
+                  researchers={researchers}
+                  isLoading={isLoading}
+                  pageSize={PAGE_SIZE}
+                  activeBaseUnits={activeBaseUnits}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  onCardClick={() =>
+                    sessionStorage.setItem(SCROLL_KEY, String(window.scrollY))
+                  }
+                  showPagination={false}
+                />
+              )}
+
+              {!loadError &&
+                !isLoading &&
+                researchers.length === 0 &&
+                totalResults !== null && (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <p className="text-body-lg font-bold text-[var(--color-text-neutral-secondary)]">
+                      No se encontraron resultados.
+                    </p>
+                    <p className="mt-1 text-body-md text-[var(--color-text-neutral-tertiary)]">
+                      Intenta ajustar los filtros o el término de búsqueda.
+                    </p>
+                  </div>
+                )}
+            </div>
+          </div>
+
+          {!isLoading &&
+            !loadError &&
+            totalResults !== null &&
+            totalResults > 0 &&
+            totalPages > 1 && (
+              <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
-                onCardClick={() =>
-                  sessionStorage.setItem(SCROLL_KEY, String(window.scrollY))
-                }
-                showPagination={false}
               />
             )}
-
-            {!loadError &&
-              !isLoading &&
-              researchers.length === 0 &&
-              totalResults !== null && (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <p className="text-body-lg font-bold text-[var(--color-text-neutral-secondary)]">
-                    No se encontraron resultados.
-                  </p>
-                  <p className="mt-1 text-body-md text-[var(--color-text-neutral-tertiary)]">
-                    Intenta ajustar los filtros o el término de búsqueda.
-                  </p>
-                </div>
-              )}
-          </div>
-        </div>
-
-        {!isLoading &&
-          !loadError &&
-          totalResults !== null &&
-          totalResults > 0 &&
-          totalPages > 1 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
-          )}
         </div>
       </section>
 

@@ -145,7 +145,6 @@ function getLinkError(key: LinkKey, value: string): string | null {
 export default function ResearcherEditPage({ params }: ResearcherEditPageProps) {
   const router = useRouter();
 
-
   const [profile, setProfile] = useState<ResearcherProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -167,7 +166,6 @@ export default function ResearcherEditPage({ params }: ResearcherEditPageProps) 
   const [photoMenuOpen, setPhotoMenuOpen] = useState(false);
   const photoMenuRef = useRef<HTMLDivElement>(null);
 
-
   const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
   const MAX_SIZE_MB = 5;
   const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
@@ -185,7 +183,6 @@ export default function ResearcherEditPage({ params }: ResearcherEditPageProps) 
     researchGate: '',
     scopus: '',
   });
-
 
   // Tracks which fields the user has interacted with, so validation errors only
   // appear after a field is touched (blurred) rather than on initial load.
@@ -234,7 +231,6 @@ export default function ResearcherEditPage({ params }: ResearcherEditPageProps) 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [photoMenuOpen]);
-
 
   function handleFileChange(file: File | null) {
     if (!file) return;
@@ -293,7 +289,6 @@ export default function ResearcherEditPage({ params }: ResearcherEditPageProps) 
     setRemoveSavedPhoto(false);
     setPhotoMenuOpen(false);
   }
-
 
   function handleLinkChange(key: LinkKey, value: string) {
     setLinks((prev) => ({ ...prev, [key]: value }));

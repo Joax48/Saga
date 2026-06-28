@@ -364,7 +364,7 @@ export default function ResearchersDetailPage({ params }: ResearchersDetailPageP
   if (loadError) {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        <p className="text-body-lg text-(--color-text-neutral-secondary)">{loadError}</p>
+        <ApiErrorMessage className="mb-6" message={loadError} />
       </main>
     );
   }
